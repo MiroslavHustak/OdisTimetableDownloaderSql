@@ -1,0 +1,43 @@
+﻿USE TimetableDownloader;
+GO
+
+DROP TABLE TimetableLinks;
+GO
+
+CREATE TABLE TimetableLinks
+(       
+    OldPrefix NVARCHAR(50),
+	NewPrefix NVARCHAR(50),
+    StartDate DATE,
+    EndDate DATE,
+    TotalDateInterval NVARCHAR(50),
+    VT_Suffix NVARCHAR(50),
+    JS_GeneratedString NVARCHAR(50),
+    CompleteLink NVARCHAR(100) NOT NULL,
+    FileToBeSaved NVARCHAR(100)    
+);
+
+
+CREATE FUNCTION dbo.ITVF_GetLinksCurrentValidity ()   
+RETURNS TABLE
+AS
+RETURN 
+(
+    SELECT NewPrefix, StartDate, CompleteLink, FileToBeSaved, MaxRow
+    FROM
+	(
+        SELECT NewPrefix, StartDate, EndDate, CompleteLink, FileToBeSaved,
+		ROW_NUMBER() OVER (PARTITION BY NewPrefix ORDER BY StartDate DESC) AS MaxRow
+        FROM TimetableLinks
+		WHERE 	    
+        ((StartDate <= FORMAT(GETDATE(), 'yyyy-MM-dd') AND EndDate >= FORMAT(GETDATE(), 'yyyy-MM-dd'))
+        OR
+        (StartDate = FORMAT(GETDATE(), 'yyyy-MM-dd') AND EndDate = FORMAT(GETDATE(), 'yyyy-MM-dd')))
+    ) AS myDerivedTable
+    WHERE MaxRow = 1     
+);
+
+
+SELECT *
+FROM dbo.ITVF_GetLinksCurrentValidity () 
+ORDER BY FileToBeSaved;

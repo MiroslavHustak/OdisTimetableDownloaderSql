@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "OdisTimetableDownloaderSql", "OdisTimetableDownloaderSql\OdisTimetableDownloaderSql.fsproj", "{24FC6750-DBA2-4385-96F3-C84192F5C3FA}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DialogWindows", "DialogWindows\DialogWindows.fsproj", "{599129C1-4683-4E74-81A8-D9B9DC0B94F1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{24FC6750-DBA2-4385-96F3-C84192F5C3FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24FC6750-DBA2-4385-96F3-C84192F5C3FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24FC6750-DBA2-4385-96F3-C84192F5C3FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24FC6750-DBA2-4385-96F3-C84192F5C3FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{599129C1-4683-4E74-81A8-D9B9DC0B94F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{599129C1-4683-4E74-81A8-D9B9DC0B94F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{599129C1-4683-4E74-81A8-D9B9DC0B94F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{599129C1-4683-4E74-81A8-D9B9DC0B94F1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3D337A24-216D-42F5-BC6F-BAD8F9A080E5}
+	EndGlobalSection
+EndGlobal
