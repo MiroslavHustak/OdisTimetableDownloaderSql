@@ -58,83 +58,66 @@ let private closeConnection (connection: SqlConnection) =
 
 //************************Main code***********************************************************
 
-let internal callITVFCurrentValidity getConnection closeConnection pathToDir =
+let internal callITVF getConnection closeConnection pathToDir query =
     
     try
         let connection: SqlConnection = getConnection()
                  
         try  
-            use cmdCallFunction = new SqlCommand("SELECT * FROM dbo.ITVF_GetLinksCurrentValidity()", connection)          
+            use cmdCallFunction = new SqlCommand(query, connection)          
             
             let reader = cmdCallFunction.ExecuteReader() 
-                                                                    
+            
+            //V pripade pouziti Oracle zkontroluj skutecny typ sloupce v .NET   
+            //let columnType = reader.GetFieldType(reader.GetOrdinal("OperatorID"))
+            //printfn "Column Type: %s" columnType.Name
+
             Seq.initInfinite (fun _ -> reader.Read() && reader.HasRows = true)
             |> Seq.takeWhile ((=) true) 
             |> Seq.collect
-                (fun _ ->
-                        //V pripade pouziti Oracle zkontroluj skutecny typ sloupce v .NET   
-
-                        //Jen pro overeni 
-                        //let columnType = reader.GetFieldType(reader.GetOrdinal("OperatorID"))
-                        //printfn "Column Type: %s" columnType.Name
-                                                         
-                        seq 
-                            {      
-                                (
-                                    Casting.castAs<string> reader.["CompleteLink"],                                                                               
-                                    Casting.castAs<string> reader.["FileToBeSaved"]
-                                )
-                            } 
-                ) 
-                |> List.ofSeq  
-                |> List.map 
-                    (fun (link, file) ->
-                        match (link, file) with
-                        | Some link, Some file -> Some (link, file)
-                        | _                    -> None
-                    )
-                |> List.choose id
-                |> List.map
-                    (fun (link, file) ->   
-                                       let link = 
-                                           match link.Contains("_t") with 
-                                           | true  -> link.Replace("_t", @"timetables/") 
-                                           | false -> link   
-
-                                       let path =                                         
-                                            let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
-                                                match param.GetType() with
-                                                | typ when typ = typeof<int>    -> IntType   
-                                                | typ when typ = typeof<string> -> StringType  
-                                                | _                             -> OtherType                                                      
-                                            //C:\Users\User\Music\JR_ODIS_aktualni_vcetne_vyluk
-                                            //https://kodis-files.s3.eu-central-1.amazonaws.com/S34_2023_12_10_2024_12_14_33b9461979.pdf
-                                            let pathToDir = sprintf "%s%s" pathToDir file
-                                            match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
-                                            | true ->     
-                                              
-                                                    true
-                                                    |> function
-                                                        | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                        | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                        | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
-                                                        | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
-                                                        | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
-                                                        | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
-                                                        | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
-                                                        | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
-                                                        | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
-                                                        | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
-                                                        | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                        | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                        | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                        | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                        | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)    
+                (fun _ -> seq { (Casting.castAs<string> reader.["CompleteLink"], Casting.castAs<string> reader.["FileToBeSaved"]) }) 
+            |> List.ofSeq  
+            |> List.map 
+                (fun (link, file) ->
+                                   match (link, file) with
+                                   | Some link, Some file -> Some (link, file)
+                                   | _                    -> None
+                )
+            |> List.choose id
+            |> List.map
+                (fun (link, file) -> //let [<Literal>] internal pathKodisAmazonLink = @"https://kodis-files.s3.eu-central-1.amazonaws.com/" 
+                                   let path =                                         
+                                       let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
+                                           match param.GetType() with
+                                           | typ when typ = typeof<int>    -> IntType   
+                                           | typ when typ = typeof<string> -> StringType  
+                                           | _                             -> OtherType                                                      
+                                            
+                                       let pathToDir = sprintf "%s\\%s" pathToDir file
+                                       match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
+                                       | true ->   
+                                               true
+                                               |> function
+                                                   | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                                   | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                                   | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
+                                                   | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
+                                                   | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
+                                                   | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
+                                                   | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
+                                                   | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
+                                                   | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
+                                                   | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
+                                                   | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                                   | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                                   | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                                   | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                                   | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)    
                                                        
-                                            | _    -> 
-                                                    pathToDir    
-                                       link, path 
-                  )          
+                                       | _    -> 
+                                               pathToDir    
+                                   link, path 
+                )          
         finally
             closeConnection connection
     with
@@ -175,6 +158,8 @@ let private insertIntoDictionary getConnection closeConnection list =
                 let parameterEnd = new SqlParameter() 
                 parameterEnd.ParameterName <- "@EndDate"  
                 parameterEnd.SqlDbType <- SqlDbType.Date  
+
+                cmdDeleteAll.ExecuteNonQuery() |> ignore //number of affected rows
                 
                 list      
                 |> List.iter
@@ -391,12 +376,13 @@ let private digThroughJsonStructure message = //prohrabeme se strukturou json so
     let addOn () = 
         [
             //pro pripad, kdyby KODIS strcil odkazy do uplne jinak strukturovaneho jsonu, tudiz by neslo pouzit dany type provider, anebo kdyz je vubec do jsonu neda (nize uvedene odkazy)
-            @"https://kodis-files.s3.eu-central-1.amazonaws.com/76_2023_10_09_2023_10_20_v_f2b77c8fad.pdf"
-            @"https://kodis-files.s3.eu-central-1.amazonaws.com/64_2023_10_09_2023_10_20_v_02e6717b5c.pdf"              
+            //@"https://kodis-files.s3.eu-central-1.amazonaws.com/76_2023_10_09_2023_10_20_v_f2b77c8fad.pdf"
+            //@"https://kodis-files.s3.eu-central-1.amazonaws.com/64_2023_10_09_2023_10_20_v_02e6717b5c.pdf" 
+            //@"https://kodis-files.s3.eu-central-1.amazonaws.com/timetables/119_2024_03_03_2024_12_09.pdf"               
         ] |> List.toArray 
    
-    (Array.append (Array.append <| kodisAttachments pathToJsonList <| kodisTimetables pathToJsonList) <| addOn()) |> Set.ofArray  
-    //(Array.append <| kodisAttachments () <| kodisTimetables ()) |> Set.ofArray //jen z vyukovych duvodu -> konverzi na Set vyhodime stejne polozky, jinak staci jen |> Array.distinct 
+    (Array.append (Array.append <| kodisAttachments pathToJsonList <| kodisTimetables pathToJsonList) <| addOn()) |> Array.distinct 
+    //(Array.append <| kodisAttachments () <| kodisTimetables ()) |> Array.distinct 
 
     //kodisAttachments() |> Set.ofArray //over cas od casu
     //kodisTimetables() |> Set.ofArray //over cas od casu
@@ -413,24 +399,7 @@ let private filterTimetables message param (pathToDir: string) diggingResult =
         
         match matchResult.Success with
         | true  -> input //matchResult.Value
-        | false -> String.Empty
-        
-    let myList0 = 
-        diggingResult 
-        |> Set.toArray
-        |> Array.Parallel.map 
-            (fun item -> 
-                       let item = extractSubstring item                       
-                       match item.Contains @"timetables/" with
-                       | true  -> item.Replace("timetables/", String.Empty).Replace(".pdf", "_t.pdf")
-                       | false -> item  
-            )  
-        |> Array.filter
-            (fun item -> 
-                       let cond1 = (item |> Option.ofStringObjXXL).IsSome
-                       let cond2 = item |> Option.ofNull |> Option.ofStringOption |> Option.toBool //for learning purposes - compare with (not String.IsNullOrEmpty(item))
-                       cond1 && cond2 
-            )     
+        | false -> String.Empty 
         
     let extractSubstring1 (input: string) =
 
@@ -550,91 +519,42 @@ let private filterTimetables message param (pathToDir: string) diggingResult =
                      | 3  -> sprintf "0%s" oldPrefix                  
                      | _  -> oldPrefix
 
+        let input = 
+            match input.Contains("_t") with 
+            | true  -> input.Replace(pathKodisAmazonLink, sprintf"%s%s" pathKodisAmazonLink @"timetables/").Replace("_t.pdf", ".pdf") 
+            | false -> input   
         let fileToBeSaved = 
             sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
             
         [oldPrefix; newPrefix oldPrefix; extractStartDate totalDateInterval; extractEndDate totalDateInterval; totalDateInterval; suffix; jsGeneratedString; input; fileToBeSaved] 
-    
+        
     let myList1 =           
-        myList0
+        diggingResult       
+        |> Array.Parallel.map 
+            (fun item -> 
+                       let item = extractSubstring item      //"https://kodis-files.s3.eu-central-1.amazonaws.com/timetables/2_2023_03_13_2023_12_09.pdf                 
+                       match item.Contains @"timetables/" with
+                       | true  -> item.Replace("timetables/", String.Empty).Replace(".pdf", "_t.pdf")
+                       | false -> item  
+            )  
         |> Array.toList
-        |> List.sort //je quli testovani
+        |> List.sort //jen quli testovani
         |> List.filter
             (fun item -> 
                        let cond1 = (item |> Option.ofStringObjXXL).IsSome
                        let cond2 = item |> Option.ofNull |> Option.ofStringOption |> Option.toBool //for learning purposes - compare with (not String.IsNullOrEmpty(item))
                        cond1 && cond2 
-            ) 
-        
-        |> List.map
-            (fun item ->                        
-                       splitKodisLink item                             
-            )   
+            )         
+        |> List.map (fun item -> splitKodisLink item)   
         
     insertIntoDictionary getConnection closeConnection myList1
 
     match param with 
-    | CurrentValidity           ->  
-                                 callITVFCurrentValidity getConnection closeConnection pathToDir
-
-    | FutureValidity            -> 
-                                 [("", "")]
-
-    | ReplacementService        -> 
-                                 [("", "")]
-
-    | WithoutReplacementService ->
-                                 [("", "")]      
+    | CurrentValidity           -> "SELECT * FROM dbo.ITVF_GetLinksCurrentValidity()" |> callITVF getConnection closeConnection pathToDir
+    | FutureValidity            -> "SELECT * FROM dbo.ITVF_GetLinksFutureValidity()" |> callITVF getConnection closeConnection pathToDir
+    | ReplacementService        -> "SELECT * FROM dbo.ITVF_GetLinksReplacementService()" |> callITVF getConnection closeConnection pathToDir    
+    | WithoutReplacementService -> "SELECT * FROM dbo.ITVF_GetLinksWithoutReplacementService()" |> callITVF getConnection closeConnection pathToDir  
  
-        
-        (*
-            let dateValidityStart x = new DateTime(List.item 0 (a x), List.item 1 (a x), List.item 2 (a x))                                                                                       
-            let dateValidityEnd x = new DateTime(List.item 3 (a x), List.item 4 (a x), List.item 5 (a x)) 
-                                                                                
-            //Code with Fugit.now() will be comparing the current date and time, including the precise time down to the second,
-            //that is why only Fugit.today() shall be used.
-            match param with 
-            | CurrentValidity           ->  
-                                        ((dateValidityStart x |> Fugit.isBeforeOrEqual currentTime 
-                                        && 
-                                        dateValidityEnd x |> Fugit.isAfterOrEqual currentTime)
-                                        ||
-                                        ((dateValidityStart x).Equals(currentTime) 
-                                        && 
-                                        (dateValidityEnd x).Equals(currentTime)))
-
-            | FutureValidity            -> 
-                                        dateValidityStart x |> Fugit.isAfter currentTime
-
-            | ReplacementService        -> 
-                                        ((dateValidityStart x |> Fugit.isBeforeOrEqual currentTime 
-                                        && 
-                                        dateValidityEnd x |> Fugit.isAfterOrEqual currentTime)
-                                        ||
-                                        ((dateValidityStart x).Equals(currentTime) 
-                                        && 
-                                        (dateValidityEnd x).Equals(currentTime)))
-                                        &&
-                                        (fileNameFull.Contains("_v") 
-                                        || fileNameFull.Contains("X")
-                                        || fileNameFull.Contains("NAD"))
-
-            | WithoutReplacementService ->
-                                        ((dateValidityStart x |> Fugit.isBeforeOrEqual currentTime 
-                                        && 
-                                        dateValidityEnd x |> Fugit.isAfterOrEqual currentTime)
-                                        ||
-                                        ((dateValidityStart x).Equals(currentTime) 
-                                        && 
-                                        (dateValidityEnd x).Equals(currentTime)))
-                                        &&
-                                        (not <| fileNameFull.Contains("_v") 
-                                        && not <| fileNameFull.Contains("X")
-                                        && not <| fileNameFull.Contains("NAD"))
-                                                            
-            *)
-               
-        
 let internal deleteAllODISDirectories message pathToDir = 
 
     let deleteIt : Reader<string list, unit> = 
@@ -742,7 +662,7 @@ let internal createFolders message dirList =
                                                       Directory.CreateDirectory(dir) |> ignore
                                            )           
                                | _    -> 
-                                       Directory.CreateDirectory(dir) |> ignore           
+                                       Directory.CreateDirectory(sprintf "%s" dir) |> ignore           
            )  
               
    tryWith2 (lazy ()) myFolderCreation           
@@ -837,7 +757,7 @@ let internal downloadAndSave message variant dir =
                                  value
                      | Error _  -> 
                                  closeItBaby message message.msg16 
-                                 Set.empty 
+                                 [||]
                                  
              let filterTimetables = 
                  tryWith2 (lazy ()) (filterTimetables message variant dir digThroughJsonStructure)           
