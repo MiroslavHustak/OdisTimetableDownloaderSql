@@ -5,7 +5,6 @@ open Microsoft.Data.SqlClient
 open ErrorHandling
 open ErrorHandling.TryWithRF
 
-
 [<Literal>] 
 let internal connString = @"Data Source=Misa\SQLEXPRESS;Initial Catalog=TimetableDownloader;Integrated Security=True;Encrypt=False"
 

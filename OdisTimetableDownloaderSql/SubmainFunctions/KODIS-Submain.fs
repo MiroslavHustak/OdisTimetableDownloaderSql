@@ -308,6 +308,7 @@ let private filterTimetables message param (pathToDir: string) diggingResult =
             |> List.item 1
 
         let totalDateInterval = extractSubstring1 input
+
         let partAfter =
             Regex.Split(input, totalDateInterval)
             |> Array.toList
@@ -393,6 +394,7 @@ let private filterTimetables message param (pathToDir: string) diggingResult =
         let fileToBeSaved = sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
         
         //*************************************SQL columns********************************************
+
         [
             oldPrefix
             newPrefix oldPrefix
