@@ -58,138 +58,6 @@ let private closeConnection (connection: SqlConnection) =
 
 //************************Main code***********************************************************
 
-let internal callITVF getConnection closeConnection pathToDir query =
-    
-    try
-        let connection: SqlConnection = getConnection()
-                 
-        try  
-            use cmdCallFunction = new SqlCommand(query, connection)          
-            
-            let reader = cmdCallFunction.ExecuteReader() 
-            
-            //V pripade pouziti Oracle zkontroluj skutecny typ sloupce v .NET   
-            //let columnType = reader.GetFieldType(reader.GetOrdinal("OperatorID"))
-            //printfn "Column Type: %s" columnType.Name
-
-            Seq.initInfinite (fun _ -> reader.Read() && reader.HasRows = true)
-            |> Seq.takeWhile ((=) true) 
-            |> Seq.collect
-                (fun _ -> seq { (Casting.castAs<string> reader.["CompleteLink"], Casting.castAs<string> reader.["FileToBeSaved"]) }) 
-            |> List.ofSeq  
-            |> List.map 
-                (fun (link, file) ->
-                                   match (link, file) with
-                                   | Some link, Some file -> Some (link, file)
-                                   | _                    -> None
-                )
-            |> List.choose id
-            |> List.map
-                (fun (link, file) -> //let [<Literal>] internal pathKodisAmazonLink = @"https://kodis-files.s3.eu-central-1.amazonaws.com/" 
-                                   let path =                                         
-                                       let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
-                                           match param.GetType() with
-                                           | typ when typ = typeof<int>    -> IntType   
-                                           | typ when typ = typeof<string> -> StringType  
-                                           | _                             -> OtherType                                                      
-                                            
-                                       let pathToDir = sprintf "%s\\%s" pathToDir file
-                                       match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
-                                       | true ->   
-                                               true
-                                               |> function
-                                                   | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                   | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                   | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
-                                                   | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
-                                                   | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
-                                                   | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
-                                                   | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
-                                                   | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
-                                                   | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
-                                                   | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
-                                                   | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                   | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                   | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                   | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                   | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)    
-                                                       
-                                       | _    -> 
-                                               pathToDir    
-                                   link, path 
-                )          
-        finally
-            closeConnection connection
-    with
-    | ex -> 
-          printfn "%s" ex.Message //TODO Result type
-          []
-
-let private insertIntoDictionary getConnection closeConnection list =
-
-        let queryDeleteAll = "DELETE FROM TimetableLinks"
-         
-        let queryInsert = 
-             "           
-             INSERT INTO TimetableLinks 
-                (
-                    OldPrefix, NewPrefix, StartDate, EndDate, 
-                    TotalDateInterval,VT_Suffix, JS_GeneratedString, 
-                    CompleteLink, FileToBeSaved
-                ) 
-             VALUES
-                (
-                    @OldPrefix, @NewPrefix, @StartDate, @EndDate, 
-                    @TotalDateInterval, @VT_Suffix, @JS_GeneratedString, 
-                    @CompleteLink, @FileToBeSaved
-                );
-        "                
-        try
-            let connection: SqlConnection = getConnection() 
-            
-            try                 
-                use cmdDeleteAll = new SqlCommand(queryDeleteAll, connection)             
-                use cmdInsert = new SqlCommand(queryInsert, connection)   
-                
-                let parameterStart = new SqlParameter()                 
-                parameterStart.ParameterName <- "@StartDate"  
-                parameterStart.SqlDbType <- SqlDbType.Date  
-
-                let parameterEnd = new SqlParameter() 
-                parameterEnd.ParameterName <- "@EndDate"  
-                parameterEnd.SqlDbType <- SqlDbType.Date  
-
-                cmdDeleteAll.ExecuteNonQuery() |> ignore //number of affected rows
-                
-                list      
-                |> List.iter
-                    (fun item ->                        
-                               cmdInsert.Parameters.Clear() // Clear parameters for each iteration     
-                               cmdInsert.Parameters.AddWithValue("@OldPrefix", item |> List.item 0) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@NewPrefix", item |> List.item 1) |> ignore
-
-                               parameterStart.Value <- item |> List.item 2
-                               cmdInsert.Parameters.Add(parameterStart) |> ignore
-
-                               parameterEnd.Value <- item |> List.item 3                                
-                               cmdInsert.Parameters.Add(parameterEnd) |> ignore
-
-                               cmdInsert.Parameters.AddWithValue("@TotalDateInterval", item |> List.item 4) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@VT_Suffix", item |> List.item 5) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@JS_GeneratedString", item |> List.item 6) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@CompleteLink", item |> List.item 7) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@FileToBeSaved", item |> List.item 8) |> ignore
-    
-                               cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows
-                               
-                    )                
-            finally
-                closeConnection connection
-        with
-        | ex ->
-              printfn "Error1 %s" ex.Message //TODO
-
-
 let internal downloadAndSaveJson message = //FsHttp
         
     let l = jsonLinkList |> List.length
@@ -389,7 +257,7 @@ let private digThroughJsonStructure message = //prohrabeme se strukturou json so
 
 let private filterTimetables message param (pathToDir: string) diggingResult = 
 
-    //*************************************SQL********************************************
+    //*************************************Helpers for SQL columns********************************************
 
     let extractSubstring (input: string) =
 
@@ -398,7 +266,7 @@ let private filterTimetables message param (pathToDir: string) diggingResult =
         let matchResult = regex.Match(input)
         
         match matchResult.Success with
-        | true  -> input //matchResult.Value
+        | true  -> input 
         | false -> String.Empty 
         
     let extractSubstring1 (input: string) =
@@ -425,9 +293,7 @@ let private filterTimetables message param (pathToDir: string) diggingResult =
             | _     -> input.[max 0 (input.Length - 10)..]
         result.Replace("_", "-")
 
-    //let constantPart = "https://kodis-files.s3.eu-central-1.amazonaws.com/"
     let splitString (input: string) =   
-        //TODO tryWith
         match input.StartsWith(pathKodisAmazonLink) with
         | true  -> [pathKodisAmazonLink; input.Substring(pathKodisAmazonLink.Length)]
         | false -> [pathKodisAmazonLink; input]
@@ -523,12 +389,24 @@ let private filterTimetables message param (pathToDir: string) diggingResult =
             match input.Contains("_t") with 
             | true  -> input.Replace(pathKodisAmazonLink, sprintf"%s%s" pathKodisAmazonLink @"timetables/").Replace("_t.pdf", ".pdf") 
             | false -> input   
-        let fileToBeSaved = 
-            sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
-            
-        [oldPrefix; newPrefix oldPrefix; extractStartDate totalDateInterval; extractEndDate totalDateInterval; totalDateInterval; suffix; jsGeneratedString; input; fileToBeSaved] 
         
-    let myList1 =           
+        let fileToBeSaved = sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
+        
+        //*************************************SQL columns********************************************
+        [
+            oldPrefix
+            newPrefix oldPrefix
+            extractStartDate totalDateInterval
+            extractEndDate totalDateInterval
+            totalDateInterval
+            suffix
+            jsGeneratedString
+            input
+            fileToBeSaved
+        ]      
+     
+    //**********************Filtering and SQL data inserting********************************************************
+    let myList =           
         diggingResult       
         |> Array.Parallel.map 
             (fun item -> 
@@ -546,8 +424,139 @@ let private filterTimetables message param (pathToDir: string) diggingResult =
                        cond1 && cond2 
             )         
         |> List.map (fun item -> splitKodisLink item)   
+    
+    let insertIntoDictionary getConnection closeConnection list =
+    
+            let queryDeleteAll = "DELETE FROM TimetableLinks"
+             
+            let queryInsert = 
+                 "           
+                 INSERT INTO TimetableLinks 
+                    (
+                        OldPrefix, NewPrefix, StartDate, EndDate, 
+                        TotalDateInterval,VT_Suffix, JS_GeneratedString, 
+                        CompleteLink, FileToBeSaved
+                    ) 
+                 VALUES
+                    (
+                        @OldPrefix, @NewPrefix, @StartDate, @EndDate, 
+                        @TotalDateInterval, @VT_Suffix, @JS_GeneratedString, 
+                        @CompleteLink, @FileToBeSaved
+                    );
+            "                
+            try
+                let connection: SqlConnection = getConnection() 
+                
+                try                 
+                    use cmdDeleteAll = new SqlCommand(queryDeleteAll, connection)             
+                    use cmdInsert = new SqlCommand(queryInsert, connection)   
+                    
+                    let parameterStart = new SqlParameter()                 
+                    parameterStart.ParameterName <- "@StartDate"  
+                    parameterStart.SqlDbType <- SqlDbType.Date  
+    
+                    let parameterEnd = new SqlParameter() 
+                    parameterEnd.ParameterName <- "@EndDate"  
+                    parameterEnd.SqlDbType <- SqlDbType.Date  
+    
+                    cmdDeleteAll.ExecuteNonQuery() |> ignore //number of affected rows
+                    
+                    list      
+                    |> List.iter
+                        (fun item ->                        
+                                   cmdInsert.Parameters.Clear() // Clear parameters for each iteration     
+                                   cmdInsert.Parameters.AddWithValue("@OldPrefix", item |> List.item 0) |> ignore
+                                   cmdInsert.Parameters.AddWithValue("@NewPrefix", item |> List.item 1) |> ignore
+    
+                                   parameterStart.Value <- item |> List.item 2
+                                   cmdInsert.Parameters.Add(parameterStart) |> ignore
+    
+                                   parameterEnd.Value <- item |> List.item 3                                
+                                   cmdInsert.Parameters.Add(parameterEnd) |> ignore
+    
+                                   cmdInsert.Parameters.AddWithValue("@TotalDateInterval", item |> List.item 4) |> ignore
+                                   cmdInsert.Parameters.AddWithValue("@VT_Suffix", item |> List.item 5) |> ignore
+                                   cmdInsert.Parameters.AddWithValue("@JS_GeneratedString", item |> List.item 6) |> ignore
+                                   cmdInsert.Parameters.AddWithValue("@CompleteLink", item |> List.item 7) |> ignore
+                                   cmdInsert.Parameters.AddWithValue("@FileToBeSaved", item |> List.item 8) |> ignore
         
-    insertIntoDictionary getConnection closeConnection myList1
+                                   cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows
+                                   
+                        )                
+                finally
+                    closeConnection connection
+            with
+            | ex ->
+                  printfn "Error1 %s" ex.Message //TODO
+
+    insertIntoDictionary getConnection closeConnection myList
+
+    let callITVF getConnection closeConnection pathToDir query =
+        
+        try
+            let connection: SqlConnection = getConnection()
+                     
+            try  
+                use cmdCallFunction = new SqlCommand(query, connection)          
+                
+                let reader = cmdCallFunction.ExecuteReader() 
+                
+                //V pripade pouziti Oracle zkontroluj skutecny typ sloupce v .NET   
+                //let columnType = reader.GetFieldType(reader.GetOrdinal("OperatorID"))
+                //printfn "Column Type: %s" columnType.Name
+    
+                Seq.initInfinite (fun _ -> reader.Read() && reader.HasRows = true)
+                |> Seq.takeWhile ((=) true) 
+                |> Seq.collect
+                    (fun _ -> seq { (Casting.castAs<string> reader.["CompleteLink"], Casting.castAs<string> reader.["FileToBeSaved"]) }) 
+                |> List.ofSeq  
+                |> List.map 
+                    (fun (link, file) ->
+                                       match (link, file) with
+                                       | Some link, Some file -> Some (link, file)
+                                       | _                    -> None
+                    )
+                |> List.choose id
+                |> List.map
+                    (fun (link, file) -> //let [<Literal>] internal pathKodisAmazonLink = @"https://kodis-files.s3.eu-central-1.amazonaws.com/" 
+                                       let path =                                         
+                                           let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
+                                               match param.GetType() with
+                                               | typ when typ = typeof<int>    -> IntType   
+                                               | typ when typ = typeof<string> -> StringType  
+                                               | _                             -> OtherType                                                      
+                                                
+                                           let pathToDir = sprintf "%s\\%s" pathToDir file
+                                           match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
+                                           | true ->   
+                                                   true
+                                                   |> function
+                                                       | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                                       | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                                       | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
+                                                       | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
+                                                       | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
+                                                       | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
+                                                       | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
+                                                       | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
+                                                       | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
+                                                       | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
+                                                       | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                                       | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                                       | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                                       | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                                       | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)    
+                                                           
+                                           | _    -> 
+                                                   pathToDir    
+                                       link, path 
+                    )          
+            finally
+                closeConnection connection
+        with
+        | ex -> 
+              printfn "%s" ex.Message //TODO Result type
+              []
 
     match param with 
     | CurrentValidity           -> "SELECT * FROM dbo.ITVF_GetLinksCurrentValidity()" |> callITVF getConnection closeConnection pathToDir
@@ -766,8 +775,8 @@ let internal downloadAndSave message variant dir =
                                  value
                      | Error _  -> 
                                  closeItBaby message message.msg16 
-                                 []        
-            
+                                 []                                
+
              tryWith2 (lazy ()) (downloadAndSaveTimetables message dir filterTimetables)           
              |> function    
                  | Ok value -> value

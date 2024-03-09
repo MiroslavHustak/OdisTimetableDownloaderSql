@@ -30,7 +30,8 @@
     <Compile Include="Helpers\Helpers.fs" />
     <Compile Include="Helpers\CollectionSplitting.fs" />
     <Compile Include="Helpers\ProgressBarFSharp.fs" />
-    <Content Include="SubmainFunctions\SqlQueries.txt" />
+    <Compile Include="Database\Connection.fs" />
+    <Content Include="Database\ITVFs.txt" />
     <Compile Include="SubmainFunctions\DPO-Submain.fs" />
     <Compile Include="SubmainFunctions\MDPO-Submain.fs" />
     <Compile Include="SubmainFunctions\KODIS-Submain.fs" />
