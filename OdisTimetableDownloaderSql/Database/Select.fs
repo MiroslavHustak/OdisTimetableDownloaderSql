@@ -1,9 +1,11 @@
 ﻿namespace Database
 
-open Microsoft.Data.SqlClient
+open System
 open FsToolkit.ErrorHandling
+open Microsoft.Data.SqlClient
 
 open Helpers
+open Types.Messages
 
 module Select =
 
@@ -42,6 +44,8 @@ module Select =
                 closeConnection connection message
         with
         | ex -> 
-              printfn "%s" ex.Message //TODO Result type
+              message.msgParam1 <| string ex.Message
+              Console.ReadKey() |> ignore
+              System.Environment.Exit(1)
               []
 

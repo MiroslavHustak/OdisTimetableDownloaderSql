@@ -9,9 +9,6 @@ module ProgressBarFSharp =
     open System
 
     open Types.Messages
-    open Settings.Messages
-
-    //open Messages.MessagesMocking
 
     open Helpers
     open Helpers.TryWithRF
@@ -46,7 +43,6 @@ module ProgressBarFSharp =
         | true  -> message.msgParam8 progressBar
         | false -> message.msgParam9 progressBar
                                  
-
     let internal progressBarContinuous (message: Messages) (currentProgress : int) (totalProgress : int) : unit =
 
         match currentProgress < (-) totalProgress 1 with

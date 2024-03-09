@@ -1,8 +1,11 @@
 ﻿namespace Database
 
+open System
 open System.Data
-open Microsoft.Data.SqlClient
 open FsToolkit.ErrorHandling
+open Microsoft.Data.SqlClient
+
+open Types.Messages
 
 module InsertInto = 
 
@@ -68,5 +71,8 @@ module InsertInto =
                 closeConnection connection message
         with
         | ex ->
-              printfn "Error1 %s" ex.Message //TODO
+              message.msgParam1 <| string ex.Message
+              Console.ReadKey() |> ignore
+              System.Environment.Exit(1)
 
+             

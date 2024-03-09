@@ -30,10 +30,6 @@ module KODIS_Submain =
     open Database.InsertInto
     open Database.Connection
 
-    
-
-
-
     //DO NOT DIVIDE this module into parts in line with the main design pattern yet - KODIS keeps making unpredictable changes or amendments
 
     type internal KodisTimetables = JsonProvider<pathJson> 
@@ -42,7 +38,7 @@ module KODIS_Submain =
 
     //space for helpers
 
-    let inline private expr (param : 'a) = Expr.Value(param)  
+    let inline private expr (param : 'a) = Expr.Value(param)     
 
     //************************Main code***********************************************************
 
@@ -114,12 +110,14 @@ module KODIS_Submain =
 
             message.msg15()
 
+            let numberOfThreads1 = numberOfThreads message l
+
             let myList =       
-                (splitListIntoEqualParts (numberOfThreads message l) jsonLinkList, splitListIntoEqualParts (numberOfThreads message l) pathToJsonList)
+                (splitListIntoEqualParts numberOfThreads1 jsonLinkList, splitListIntoEqualParts numberOfThreads1 pathToJsonList)
                 ||> List.zip                       
                 
             fun i -> <@ async { return updateJson (%%expr myList |> List.item %%(expr i)) } @>
-            |> List.init (numberOfThreads message l) 
+            |> List.init numberOfThreads1 
             |> List.map _.Compile()       
             |> Async.Parallel 
             |> Async.Catch //zachytilo failwith "Simulated exception"
@@ -248,24 +246,34 @@ module KODIS_Submain =
         //*************************************Helpers for SQL columns********************************************
 
         let extractSubstring (input: string) =
-
+                        
             let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
-            let regex = new Regex(pattern) //TODO tryWith
+            let regex = new Regex(pattern) 
             let matchResult = regex.Match(input)
         
             match matchResult.Success with
             | true  -> input 
             | false -> String.Empty 
+
+            |> tryWith2 (lazy ())            
+            |> function    
+                | Ok value -> value
+                | Error _  -> String.Empty            
         
         let extractSubstring1 (input: string) =
 
             let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
-            let regex = new Regex(pattern) //TODO tryWith
+            let regex = new Regex(pattern) 
             let matchResult = regex.Match(input)
         
             match matchResult.Success with
             | true  -> matchResult.Value
             | false -> String.Empty
+
+            |> tryWith2 (lazy ())            
+            |> function    
+                | Ok value -> value
+                | Error _  -> String.Empty       
 
         let extractStartDate (input: string) =
              let result = 
@@ -290,18 +298,26 @@ module KODIS_Submain =
         let splitKodisLink input =
 
             let oldPrefix = 
-                Regex.Split(input, extractSubstring1 input) //TODO tryWith
+                Regex.Split(input, extractSubstring1 input) 
                 |> Array.toList
                 |> List.item 0
                 |> splitString
                 |> List.item 1
+                |> tryWith2 (lazy ())            
+                |> function    
+                    | Ok value -> value
+                    | Error _  -> String.Empty 
 
             let totalDateInterval = extractSubstring1 input
 
             let partAfter =
                 Regex.Split(input, totalDateInterval)
                 |> Array.toList
-                |> List.item 1           
+                |> List.item 1    
+                |> tryWith2 (lazy ())            
+                |> function    
+                    | Ok value -> value
+                    | Error _  -> String.Empty 
         
             let vIndex = partAfter.IndexOf "_v"
             let tIndex = partAfter.IndexOf "_t"
@@ -416,51 +432,50 @@ module KODIS_Submain =
 
         insert getConnection closeConnection myList message
         
-        let createSubDirectories list = 
-
-            let result = //TODO tryWith
-                list 
-                |> List.map
-                    (fun (link, file) -> 
-                                        let path =                                         
-                                            let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
-                                                match param.GetType() with
-                                                | typ when typ = typeof<int>    -> IntType   
-                                                | typ when typ = typeof<string> -> StringType  
-                                                | _                             -> OtherType                                                      
+        //**********************Cesty pro soubory pro aktualni a dlouhodobe platne a pro ostatni********************************************************
+        let createPathsForDownloadedFiles list =
+            
+            list 
+            |> List.map
+                (fun (link, file) -> 
+                                    let path =                                         
+                                        let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
+                                            match param.GetType() with
+                                            | typ when typ = typeof<int>    -> IntType   
+                                            | typ when typ = typeof<string> -> StringType  
+                                            | _                             -> OtherType                                                      
                                                 
-                                            let pathToDir = sprintf "%s\\%s" pathToDir file
-                                            match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
-                                            | true ->   
-                                                    true
-                                                    |> function
-                                                        | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                        | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                        | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
-                                                        | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
-                                                        | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
-                                                        | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
-                                                        | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
-                                                        | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
-                                                        | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
-                                                        | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
-                                                        | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                        | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                        | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                        | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                        | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)    
-                                                           
-                                            | _    -> 
-                                                    pathToDir    
-                                        link, path 
-                    )          
-            result        
-
+                                        let pathToDir = sprintf "%s\\%s" pathToDir file //pro ostatni
+                                            
+                                        match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
+                                        | true ->   
+                                                true //pro aktualni a dlouhodobe platne
+                                                |> function
+                                                    | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                                    | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                                    | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
+                                                    | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
+                                                    | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
+                                                    | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
+                                                    | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
+                                                    | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
+                                                    | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
+                                                    | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
+                                                    | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                                    | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                                    | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                                    | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                                    | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)                                                           
+                                        | _    -> 
+                                                pathToDir    
+                                    link, path 
+                )          
+            
         match param with 
-        | CurrentValidity           -> "dbo.ITVF_GetLinksCurrentValidity()" |> select getConnection closeConnection message pathToDir |> createSubDirectories
-        | FutureValidity            -> "dbo.ITVF_GetLinksFutureValidity()" |> select getConnection closeConnection message pathToDir |> createSubDirectories
-        | ReplacementService        -> "dbo.ITVF_GetLinksReplacementService()" |> select getConnection closeConnection message pathToDir |> createSubDirectories   
-        | WithoutReplacementService -> "dbo.ITVF_GetLinksWithoutReplacementService()" |> select getConnection closeConnection message pathToDir |> createSubDirectories 
+        | CurrentValidity           -> "dbo.ITVF_GetLinksCurrentValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
+        | FutureValidity            -> "dbo.ITVF_GetLinksFutureValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
+        | ReplacementService        -> "dbo.ITVF_GetLinksReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles   
+        | WithoutReplacementService -> "dbo.ITVF_GetLinksWithoutReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles 
  
     let internal deleteAllODISDirectories message pathToDir = 
 
@@ -472,6 +487,8 @@ module KODIS_Submain =
 
                     let l = getDefaultRecordValues |> List.length
 
+                    let numberOfThreads1 = numberOfThreads message l
+
                     let myList =                         
                         //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
                         let dirInfo = new DirectoryInfo(pathToDir)  
@@ -480,7 +497,7 @@ module KODIS_Submain =
                         |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
                         |> Seq.distinct 
                         |> Seq.toList
-                        |> splitListIntoEqualParts (numberOfThreads message l) 
+                        |> splitListIntoEqualParts numberOfThreads1 
 
                     let myDeleteFunction (list : DirectoryInfo list) = list |> List.iter _.Delete(true)    
                 
@@ -537,7 +554,7 @@ module KODIS_Submain =
                             in
                             dirInfo.EnumerateDirectories()
                             |> Seq.filter (fun item -> item.Name = createDirName variant getDefaultRecordValues) 
-                            |> Seq.iter _.Delete(true) //(fun item -> item.Delete(true)) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce                 
+                            |> Seq.iter _.Delete(true) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce                 
                 
                     return 
                         tryWith2 (lazy ()) myDeleteFunction           
@@ -555,24 +572,22 @@ module KODIS_Submain =
     let internal createOneNewDirectory pathToDir dirName = [ sprintf"%s\%s"pathToDir dirName ] 
  
     let internal createFolders message dirList =  
-
-       let myFolderCreation = 
-           dirList
-           |> List.iter
-               (fun (dir: string) ->                
-                                   match dir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || dir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
-                                   | true ->    
-                                           sortedLines 
-                                           |> List.iter
-                                               (fun item -> 
-                                                          let dir = dir.Replace("_vyluk", sprintf "%s\\%s" "_vyluk" item)
-                                                          Directory.CreateDirectory(dir) |> ignore
-                                               )           
-                                   | _    -> 
-                                           Directory.CreateDirectory(sprintf "%s" dir) |> ignore           
-               )  
-              
-       tryWith2 (lazy ()) myFolderCreation           
+        
+        dirList
+        |> List.iter
+            (fun (dir: string) ->                
+                                match dir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || dir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
+                                | true ->    
+                                        sortedLines 
+                                        |> List.iter
+                                            (fun item -> 
+                                                        let dir = dir.Replace("_vyluk", sprintf "%s\\%s" "_vyluk" item)
+                                                        Directory.CreateDirectory(dir) |> ignore
+                                            )           
+                                | _    -> 
+                                        Directory.CreateDirectory(sprintf "%s" dir) |> ignore           
+            )              
+       |> tryWith2 (lazy ())            
        |> function    
            | Ok value -> value                                    
            | Error _  -> closeItBaby message message.msg16                                    
@@ -612,6 +627,8 @@ module KODIS_Submain =
                         ->                           
                          let l = env |> List.length
 
+                         let numberOfThreads1 = numberOfThreads message l
+
                          let counterAndProgressBar =
                              MailboxProcessor.Start
                                 (fun inbox ->
@@ -630,12 +647,12 @@ module KODIS_Submain =
                                             loop 0
                                 )
 
-                         match env.Length >= numberOfThreads message l with 
+                         match env.Length >= numberOfThreads1 with 
                          | false ->  
                                   asyncDownload counterAndProgressBar env
                                   message.msgParam4 pathToDir  
                          | true  ->          
-                                  let myList = splitListIntoEqualParts (numberOfThreads message l) env                             
+                                  let myList = splitListIntoEqualParts numberOfThreads1 env                             
                               
                                   fun i -> <@ async { return asyncDownload counterAndProgressBar (%%expr myList |> List.item %%(expr i)) } @>
                                   |> List.init myList.Length
