@@ -1,16 +1,16 @@
-﻿namespace ErrorHandling
+﻿namespace Helpers
 
 open System
 open System.Net.Http
 open FsToolkit.ErrorHandling
 
-open Parsing
-open DiscriminatedUnions
+open Helpers
+open Types
 
 open Types.Messages
-open Messages.Messages
+open Settings.Messages
 
-open CEBuilders.Builders
+open Helpers.Builders
             
 module Result = 
 

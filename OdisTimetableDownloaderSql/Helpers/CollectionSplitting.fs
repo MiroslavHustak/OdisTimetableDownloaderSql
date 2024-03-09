@@ -1,11 +1,11 @@
-﻿namespace CollectionSplitting
+﻿namespace Helpers
 
 open System
 open FsToolkit.ErrorHandling
 
-open SettingsKODIS
 open Types.Messages
-open ErrorHandling.TryWithRF
+open Helpers.TryWithRF
+open Settings.SettingsKODIS
 
 module CollectionSplitting =
 

@@ -1,4 +1,4 @@
-﻿namespace Parsing
+﻿namespace Helpers
 
 module TryParserInt = //Adapted third-party code
 

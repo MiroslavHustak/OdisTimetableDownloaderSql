@@ -1,4 +1,4 @@
-﻿namespace FreeMonads
+﻿namespace Helpers
 
 module FreeMonadsCM =
 

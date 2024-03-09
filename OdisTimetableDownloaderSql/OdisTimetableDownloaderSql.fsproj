@@ -30,8 +30,10 @@
     <Compile Include="Helpers\Helpers.fs" />
     <Compile Include="Helpers\CollectionSplitting.fs" />
     <Compile Include="Helpers\ProgressBarFSharp.fs" />
-    <Compile Include="Database\Connection.fs" />
     <Content Include="Database\ITVFs.txt" />
+    <Compile Include="Database\Connection.fs" />
+    <Compile Include="Database\InsertInto.fs" />
+    <Compile Include="Database\Select.fs" />
     <Compile Include="SubmainFunctions\DPO-Submain.fs" />
     <Compile Include="SubmainFunctions\MDPO-Submain.fs" />
     <Compile Include="SubmainFunctions\KODIS-Submain.fs" />
@@ -47,7 +49,6 @@
     <PackageReference Include="FSharp.Quotations.Evaluator" Version="2.1.0" />
     <PackageReference Include="FsHttp" Version="14.4.0" />
     <PackageReference Include="FsToolkit.ErrorHandling" Version="4.11.0" />
-    <PackageReference Include="Fugit" Version="0.4.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>

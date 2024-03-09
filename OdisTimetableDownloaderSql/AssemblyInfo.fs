@@ -6,6 +6,6 @@ module AssemblyInfo =
 
     [<assembly: InternalsVisibleTo("Test.xUnit")>]
     [<assembly: InternalsVisibleTo("Test.Expecto")>]
-    [<assembly: InternalsVisibleTo("PBTest.FsCheck")>]
+    [<assembly: InternalsVisibleTo("Test.FsCheck")>]
     do ()
 

@@ -1,8 +1,4 @@
-﻿namespace DiscriminatedUnions 
-
-type internal ResultSW<'TSuccess,'TFailure> =
-    | Success of 'TSuccess
-    | Failure of 'TFailure
+﻿namespace Types 
 
 [<Struct>]
 type internal Validity =

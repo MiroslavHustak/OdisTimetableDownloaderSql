@@ -1,4 +1,4 @@
-﻿namespace Messages
+﻿namespace Settings
 
 open System
 open Types.Messages

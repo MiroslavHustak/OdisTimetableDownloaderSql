@@ -1,35 +1,36 @@
-﻿module Connection
+﻿namespace Database
 
-open Microsoft.Data.SqlClient
+module Connection =
 
-open ErrorHandling
-open ErrorHandling.TryWithRF
+    open Microsoft.Data.SqlClient
 
-[<Literal>] 
-let internal connString = @"Data Source=Misa\SQLEXPRESS;Initial Catalog=TimetableDownloader;Integrated Security=True;Encrypt=False"
+    open Helpers.TryWithRF
 
-let internal getConnection message =  
+    [<Literal>] 
+    let internal connString = @"Data Source=Misa\SQLEXPRESS;Initial Catalog=TimetableDownloader;Integrated Security=True;Encrypt=False"
+
+    let internal getConnection message =  
     
-    let result = 
-        let connection = new SqlConnection(connString)
-        connection.Open()
-        connection
+        let result = 
+            let connection = new SqlConnection(connString)
+            connection.Open()
+            connection
     
-    tryWith2 (lazy ()) result           
-    |> function    
-        | Ok value -> 
-                    value
-        | Error _  -> 
-                    closeItBaby message message.msg16 
-                    new SqlConnection(connString)              
+        tryWith2 (lazy ()) result           
+        |> function    
+            | Ok value -> 
+                        value
+            | Error _  -> 
+                        closeItBaby message message.msg16 
+                        new SqlConnection(connString)              
 
-let internal closeConnection (connection: SqlConnection) message =
+    let internal closeConnection (connection: SqlConnection) message =
     
-    let result = 
-        connection.Close()
-        connection.Dispose()
+        let result = 
+            connection.Close()
+            connection.Dispose()
 
-    tryWith2 (lazy ()) result           
-    |> function    
-        | Ok value -> value
-        | Error _  -> closeItBaby message message.msg16 
+        tryWith2 (lazy ()) result           
+        |> function    
+            | Ok value -> value
+            | Error _  -> closeItBaby message message.msg16 

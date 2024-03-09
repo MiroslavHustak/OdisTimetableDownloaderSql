@@ -71,8 +71,8 @@ SELECT *
 FROM dbo.ITVF_GetLinksFutureValidity () 
 ORDER BY FileToBeSaved;
 
-//*****************************************************
 
+//*****************************************************
 CREATE FUNCTION dbo.ITVF_GetLinksReplacementService ()   
 RETURNS TABLE
 AS
@@ -90,8 +90,10 @@ RETURN
         (StartDate = FORMAT(GETDATE(), 'yyyy-MM-dd') AND EndDate = FORMAT(GETDATE(), 'yyyy-MM-dd')))
 		AND
 		(CHARINDEX('_v', FileToBeSaved) > 0
-        OR CHARINDEX('X', FileToBeSaved) > 0
-        OR CHARINDEX('NAD', FileToBeSaved) > 0)		
+        OR 
+        CHARINDEX('X', FileToBeSaved) > 0
+        OR 
+        CHARINDEX('NAD', FileToBeSaved) > 0)		
     ) AS myDerivedTable
     WHERE MaxRow = 1     
 );
@@ -99,6 +101,7 @@ RETURN
 SELECT *
 FROM dbo.ITVF_GetLinksReplacementService () 
 ORDER BY FileToBeSaved;
+
 
 //*************************************************************  
 CREATE FUNCTION dbo.ITVF_GetLinksWithoutReplacementService ()   
@@ -118,8 +121,10 @@ RETURN
         (StartDate = FORMAT(GETDATE(), 'yyyy-MM-dd') AND EndDate = FORMAT(GETDATE(), 'yyyy-MM-dd')))
 		AND
 		(CHARINDEX('_v', FileToBeSaved) = 0
-        AND CHARINDEX('X', FileToBeSaved) = 0
-        AND CHARINDEX('NAD', FileToBeSaved) = 0)		
+        AND 
+        CHARINDEX('X', FileToBeSaved) = 0
+        AND 
+        CHARINDEX('NAD', FileToBeSaved) = 0)		
     ) AS myDerivedTable
     WHERE MaxRow = 1     
 );

@@ -3,9 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "OdisTimetableDownloaderSql", "OdisTimetableDownloaderSql\OdisTimetableDownloaderSql.fsproj", "{24FC6750-DBA2-4385-96F3-C84192F5C3FA}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "OdisTimetableDownloaderSql", "OdisTimetableDownloaderSql\OdisTimetableDownloaderSql.fsproj", "{24FC6750-DBA2-4385-96F3-C84192F5C3FA}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DialogWindows", "DialogWindows\DialogWindows.fsproj", "{599129C1-4683-4E74-81A8-D9B9DC0B94F1}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "DialogWindows", "DialogWindows\DialogWindows.fsproj", "{599129C1-4683-4E74-81A8-D9B9DC0B94F1}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Test.xUnit", "Test.xUnit\Test.xUnit.fsproj", "{BEF88F02-CA1B-440F-9CB2-79177DF387EC}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Test.FsCheck", "Test.FsCheck\Test.FsCheck.fsproj", "{033BFCAA-8FD2-490E-A114-590F49D6E34C}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Test.Expecto", "Test.Expecto\Test.Expecto.fsproj", "{86614B17-7522-4CE7-8D6B-1CCC2CB41536}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +27,18 @@ Global
 		{599129C1-4683-4E74-81A8-D9B9DC0B94F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{599129C1-4683-4E74-81A8-D9B9DC0B94F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{599129C1-4683-4E74-81A8-D9B9DC0B94F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEF88F02-CA1B-440F-9CB2-79177DF387EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEF88F02-CA1B-440F-9CB2-79177DF387EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEF88F02-CA1B-440F-9CB2-79177DF387EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEF88F02-CA1B-440F-9CB2-79177DF387EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{033BFCAA-8FD2-490E-A114-590F49D6E34C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{033BFCAA-8FD2-490E-A114-590F49D6E34C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{033BFCAA-8FD2-490E-A114-590F49D6E34C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{033BFCAA-8FD2-490E-A114-590F49D6E34C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86614B17-7522-4CE7-8D6B-1CCC2CB41536}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86614B17-7522-4CE7-8D6B-1CCC2CB41536}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86614B17-7522-4CE7-8D6B-1CCC2CB41536}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86614B17-7522-4CE7-8D6B-1CCC2CB41536}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,20 +1,21 @@
 ﻿open System
 open System.Data
 
-open Types.DirNames
-
-open WebScraping_DPO
-open WebScraping_MDPO
-open WebScraping_KODISFM
-
-open SettingsGeneral
-open Messages.Messages
-open DiscriminatedUnions
-open BrowserDialogWindow
+open Helpers
+open Helpers.TryWithRF
 open Helpers.ConsoleFixers
 
-open ErrorHandling
-open ErrorHandling.TryWithRF
+open Types
+open Types.DirNames
+
+open Settings.Messages
+open Settings.SettingsGeneral
+
+open MainFunctions.WebScraping_DPO
+open MainFunctions.WebScraping_MDPO
+open MainFunctions.WebScraping_KODISFM
+
+open BrowserDialogWindow
 
 [<TailCall>] 
 let rec private pathToFolder () =

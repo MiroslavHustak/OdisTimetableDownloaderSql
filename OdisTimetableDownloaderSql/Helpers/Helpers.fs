@@ -4,12 +4,10 @@ open System
 open System.IO
 open System.Windows.Forms
 
-open Messages.Messages
-//open Messages.MessagesMocking
+open Helpers
+open Helpers.Builders
+open Helpers.FreeMonadsCM
 
-open ErrorHandling
-open FreeMonads.FreeMonadsCM
-open CEBuilders.Builders
    
 module ConsoleFixers = 
 
