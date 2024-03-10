@@ -16,7 +16,6 @@ module Select =
                      
             try  
                 //query je tady volani ITVF
-
                 let query = sprintf "SELECT * FROM %s" itvfCall
 
                 use cmdCallITVFunction = new SqlCommand(query, connection)          

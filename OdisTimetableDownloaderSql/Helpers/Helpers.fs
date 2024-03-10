@@ -7,7 +7,6 @@ open System.Windows.Forms
 open Helpers
 open Helpers.Builders
 open Helpers.FreeMonadsCM
-
    
 module ConsoleFixers = 
 
@@ -70,14 +69,16 @@ module CopyingOrMovingFiles = //output in Result type
         try
             let action sourceFilepath destinFilepath = 
                 File.Copy(sourceFilepath, destinFilepath, overwrite) 
-                in processFile source destination action
+                in 
+                processFile source destination action
         with
         | _ -> Error <| sprintf "Chyba při kopírování souboru %s do %s" source destination
             
     let internal moveFiles source destination overwrite =
         try
             let action sourceFilepath destinFilepath = File.Move(sourceFilepath, destinFilepath, overwrite) 
-                in processFile source destination action
+                in 
+                processFile source destination action
         with
         | _ -> Error <| sprintf "Chyba při přemísťování souboru %s do %s" source destination
     
