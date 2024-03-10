@@ -6,10 +6,11 @@ open FsToolkit.ErrorHandling
 open Microsoft.Data.SqlClient
 
 open Types.Messages
+open DomainModelling.DomainModel
 
 module InsertInto = 
 
-    let internal insert getConnection closeConnection list message =
+    let internal insert getConnection closeConnection (dataToBeInserted : DbDataDomainSend list) message =
 
         let queryDeleteAll = "DELETE FROM TimetableLinks"
          
@@ -45,27 +46,26 @@ module InsertInto =
 
                 cmdDeleteAll.ExecuteNonQuery() |> ignore //number of affected rows
                 
-                list      
+                dataToBeInserted     
                 |> List.iter
                     (fun item ->                        
                                cmdInsert.Parameters.Clear() // Clear parameters for each iteration     
-                               cmdInsert.Parameters.AddWithValue("@OldPrefix", item |> List.item 0) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@NewPrefix", item |> List.item 1) |> ignore
+                               cmdInsert.Parameters.AddWithValue("@OldPrefix", item.oldPrefix) |> ignore
+                               cmdInsert.Parameters.AddWithValue("@NewPrefix", item.newPrefix) |> ignore
 
-                               parameterStart.Value <- item |> List.item 2
+                               parameterStart.Value <- item.startDate
                                cmdInsert.Parameters.Add(parameterStart) |> ignore
 
-                               parameterEnd.Value <- item |> List.item 3                                
+                               parameterEnd.Value <- item.endDate                                
                                cmdInsert.Parameters.Add(parameterEnd) |> ignore
 
-                               cmdInsert.Parameters.AddWithValue("@TotalDateInterval", item |> List.item 4) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@VT_Suffix", item |> List.item 5) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@JS_GeneratedString", item |> List.item 6) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@CompleteLink", item |> List.item 7) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@FileToBeSaved", item |> List.item 8) |> ignore
+                               cmdInsert.Parameters.AddWithValue("@TotalDateInterval", item.totalDateInterval) |> ignore
+                               cmdInsert.Parameters.AddWithValue("@VT_Suffix", item.suffix) |> ignore
+                               cmdInsert.Parameters.AddWithValue("@JS_GeneratedString", item.jsGeneratedString) |> ignore
+                               cmdInsert.Parameters.AddWithValue("@CompleteLink", item.completeLink) |> ignore
+                               cmdInsert.Parameters.AddWithValue("@FileToBeSaved", item.fileToBeSaved) |> ignore
     
-                               cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows
-                               
+                               cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows                               
                     )                
             finally
                 closeConnection connection message

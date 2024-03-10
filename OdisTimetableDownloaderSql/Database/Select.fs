@@ -7,6 +7,10 @@ open Microsoft.Data.SqlClient
 open Helpers
 open Types.Messages
 
+open DomainModelling.DtoGet
+open DomainModelling.DomainModel
+open TransformationLayers.TransormationLayerGet
+
 module Select =
 
     let internal select getConnection closeConnection message pathToDir itvfCall =
@@ -29,13 +33,25 @@ module Select =
                 Seq.initInfinite (fun _ -> reader.Read() && reader.HasRows = true)
                 |> Seq.takeWhile ((=) true) 
                 |> Seq.collect
-                    (fun _ -> seq { (Casting.castAs<string> reader.["CompleteLink"], Casting.castAs<string> reader.["FileToBeSaved"]) }) 
+                    (fun _ -> seq { reader.["CompleteLink"], reader.["FileToBeSaved"] }) 
                 |> List.ofSeq  
                 |> List.map 
-                    (fun (link, file) ->
-                                       match (link, file) with
-                                       | Some link, Some file -> Some (link, file)
-                                       | _                    -> None
+                    (fun (link, file) ->                                       
+                                       let record : DbDataDtoGet = 
+                                           {
+                                               completeLink = link
+                                               fileToBeSaved = file
+                                           }
+
+                                       let result = dbDataTransferLayerGet record
+
+                                       (result.completeLink, result.fileToBeSaved)
+                                       |> function
+                                           | Some link, Some file -> 
+                                                                   Some (link, file)
+                                           | _                    ->
+                                                                   failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO, kdyz bude cas, predelat na result type 
+                                                                   None
                     )
                 |> List.choose id
               

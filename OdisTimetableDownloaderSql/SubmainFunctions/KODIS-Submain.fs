@@ -30,6 +30,8 @@ module KODIS_Submain =
     open Database.InsertInto
     open Database.Connection
 
+    open DomainModelling.DomainModel
+
     //DO NOT DIVIDE this module into parts in line with the main design pattern yet - KODIS keeps making unpredictable changes or amendments
 
     type internal KodisTimetables = JsonProvider<pathJson> 
@@ -398,20 +400,20 @@ module KODIS_Submain =
         
             let fileToBeSaved = sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
 
-            [
-                oldPrefix
-                newPrefix oldPrefix
-                extractStartDate totalDateInterval
-                extractEndDate totalDateInterval
-                totalDateInterval
-                suffix
-                jsGeneratedString
-                input
-                fileToBeSaved
-            ]      
+            {
+                oldPrefix = oldPrefix
+                newPrefix = newPrefix oldPrefix
+                startDate = extractStartDate totalDateInterval
+                endDate = extractEndDate totalDateInterval
+                totalDateInterval = totalDateInterval
+                suffix = suffix
+                jsGeneratedString = jsGeneratedString
+                completeLink = input
+                fileToBeSaved = fileToBeSaved
+            }
      
         //**********************Filtering and SQL data inserting********************************************************
-        let myList =           
+        let dataToBeInserted =           
             diggingResult       
             |> Array.Parallel.map 
                 (fun item -> 
@@ -428,9 +430,10 @@ module KODIS_Submain =
                            let cond2 = item |> Option.ofNull |> Option.ofStringOption |> Option.toBool //for learning purposes - compare with (not String.IsNullOrEmpty(item))
                            cond1 && cond2 
                 )         
-            |> List.map (fun item -> splitKodisLink item) 
+            |> List.map 
+                (fun item -> splitKodisLink item) 
 
-        insert getConnection closeConnection myList message
+        insert getConnection closeConnection dataToBeInserted message
         
         //**********************Cesty pro soubory pro aktualni a dlouhodobe platne a pro ostatni********************************************************
         let createPathsForDownloadedFiles list =

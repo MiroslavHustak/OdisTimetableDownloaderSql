@@ -10,13 +10,12 @@ module Connection =
     let internal connString = @"Data Source=Misa\SQLEXPRESS;Initial Catalog=TimetableDownloader;Integrated Security=True;Encrypt=False"
 
     let internal getConnection message =  
-    
-        let result = 
-            let connection = new SqlConnection(connString)
-            connection.Open()
-            connection
-    
-        tryWith2 (lazy ()) result           
+        
+        let connection = new SqlConnection(connString)
+        connection.Open()
+        connection
+        
+        |> tryWith2 (lazy ())            
         |> function    
             | Ok value -> 
                         value
@@ -25,12 +24,11 @@ module Connection =
                         new SqlConnection(connString)              
 
     let internal closeConnection (connection: SqlConnection) message =
-    
-        let result = 
-            connection.Close()
-            connection.Dispose()
+       
+        connection.Close()
+        connection.Dispose()
 
-        tryWith2 (lazy ()) result           
+        |> tryWith2 (lazy ())            
         |> function    
             | Ok value -> value
             | Error _  -> closeItBaby message message.msg16 
