@@ -47,35 +47,39 @@ module KODIS_Submain =
 
     let internal downloadAndSaveJson message = //FsHttp
 
+        //*******************test pripojeni k internetu*****************************
         let conn =
             [1..10] |> List.filter (fun _ -> CheckNetConnection.checkNetConn().IsSome)
                                 
         match conn.Length >= 8 with
         | true  -> ()     
         | false -> failwith "Bylo přerušeno internetové připojení." 
+
+        //*******************konec test pripojeni k internetu***********************
         
         let l = jsonLinkList |> List.length
 
         let counterAndProgressBar =
             MailboxProcessor.Start
-                (fun inbox ->
-                            let rec loop n =
-                                async
-                                    { 
-                                        let! msg = inbox.Receive()                                    
-                                        match msg with
-                                        | Incr i             ->                                                             
-                                                              let p = 
-                                                                  match float n / float l < 0.25 with
-                                                                  | true  -> n / 2
-                                                                  | false -> n 
-                                                                  in progressBarContinuous message p l                                                        
-                                                              return! loop (n + i)
-                                        | Fetch replyChannel ->
-                                                              replyChannel.Reply n 
-                                                              return! loop n
-                                    }
-                            loop 0
+                (fun inbox 
+                    ->
+                     let rec loop n =
+                         async
+                             { 
+                                 let! msg = inbox.Receive()                                    
+                                 match msg with
+                                 | Incr i             ->                                                             
+                                                        let p = 
+                                                            match float n / float l < 0.25 with
+                                                            | true  -> n / 2
+                                                            | false -> n 
+                                                            in progressBarContinuous message p l                                                        
+                                                        return! loop (n + i)
+                                 | Fetch replyChannel ->
+                                                        replyChannel.Reply n 
+                                                        return! loop n
+                            }
+                     loop 0
                 )
        
         let updateJson listTuple = 
@@ -87,30 +91,31 @@ module KODIS_Submain =
 
             (jsonLinkList1, pathToJsonList1)
             ||> List.map2
-                (fun uri path ->                                        
-                               async
-                                   {                                           
-                                       counterAndProgressBar.Post(Incr 1)
-                                       //failwith "Simulated exception"  
+                (fun uri path
+                    ->                                        
+                     async
+                         {                                           
+                             counterAndProgressBar.Post(Incr 1)
+                             //failwith "Simulated exception"  
                                                                                                                                                                                                  
-                                       let get uri = 
-                                           http
-                                               {
-                                                   GET uri
-                                               } 
+                             let get uri = 
+                                 http
+                                     {
+                                         GET uri
+                                     } 
 
-                                       use! response = get >> Request.sendAsync <| uri 
+                             use! response = get >> Request.sendAsync <| uri 
                                       
-                                       match response.statusCode with
-                                       | HttpStatusCode.OK ->                                                              
-                                                            do! response.SaveFileAsync >> Async.AwaitTask <| path 
-                                                            return Ok ()                                   
-                                       | _                 ->  
-                                                            return Error String.Empty      
-                               } 
-                               |> Async.Catch 
-                               |> Async.RunSynchronously
-                               |> Result.ofChoice                                  
+                             match response.statusCode with
+                             | HttpStatusCode.OK ->                                                              
+                                                  do! response.SaveFileAsync >> Async.AwaitTask <| path 
+                                                  return Ok ()                                   
+                             | _                 ->  
+                                                  return Error String.Empty      
+                        } 
+                        |> Async.Catch 
+                        |> Async.RunSynchronously
+                        |> Result.ofChoice                                  
                 ) 
                 |> Result.sequence 
                 |> function
@@ -157,17 +162,18 @@ module KODIS_Submain =
                         pathToJsonList 
                         |> Array.ofList 
                         |> Array.collect 
-                            (fun pathToJson ->   
-                                             let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull 
-                                             //let kodisJsonSamples = kodisJsonSamples.GetSample() |> Option.ofObj  //v pripade jen jednoho json               
-                                             kodisJsonSamples 
-                                             |> function 
-                                                 | Some value -> 
-                                                               value |> Array.map _.Timetable //quli tomuto je nutno Array
-                                                 | None       -> 
-                                                               message.msg5()                                                          
-                                                               closeItBaby message message.msg16 
-                                                               [||]    
+                            (fun pathToJson 
+                                ->   
+                                 let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull 
+                                 //let kodisJsonSamples = kodisJsonSamples.GetSample() |> Option.ofObj  //v pripade jen jednoho json               
+                                 kodisJsonSamples 
+                                 |> function 
+                                     | Some value -> 
+                                                   value |> Array.map _.Timetable //quli tomuto je nutno Array
+                                     | None       -> 
+                                                   message.msg5()                                                          
+                                                   closeItBaby message message.msg16 
+                                                   [||]    
                             ) 
                         
                     return
@@ -191,42 +197,43 @@ module KODIS_Submain =
                         pathToJsonList
                         |> Array.ofList 
                         |> Array.collect  //vzhledem ke komplikovanosti nepouzivam Result.sequence pro Array.collect
-                            (fun pathToJson -> 
-                                             let fn1 (value: JsonProvider<pathJson>.Attachment array) = 
-                                                 value
-                                                 |> Array.Parallel.map (fun item -> item.Url |> Option.ofStringObjXXL)
-                                                 |> Array.choose id //co neprojde, to beze slova ignoruju
+                            (fun pathToJson 
+                                -> 
+                                 let fn1 (value: JsonProvider<pathJson>.Attachment array) = 
+                                     value
+                                     |> Array.Parallel.map (fun item -> item.Url |> Option.ofStringObjXXL)
+                                     |> Array.choose id //co neprojde, to beze slova ignoruju
 
-                                             let fn2 (item: JsonProvider<pathJson>.Vyluky) =  //quli tomuto je nutno Array     
-                                                 item.Attachments |> Option.ofNull        
-                                                 |> function 
-                                                     | Some value ->
-                                                                   value |> fn1
-                                                     | None       -> 
-                                                                   message.msg6() 
-                                                                   closeItBaby message message.msg16 
-                                                                   [||]                 
+                                 let fn2 (item: JsonProvider<pathJson>.Vyluky) =  //quli tomuto je nutno Array     
+                                     item.Attachments |> Option.ofNull        
+                                     |> function 
+                                         | Some value ->
+                                                       value |> fn1
+                                         | None       -> 
+                                                       message.msg6() 
+                                                       closeItBaby message message.msg16 
+                                                       [||]                 
 
-                                             let fn3 (item: JsonProvider<pathJson>.Root) =  //quli tomuto je nutno Array 
-                                                 item.Vyluky |> Option.ofNull  
-                                                 |> function 
-                                                     | Some value ->
-                                                                   value |> Array.collect fn2 
-                                                     | None       ->
-                                                                   message.msg7() 
-                                                                   closeItBaby message message.msg16 
-                                                                   [||] 
+                                 let fn3 (item: JsonProvider<pathJson>.Root) =  //quli tomuto je nutno Array 
+                                     item.Vyluky |> Option.ofNull  
+                                     |> function 
+                                         | Some value ->
+                                                       value |> Array.collect fn2 
+                                           | None     ->
+                                                       message.msg7() 
+                                                       closeItBaby message message.msg16 
+                                                       [||] 
                                                       
-                                             let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull  
+                                 let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull  
                                                       
-                                             kodisJsonSamples 
-                                             |> function 
-                                                 | Some value -> 
-                                                               value |> Array.collect fn3 
-                                                 | None       -> 
-                                                               message.msg8() 
-                                                               closeItBaby message message.msg16 
-                                                               [||]                                 
+                                 kodisJsonSamples 
+                                 |> function 
+                                     | Some value -> 
+                                                   value |> Array.collect fn3 
+                                     | None       -> 
+                                                   message.msg8() 
+                                                   closeItBaby message message.msg16 
+                                                   [||]                                 
                             ) 
                 
                     return
@@ -450,38 +457,39 @@ module KODIS_Submain =
             
             list 
             |> List.map
-                (fun (link, file) -> 
-                                   let path =                                         
-                                       let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
-                                           match param.GetType() with
-                                           | typ when typ = typeof<int>    -> IntType   
-                                           | typ when typ = typeof<string> -> StringType  
-                                           | _                             -> OtherType                                                      
+                (fun (link, file) 
+                    -> 
+                     let path =                                         
+                         let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
+                             match param.GetType() with
+                             | typ when typ = typeof<int>    -> IntType   
+                             | typ when typ = typeof<string> -> StringType  
+                             | _                             -> OtherType                                                      
                                                 
-                                       let pathToDir = sprintf "%s\\%s" pathToDir file //pro ostatni
+                         let pathToDir = sprintf "%s\\%s" pathToDir file //pro ostatni
                                            
-                                       match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
-                                       | true ->   
-                                               true //pro aktualni a dlouhodobe platne
-                                               |> function
-                                                   | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                   | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                   | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
-                                                   | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
-                                                   | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
-                                                   | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
-                                                   | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
-                                                   | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
-                                                   | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
-                                                   | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
-                                                   | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                   | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                   | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                   | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                   | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)                                                           
-                                       | _    -> 
-                                               pathToDir    
-                                   link, path 
+                         match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
+                         | true ->   
+                                 true //pro aktualni a dlouhodobe platne
+                                 |> function
+                                     | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                     | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                     | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
+                                     | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
+                                     | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
+                                     | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
+                                     | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
+                                     | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
+                                     | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
+                                     | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
+                                     | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                     | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                     | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                     | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                     | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)                                                           
+                         | _    -> 
+                                 pathToDir    
+                     link, path 
                 )          
         
         let selectDataFromDb = 
@@ -591,17 +599,18 @@ module KODIS_Submain =
         
         dirList
         |> List.iter
-            (fun (dir: string) ->                
-                                match dir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || dir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
-                                | true ->    
-                                        sortedLines 
-                                        |> List.iter
-                                            (fun item -> 
-                                                        let dir = dir.Replace("_vyluk", sprintf "%s\\%s" "_vyluk" item)
-                                                        Directory.CreateDirectory(dir) |> ignore
-                                            )           
-                                | _    -> 
-                                        Directory.CreateDirectory(sprintf "%s" dir) |> ignore           
+            (fun (dir: string) 
+                ->                
+                 match dir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || dir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
+                 | true ->    
+                         sortedLines 
+                         |> List.iter
+                             (fun item -> 
+                                        let dir = dir.Replace("_vyluk", sprintf "%s\\%s" "_vyluk" item)
+                                        Directory.CreateDirectory(dir) |> ignore
+                             )           
+                 | _    -> 
+                         Directory.CreateDirectory(sprintf "%s" dir) |> ignore           
             )              
        |> tryWith2 (lazy ())            
        |> function    
@@ -610,12 +619,15 @@ module KODIS_Submain =
 
     let private downloadAndSaveTimetables message pathToDir =     //FsHttp
 
+        //*******************test pripojeni k internetu*****************************
         let conn =
             [1..10] |> List.filter (fun _ -> CheckNetConnection.checkNetConn().IsSome)
                                 
         match conn.Length >= 8 with
         | true  -> ()     
-        | false -> failwith "Bylo přerušeno internetové připojení."
+        | false -> failwith "Bylo přerušeno internetové připojení." 
+
+        //*******************konec test pripojeni k internetu***********************
    
         message.msgParam3 pathToDir  
 
@@ -655,20 +667,21 @@ module KODIS_Submain =
 
                          let counterAndProgressBar =
                              MailboxProcessor.Start
-                                (fun inbox ->
-                                            let rec loop n =
-                                                async
-                                                    { 
-                                                        let! msg = inbox.Receive()
-                                                        match msg with
-                                                        | Incr i             -> 
-                                                                              progressBarContinuous message n l  
-                                                                              return! loop (n + i)
-                                                        | Fetch replyChannel ->
-                                                                              replyChannel.Reply n 
-                                                                              return! loop n
-                                                    }
-                                            loop 0
+                                (fun inbox 
+                                    ->
+                                     let rec loop n =
+                                         async
+                                             { 
+                                                 let! msg = inbox.Receive()
+                                                 match msg with
+                                                 | Incr i             -> 
+                                                                       progressBarContinuous message n l  
+                                                                       return! loop (n + i)
+                                                 | Fetch replyChannel ->
+                                                                       replyChannel.Reply n 
+                                                                       return! loop n
+                                             }
+                                     loop 0
                                 )
 
                          match env.Length >= numberOfThreads1 with 
