@@ -33,7 +33,6 @@
     <Compile Include="DomainModelling\DomainModels.fs" />
     <Compile Include="DomainModelling\Dtos.fs" />
     <Compile Include="DomainModelling\TransformationLayers.fs" />
-    <Compile Include="Database\connection.fs" />
     <Content Include="Database\ITVFs.txt" />
     <Compile Include="Database\InsertInto.fs" />
     <Compile Include="Database\Select.fs" />
