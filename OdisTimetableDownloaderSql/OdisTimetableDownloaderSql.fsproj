@@ -34,7 +34,6 @@
     <Compile Include="DomainModelling\Dtos.fs" />
     <Compile Include="DomainModelling\TransformationLayers.fs" />
     <Content Include="Database\ITVFs.txt" />
-    <Compile Include="Database\Connection.fs" />
     <Compile Include="Database\InsertInto.fs" />
     <Compile Include="Database\Select.fs" />
     <Compile Include="SubmainFunctions\DPO-Submain.fs" />
