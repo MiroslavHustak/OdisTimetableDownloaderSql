@@ -2,6 +2,12 @@
 
 module DomainModel = 
 
+    type DbDataDomainGet = 
+        {            
+            completeLink : string option
+            fileToBeSaved : string option
+        }
+
     type DbDataDomainSend = 
         {
             oldPrefix : string 
@@ -13,11 +19,5 @@ module DomainModel =
             jsGeneratedString : string 
             completeLink : string 
             fileToBeSaved : string 
-        }
-
-    type DbDataDomainGet = 
-        {            
-            completeLink : string option
-            fileToBeSaved : string option
         }
 

@@ -23,6 +23,11 @@ module Result =
         function   
         | Ok value -> Some value 
         | Error _  -> None  
+
+    let internal fromOption = 
+        function   
+        | Some value -> Ok value
+        | None       -> Error String.Empty  
         
     let internal sequence aListOfResults = //gets the first error - see the book Domain Modelling Made Functional
 
@@ -96,6 +101,23 @@ module TryWithRF =
                   f2.Force() 
           with
           | ex -> Error <| string ex.Message  
+
+    let internal tryWith3 (f2 : Lazy<unit>) f1 =
+        try
+            try 
+                match f1 with
+                | Some value -> Ok value
+                | None       -> Error "Není připojení k internetu"                
+            finally
+                f2.Force() 
+        with
+        | ex -> Error <| string ex.Message  
+
+    let internal tryWithNone x : 'a option = 
+        try           
+           x
+        with
+        | _ -> None
     
     let internal closeItDpo (client: HttpClient) (message: Messages) err = 
         message.msgParam1 err      

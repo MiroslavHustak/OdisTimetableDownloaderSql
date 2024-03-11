@@ -6,6 +6,7 @@ module TryParserInt = //Adapted third-party code
          tryParseFunc >> function
          | true, value -> Some value
          | false, _    -> None
+
      let internal parseInt = tryParseWith <| System.Int32.TryParse  
      //let (|Int|_|) = parseInt  
      
@@ -15,6 +16,7 @@ module TryParserDate = //tohle je pro parsing textoveho retezce do DateTime, ne 
            tryParseFunc >> function
            | true, value -> Some value
            | false, _    -> None
+
        let internal parseDate = tryParseWith <| System.DateTime.TryParse 
        //let (|Date|_|) = parseDate                 
                                     

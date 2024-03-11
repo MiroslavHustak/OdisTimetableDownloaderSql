@@ -3,6 +3,9 @@
 open System
 open System.IO
 open System.Windows.Forms
+open System.Net.NetworkInformation
+
+open TryWithRF
 
 open Helpers
 open Helpers.Builders
@@ -177,6 +180,7 @@ module CopyingOrMovingFilesFreeMonad =   //not used yet
             {
                 let! sourceFilepath = Free (SourceFilepath Pure)                
                 let! destinFilepath = Free (DestinFilepath Pure) 
+
                 return! Free (CopyOrMove ((sourceFilepath, sprintf "%s%s" (destinFilepath) config.fileName), Pure ()))
             } |> interpret config io
 
@@ -201,3 +205,26 @@ module MyString = //priklad pouziti: getString(8, "0")//tuple a compiled nazev v
                          loop tail finalString  //Tail-recursive function calls that have their parameters passed by the pipe operator are not optimized as loops #6984
     
         loop listRange initialString
+
+module CheckNetConnection =  
+      
+    let internal checkNetConn() =                 
+       
+        try
+            use myPing = new Ping()      
+                
+            let host: string = "8.8.4.4" //IP google.com
+            let buffer: byte[] = Array.zeroCreate <| 32
+            let timeout = 1000
+            let pingOptions: PingOptions = new PingOptions()                
+     
+            myPing.Send(host, timeout, buffer, pingOptions)
+            |> (Option.ofNull >> Option.bind 
+                    (fun pingReply -> 
+                                    Option.fromBool (pingReply |> ignore) (pingReply.Status = IPStatus.Success)                                           
+                    )
+                ) 
+        with
+        |_ -> None   
+               
+     

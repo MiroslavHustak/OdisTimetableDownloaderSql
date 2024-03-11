@@ -5,6 +5,7 @@ module KODIS_Submain =
     open System
     open System.IO
     open System.Net
+    open System.Threading
     open System.Text.RegularExpressions
 
     open FsHttp
@@ -45,6 +46,13 @@ module KODIS_Submain =
     //************************Main code***********************************************************
 
     let internal downloadAndSaveJson message = //FsHttp
+
+        let conn =
+            [1..10] |> List.filter (fun _ -> CheckNetConnection.checkNetConn().IsSome)
+                                
+        match conn.Length >= 8 with
+        | true  -> ()     
+        | false -> failwith "Bylo přerušeno internetové připojení." 
         
         let l = jsonLinkList |> List.length
 
@@ -56,7 +64,7 @@ module KODIS_Submain =
                                     { 
                                         let! msg = inbox.Receive()                                    
                                         match msg with
-                                        | Incr i             ->
+                                        | Incr i             ->                                                             
                                                               let p = 
                                                                   match float n / float l < 0.25 with
                                                                   | true  -> n / 2
@@ -70,42 +78,45 @@ module KODIS_Submain =
                             loop 0
                 )
        
-        let updateJson listTuple =    
-        
-            let (jsonLinkList1, pathToJsonList1) = listTuple         
+        let updateJson listTuple = 
+
+            let (jsonLinkList1, pathToJsonList1) = listTuple                       
         
             Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
             Console.CursorLeft <- 0 
-         
+
             (jsonLinkList1, pathToJsonList1)
             ||> List.map2
-                (fun uri path ->  
+                (fun uri path ->                                        
                                async
-                                   {   
+                                   {                                           
                                        counterAndProgressBar.Post(Incr 1)
-                                       //failwith "Simulated exception"
-                                       use! response = get >> Request.sendAsync <| uri //anebo get rucne definovane viz Bungie.NET let get uri = http { GET (uri) }    
+                                       //failwith "Simulated exception"  
+                                                                                                                                                                                                 
+                                       let get uri = 
+                                           http
+                                               {
+                                                   GET uri
+                                               } 
 
+                                       use! response = get >> Request.sendAsync <| uri 
+                                      
                                        match response.statusCode with
-                                       | HttpStatusCode.OK -> 
+                                       | HttpStatusCode.OK ->                                                              
                                                             do! response.SaveFileAsync >> Async.AwaitTask <| path 
-                                                            return Ok ()                                       
-                                       | _                 ->                                     
-                                                            return Error String.Empty //tady je jedno, jaka hlaska tu je, quli Result.sequence                                                                                                                    
-                                   } 
-                                   |> Async.Catch 
-                                   |> Async.RunSynchronously
-                                   |> Result.ofChoice     
+                                                            return Ok ()                                   
+                                       | _                 ->  
+                                                            return Error String.Empty      
+                               } 
+                               |> Async.Catch 
+                               |> Async.RunSynchronously
+                               |> Result.ofChoice                                  
                 ) 
                 |> Result.sequence 
                 |> function
-                    | Ok _      -> 
-                                 ()
-                    | Error err -> 
-                                 message.msgParam1 "Chyba v průběhu stahování JSON souborů pro JŘ KODIS." 
-                                 Console.ReadKey() |> ignore 
-                                 System.Environment.Exit(1)
-                
+                    | Ok _    -> ()
+                    | Error _ -> failwith "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."                                 
+                                 
         message.msg2()      
         
         let fSharpAsyncParallel message =  
@@ -116,8 +127,8 @@ module KODIS_Submain =
 
             let myList =       
                 (splitListIntoEqualParts numberOfThreads1 jsonLinkList, splitListIntoEqualParts numberOfThreads1 pathToJsonList)
-                ||> List.zip                       
-                
+                ||> List.zip                 
+                        
             fun i -> <@ async { return updateJson (%%expr myList |> List.item %%(expr i)) } @>
             |> List.init numberOfThreads1 
             |> List.map _.Compile()       
@@ -126,13 +137,12 @@ module KODIS_Submain =
             |> Async.RunSynchronously
             |> Result.ofChoice           
             |> function
-                | Ok _    ->                             
-                           message.msg3() 
-                           message.msg4()
-                | Error _ ->
-                           message.msgParam8 "Chyba při paralelním stahování JSON souborů." 
-                           closeItBaby message message.msg16 
- 
+                | Ok _      ->                             
+                             message.msg3() 
+                             message.msg4()
+                | Error err ->
+                             closeItBaby message (string err.Message)  
+
         fSharpAsyncParallel message      
    
     let private digThroughJsonStructure message = //prohrabeme se strukturou json souboru //printfn -> additional 4 parameters
@@ -441,44 +451,47 @@ module KODIS_Submain =
             list 
             |> List.map
                 (fun (link, file) -> 
-                                    let path =                                         
-                                        let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
-                                            match param.GetType() with
-                                            | typ when typ = typeof<int>    -> IntType   
-                                            | typ when typ = typeof<string> -> StringType  
-                                            | _                             -> OtherType                                                      
+                                   let path =                                         
+                                       let (|IntType|StringType|OtherType|) (param : 'a) = //zatim nevyuzito, mozna -> TODO podumat nad refactoringem nize uvedeneho 
+                                           match param.GetType() with
+                                           | typ when typ = typeof<int>    -> IntType   
+                                           | typ when typ = typeof<string> -> StringType  
+                                           | _                             -> OtherType                                                      
                                                 
-                                        let pathToDir = sprintf "%s\\%s" pathToDir file //pro ostatni
-                                            
-                                        match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
-                                        | true ->   
-                                                true //pro aktualni a dlouhodobe platne
-                                                |> function
-                                                    | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                    | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
-                                                    | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
-                                                    | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
-                                                    | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
-                                                    | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
-                                                    | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
-                                                    | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
-                                                    | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
-                                                    | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
-                                                    | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                    | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                    | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
-                                                    | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
-                                                    | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)                                                           
-                                        | _    -> 
-                                                pathToDir    
-                                    link, path 
+                                       let pathToDir = sprintf "%s\\%s" pathToDir file //pro ostatni
+                                           
+                                       match pathToDir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || pathToDir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
+                                       | true ->   
+                                               true //pro aktualni a dlouhodobe platne
+                                               |> function
+                                                   | true when file.Substring(0, 1) = "0"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                                   | true when file.Substring(0, 1) = "1"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 0 sortedLines)
+                                                   | true when file.Substring(0, 1) = "2"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 1 sortedLines)
+                                                   | true when file.Substring(0, 1) = "3"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 2 sortedLines)
+                                                   | true when file.Substring(0, 1) = "4"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 3 sortedLines)
+                                                   | true when file.Substring(0, 1) = "5"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 4 sortedLines)
+                                                   | true when file.Substring(0, 1) = "6"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 5 sortedLines)
+                                                   | true when file.Substring(0, 1) = "7"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 6 sortedLines)
+                                                   | true when file.Substring(0, 1) = "8"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 7 sortedLines)
+                                                   | true when file.Substring(0, 1) = "9"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 8 sortedLines)
+                                                   | true when file.Substring(0, 1) = "S"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                                   | true when file.Substring(0, 1) = "R"  -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                                   | true when file.Substring(0, 2) = "_S" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 9 sortedLines)
+                                                   | true when file.Substring(0, 2) = "_R" -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 10 sortedLines)
+                                                   | _                                     -> pathToDir.Replace("_vyluk", sprintf "%s\\%s\\" <| "_vyluk" <| List.item 11 sortedLines)                                                           
+                                       | _    -> 
+                                               pathToDir    
+                                   link, path 
                 )          
-            
-        match param with 
-        | CurrentValidity           -> "dbo.ITVF_GetLinksCurrentValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
-        | FutureValidity            -> "dbo.ITVF_GetLinksFutureValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
-        | ReplacementService        -> "dbo.ITVF_GetLinksReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles   
-        | WithoutReplacementService -> "dbo.ITVF_GetLinksWithoutReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles 
+        
+        let selectDataFromDb = 
+            match param with 
+            | CurrentValidity           -> "dbo.ITVF_GetLinksCurrentValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
+            | FutureValidity            -> "dbo.ITVF_GetLinksFutureValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
+            | ReplacementService        -> "dbo.ITVF_GetLinksReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles   
+            | WithoutReplacementService -> "dbo.ITVF_GetLinksWithoutReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles 
+        
+        selectDataFromDb
  
     let internal deleteAllODISDirectories message pathToDir = 
 
@@ -596,10 +609,17 @@ module KODIS_Submain =
            | Error _  -> closeItBaby message message.msg16                                    
 
     let private downloadAndSaveTimetables message pathToDir =     //FsHttp
+
+        let conn =
+            [1..10] |> List.filter (fun _ -> CheckNetConnection.checkNetConn().IsSome)
+                                
+        match conn.Length >= 8 with
+        | true  -> ()     
+        | false -> failwith "Bylo přerušeno internetové připojení."
    
         message.msgParam3 pathToDir  
 
-        let asyncDownload (counterAndProgressBar : MailboxProcessor<msg>) list =               
+        let asyncDownload (counterAndProgressBar : MailboxProcessor<msg>) list =   
 
             list 
             |> List.iter 
@@ -608,7 +628,8 @@ module KODIS_Submain =
                      async
                          {                                                          
                              counterAndProgressBar.Post(Incr 1)
-                             //failwith "Simulated exception"                                        
+                             //failwith "Simulated exception"   
+                             
                              use! response = get >> Request.sendAsync <| uri //anebo get rucne definovane viz Bungie.NET let get uri = http { GET (uri) }    
                                      
                              match response.statusCode with
