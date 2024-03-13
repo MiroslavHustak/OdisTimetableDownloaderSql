@@ -1,5 +1,8 @@
 ﻿namespace Helpers
 
+open System.Net.NetworkInformation
+open System.Windows
+
 module ProgressBarFSharp =
 
     // ************************************************************************************************************
@@ -50,4 +53,7 @@ module ProgressBarFSharp =
                  updateProgressBar message currentProgress totalProgress
         | false ->              
                  Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
-                 Console.CursorLeft <- 0              
+                 Console.CursorLeft <- 0         
+               
+
+                  

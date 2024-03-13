@@ -30,11 +30,12 @@
     <Compile Include="Helpers\Helpers.fs" />
     <Compile Include="Helpers\CollectionSplitting.fs" />
     <Compile Include="Helpers\ProgressBarFSharp.fs" />
+    <Compile Include="AdaptedThirdPartyCode\FsHttpAdaptedCode.fs" />
     <Compile Include="DomainModelling\DomainModels.fs" />
     <Compile Include="DomainModelling\Dtos.fs" />
     <Compile Include="DomainModelling\TransformationLayers.fs" />
-    <Compile Include="Database\Connection.fs" />
     <Content Include="Database\ITVFs.txt" />
+    <Compile Include="Database\Connection.fs" />
     <Compile Include="Database\InsertInto.fs" />
     <Compile Include="Database\Select.fs" />
     <Compile Include="SubmainFunctions\DPO-Submain.fs" />

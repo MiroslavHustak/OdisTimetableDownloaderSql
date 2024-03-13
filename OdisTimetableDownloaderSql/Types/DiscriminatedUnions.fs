@@ -7,6 +7,9 @@ type internal Validity =
     | ReplacementService 
     | WithoutReplacementService 
 
-type internal msg =
+type internal Msg =
     | Incr of int
     | Fetch of AsyncReplyChannel<int>
+
+type MailboxMessage =
+    | First of int  

@@ -5,8 +5,11 @@ module KODIS_Submain =
     open System
     open System.IO
     open System.Net
-    open System.Threading
     open System.Text.RegularExpressions
+
+    open System.Windows
+    open System.Windows.Forms
+    open System.Net.NetworkInformation
 
     open FsHttp
     open FSharp.Data
@@ -32,7 +35,9 @@ module KODIS_Submain =
     open Database.Connection
 
     open DomainModelling.DomainModel
+    open FsHttpAdaptedCode.FsHttpAdaptedCode
 
+    
     //DO NOT DIVIDE this module into parts in line with the main design pattern yet - KODIS keeps making unpredictable changes or amendments
 
     type internal KodisTimetables = JsonProvider<pathJson> 
@@ -41,10 +46,11 @@ module KODIS_Submain =
 
     //space for helpers
 
-    let inline private expr (param : 'a) = Expr.Value(param)     
+    let inline private expr (param : 'a) = Expr.Value(param) 
+    
 
     //************************Main code***********************************************************
-
+           
     let internal downloadAndSaveJson message = //FsHttp
 
         //*******************test pripojeni k internetu*****************************
@@ -53,10 +59,10 @@ module KODIS_Submain =
                                 
         match conn.Length >= 8 with
         | true  -> ()     
-        | false -> failwith "Bylo přerušeno internetové připojení." 
+        | false -> ()// failwith "Bylo přerušeno internetové připojení." 
 
         //*******************konec test pripojeni k internetu***********************
-        
+
         let l = jsonLinkList |> List.length
 
         let counterAndProgressBar =
@@ -68,21 +74,17 @@ module KODIS_Submain =
                              { 
                                  let! msg = inbox.Receive()                                    
                                  match msg with
-                                 | Incr i             ->                                                             
-                                                        let p = 
-                                                            match float n / float l < 0.25 with
-                                                            | true  -> n / 2
-                                                            | false -> n 
-                                                            in progressBarContinuous message p l                                                        
-                                                        return! loop (n + i)
+                                 | Incr i             ->
+                                                       progressBarContinuous message n l                                                        
+                                                       return! loop (n + i)
                                  | Fetch replyChannel ->
-                                                        replyChannel.Reply n 
-                                                        return! loop n
-                            }
+                                                       replyChannel.Reply n 
+                                                       return! loop n
+                         }
                      loop 0
                 )
        
-        let updateJson listTuple = 
+        let updateJson listTuple =             
 
             let (jsonLinkList1, pathToJsonList1) = listTuple                       
         
@@ -91,27 +93,26 @@ module KODIS_Submain =
 
             (jsonLinkList1, pathToJsonList1)
             ||> List.map2
-                (fun uri path
+                (fun (uri: string) path
                     ->                                        
-                     async
-                         {                                           
-                             counterAndProgressBar.Post(Incr 1)
-                             //failwith "Simulated exception"  
-                                                                                                                                                                                                 
-                             let get uri = 
-                                 http
-                                     {
-                                         GET uri
-                                     } 
+                        async
+                            {    
+                                //failwith "Simulated exception"  
+                            
+                                use! response = get >> Request.sendAsync <| uri 
 
-                             use! response = get >> Request.sendAsync <| uri 
-                                      
-                             match response.statusCode with
-                             | HttpStatusCode.OK ->                                                              
-                                                  do! response.SaveFileAsync >> Async.AwaitTask <| path 
-                                                  return Ok ()                                   
-                             | _                 ->  
-                                                  return Error String.Empty      
+                                match response.statusCode with
+                                | HttpStatusCode.OK ->
+                                                     let counterAndProgressBarPost () = counterAndProgressBar.Post(Incr 1)                                                                              
+
+                                                     //Adapted FsHttp library function
+                                                     do! responseSaveFileAsync counterAndProgressBarPost path response |> Async.AwaitTask
+                                                     
+                                                     //do! response.SaveFileAsync >> Async.AwaitTask <| path  //Original library function
+                                                                                                          
+                                                     return Ok ()                                   
+                                | _                 ->  
+                                                     return Error String.Empty      
                         } 
                         |> Async.Catch 
                         |> Async.RunSynchronously
@@ -120,7 +121,7 @@ module KODIS_Submain =
                 |> Result.sequence 
                 |> function
                     | Ok _    -> ()
-                    | Error _ -> failwith "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."                                 
+                    | Error _ -> failwith "Chyba v průběhu stahování JSON souborů pro JŘ KODIS. Zkontroluj připojení k internetu"                                 
                                  
         message.msg2()      
         
@@ -618,35 +619,34 @@ module KODIS_Submain =
            | Error _  -> closeItBaby message message.msg16                                    
 
     let private downloadAndSaveTimetables message pathToDir =     //FsHttp
-
-        //*******************test pripojeni k internetu*****************************
-        let conn =
-            [1..10] |> List.filter (fun _ -> CheckNetConnection.checkNetConn().IsSome)
-                                
-        match conn.Length >= 8 with
-        | true  -> ()     
-        | false -> failwith "Bylo přerušeno internetové připojení." 
-
-        //*******************konec test pripojeni k internetu***********************
-   
+        
         message.msgParam3 pathToDir  
 
-        let asyncDownload (counterAndProgressBar : MailboxProcessor<msg>) list =   
+        let asyncDownload (counterAndProgressBar : MailboxProcessor<Msg>) list =   
 
             list 
             |> List.iter 
                 (fun (uri, (pathToFile: string)) 
                     ->                         
                      async
-                         {                                                          
-                             counterAndProgressBar.Post(Incr 1)
+                         {          
                              //failwith "Simulated exception"   
                              
                              use! response = get >> Request.sendAsync <| uri //anebo get rucne definovane viz Bungie.NET let get uri = http { GET (uri) }    
                                      
                              match response.statusCode with
-                             | HttpStatusCode.OK -> return! response.SaveFileAsync >> Async.AwaitTask <| pathToFile                                        
-                             | _                 -> return message.msgParam8 "Chyba v průběhu stahování JŘ KODIS." //nechame chybu projit v loop                                                                                 
+                             | HttpStatusCode.OK -> 
+                                                  let counterAndProgressBarPost () = counterAndProgressBar.Post(Incr 1)                                                                              
+
+                                                  //Adapted FsHttp library function
+                                                  do! responseSaveFileAsync counterAndProgressBarPost pathToFile response |> Async.AwaitTask
+                                                  return ()
+                                                  
+                                                  //Original FsHttp library function
+                                                  //return! response.SaveFileAsync >> Async.AwaitTask <| pathToFile 
+                                                  
+                             | _                 -> 
+                                                  return message.msgParam8 "Chyba v průběhu stahování JŘ KODIS." //nechame chybu projit v loop                                                                                 
                          } 
                          |> Async.Catch
                          |> Async.RunSynchronously  
