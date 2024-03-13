@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="EducationalCode\FsHttpLibraryCode.fs" />
     <Compile Include="EducationalCode\EducationalCode.fs" />
     <Content Include="KODISJson\kodisMHDTotal.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -23,6 +24,7 @@
     <Compile Include="Settings\SettingsMDPO.fs" />
     <Compile Include="Settings\SettingsDPO.fs" />
     <Compile Include="Settings\SettingsKODIS.fs" />
+    <Compile Include="Helpers\MsgBoxClosing.fs" />
     <Compile Include="Helpers\FreeMonads.fs" />
     <Compile Include="Helpers\CEBuilders.fs" />
     <Compile Include="Helpers\Parsing.fs" />
@@ -30,7 +32,6 @@
     <Compile Include="Helpers\Helpers.fs" />
     <Compile Include="Helpers\CollectionSplitting.fs" />
     <Compile Include="Helpers\ProgressBarFSharp.fs" />
-    <Compile Include="AdaptedThirdPartyCode\FsHttpAdaptedCode.fs" />
     <Compile Include="DomainModelling\DomainModels.fs" />
     <Compile Include="DomainModelling\Dtos.fs" />
     <Compile Include="DomainModelling\TransformationLayers.fs" />
