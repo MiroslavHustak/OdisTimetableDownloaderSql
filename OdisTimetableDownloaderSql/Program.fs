@@ -1,5 +1,8 @@
 ﻿open System
 open System.Data
+open System.Windows
+open FSharp.Control
+open System.Windows.Forms
 
 open Helpers
 open Helpers.TryWithRF
@@ -8,6 +11,8 @@ open Helpers.ConsoleFixers
 open Types
 open Types.DirNames
 
+open BrowserDialogWindow
+
 open Settings.Messages
 open Settings.SettingsGeneral
 
@@ -15,7 +20,6 @@ open MainFunctions.WebScraping_DPO
 open MainFunctions.WebScraping_MDPO
 open MainFunctions.WebScraping_KODISFM
 
-open BrowserDialogWindow
 
 [<TailCall>] 
 let rec private pathToFolder () =
@@ -48,7 +52,9 @@ let rec private pathToFolder () =
 //[<EntryPoint>] 
 let main argv =
   
-    //*****************************Console******************************   
+    //*****************************Console******************************  
+    
+    let updateDate = "14-03-2024"
 
     let consoleSettings f = 
 
@@ -72,7 +78,7 @@ let main argv =
 
         Console.Clear()
         printfn "Hromadné stahování aktuálních JŘ ODIS (včetně výluk) dopravce DP Ostrava z webu https://www.dpo.cz"
-        printfn "Datum poslední aktualizace SW: 29-02-2024"
+        printfn "Datum poslední aktualizace SW: %s" updateDate
         printfn "********************************************************************"
         printfn "Nyní je třeba vybrat si adresář pro uložení JŘ dopravce DP Ostrava."
         printfn "Pokud ve vybraném adresáři existuje následující podadresář, jeho obsah bude nahrazen nově staženými JŘ."
@@ -109,7 +115,7 @@ let main argv =
         Console.Clear()
         printfn "Hromadné stahování aktuálních JŘ ODIS dopravce MDP Opava z webu https://www.mdpo.cz"         
         printfn "JŘ jsou pouze zastávkové - klasické JŘ stáhnete v \"celoODISové\" variantě (volba 3 na úvodní stránce)."   
-        printfn "Datum poslední aktualizace SW: 29-02-2024" 
+        printfn "Datum poslední aktualizace SW: %s" updateDate
         printfn "********************************************************************"
         printfn "Nyní je třeba vybrat si adresář pro uložení JŘ dopravce MDP Opava."
         printfn "Pokud ve vybraném adresáři existuje následující podadresář, jeho obsah bude nahrazen nově staženými JŘ."
@@ -145,7 +151,7 @@ let main argv =
 
         Console.Clear()
         printfn "Hromadné stahování JŘ ODIS všech dopravců v systému ODIS z webu https://www.kodis.cz"           
-        printfn "Datum poslední aktualizace SW: 29-02-2024" 
+        printfn "Datum poslední aktualizace SW: %s" updateDate
         printfn "********************************************************************"
         printfn "Nyní je třeba vybrat si adresář pro uložení JŘ všech dopravců v systému ODIS."
         printfn "Pokud ve vybraném adresáři existují následující podadresáře, jejich obsah bude nahrazen nově staženými JŘ."
@@ -233,6 +239,38 @@ let main argv =
         printfn "3 = Hromadné stahování jízdních řádů ODIS všech dopravců v systému ODIS z webu https://www.kodis.cz"
         printfn "%c" <| char(32)  
         printfn "Anebo klikni na křížek pro ukončení aplikace."
+                
+        let s1 = "Není připojení k internetu. Obnov jej, bez něj stahování JŘ opravdu nebude fungovat :-)."
+        let s2 = String.Empty
+        let str = sprintf "%s %s" s1 s2
+
+        let boxTitle = "No jéje, zase problém ..."
+                                                         
+        let checkNetConnection timeout =
+            [1..10] 
+            |> List.filter (fun _ -> CheckNetConnection.checkNetConn(timeout).IsSome) 
+            |> List.length >= 8  
+        
+        let checkNetConnF = checkNetConnection 500
+       
+        //[<TailCall>] //kontrolovano jako module function, bez varovnych hlasek
+        let rec checkConnect checkNetConnP = 
+
+            match checkNetConnP with
+            | true  -> 
+                     ()
+            | false -> 
+                     MessageBox.Show
+                         (
+                             str, 
+                             boxTitle, 
+                             MessageBoxButtons.OK
+                         )  
+                         |> ignore
+                         
+                     checkConnect << checkNetConnection <| 500
+        
+        checkConnect checkNetConnF
            
         Console.ReadLine()
         |> function 

@@ -13,3 +13,7 @@ type internal Msg =
 
 type MailboxMessage =
     | First of int  
+
+type MailBoxProcessorType =
+    | Json 
+    | Pdf

@@ -5,9 +5,11 @@ module KODIS_Submain =
     open System
     open System.IO
     open System.Net
-    open System.Text.RegularExpressions
-
+    open System.Windows    
+    open System.Threading
+    open System.Windows.Forms
     open System.Net.NetworkInformation
+    open System.Text.RegularExpressions
 
     open FsHttp
     open FSharp.Data
@@ -44,22 +46,15 @@ module KODIS_Submain =
 
     //space for helpers
 
-    let inline private expr (param : 'a) = Expr.Value(param)     
+    let inline private expr (param : 'a) = Expr.Value(param)   
+    
+    let private cts = new CancellationTokenSource()
+    let private tokenJson = cts.Token 
 
     //************************Main code***********************************************************
            
     let internal downloadAndSaveJson message = //FsHttp
-
-        //*******************test pripojeni k internetu*****************************
-        let conn =
-            [1..10] |> List.filter (fun _ -> CheckNetConnection.checkNetConn().IsSome)
-                                
-        match conn.Length >= 8 with
-        | true  -> ()     
-        | false -> () //failwith "Bylo přerušeno internetové připojení." 
-
-        //*******************konec test pripojeni k internetu***********************
-
+               
         let l = jsonLinkList |> List.length
 
         let counterAndProgressBar =
@@ -81,47 +76,43 @@ module KODIS_Submain =
                      loop 0
                 )
        
-        let updateJson listTuple =             
-
-            let (jsonLinkList1, pathToJsonList1) = listTuple                       
+        let updateJson listTuple =    
         
             Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
             Console.CursorLeft <- 0 
             
-            Seq.initInfinite (fun _ -> true)
-            |> Seq.takeWhile ((=) true) 
-            |> Seq.map
-                (fun _ -> 
-
-                       //Async.StartImmediate means that in your code, all the asynchronous workflows created by the Seq.iter function are started simultaneously, leading to unexpected behavior.
+            AsyncSeq.initInfinite (fun _ -> tokenJson.IsCancellationRequested)
+            |> AsyncSeq.takeWhile ((=) false) 
+            |> AsyncSeq.iterAsync
+                (fun _ ->
                         async
                             {
                                 match not <| NetworkInterface.GetIsNetworkAvailable() with
-                                | true  -> (processor ()).Post(First(1))                                                                                                                                            
+                                | true  -> (processor 120000 Json).Post(First(1))                                                                                                                                            
                                 | false -> () 
                                 do! Async.Sleep(10000) 
                             }
                 )   
-            |> Seq.head
             |> Async.StartImmediate
-            |> ignore           
+
+            let (jsonLinkList1, pathToJsonList1) = listTuple     
 
             (jsonLinkList1, pathToJsonList1)
             ||> List.map2
                  (fun (uri: string) path
-                     ->  
+                     ->                       
                       async
                           {    
                               //failwith "Simulated exception"  
-                              counterAndProgressBar.Post(Incr 1)
-                            
                               use! response = get >> Request.sendAsync <| uri 
 
                               match response.statusCode with
                               | HttpStatusCode.OK ->
                                                    //Adapted FsHttp library function
                                                    //do! responseSaveFileAsync counterAndProgressBarPost path response |> Async.AwaitTask
-                                                     
+                                                   
+                                                   counterAndProgressBar.Post(Incr 1)
+                                                   
                                                    do! response.SaveFileAsync >> Async.AwaitTask <| path  //Original library function                                                                                                          
                                                    return Ok ()                                   
                               | _                 ->  
@@ -134,7 +125,7 @@ module KODIS_Submain =
                  |> Result.sequence 
                  |> function
                      | Ok _    -> ()
-                     | Error _ -> failwith "Chyba v průběhu stahování JSON souborů pro JŘ KODIS. Zkontroluj připojení k internetu"                                 
+                     | Error _ -> failwith "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."                                 
                                  
         message.msg2()      
         
@@ -635,41 +626,18 @@ module KODIS_Submain =
         
         message.msgParam3 pathToDir  
 
-        let asyncDownload (counterAndProgressBar : MailboxProcessor<Msg>) list =             
-           
-            Seq.initInfinite (fun _ -> true)
-            |> Seq.takeWhile ((=) true) 
-            |> Seq.map
-                (fun _ -> 
-                        async
-                            {
-                                match not <| NetworkInterface.GetIsNetworkAvailable() with
-                                | true  -> (processor ()).Post(First(1))                                                                                                                                            
-                                | false -> () 
-                                do! Async.Sleep(10000) 
-                            }   
-                )  
-            |> Seq.head
-            |> Async.StartImmediate
-            |> ignore
-
-            (*
-            async
-                {
-                    while true do
-                        match not <| NetworkInterface.GetIsNetworkAvailable() with
-                        | true  -> (processor ()).Post(First(1))                                                                                                                                            
-                        | false -> () 
-                    do! Async.Sleep(10000)  
-                } |> Async.StartImmediate
-            *)            
+        let asyncDownload (counterAndProgressBar : MailboxProcessor<Msg>) list =   
+            
+            cts.Cancel() //aby prestala fungovat nekonecna smycka pro msgboxy u stahovani Json souboru
 
             list 
             |> List.iter 
                 (fun (uri, (pathToFile: string)) 
                     ->                         
                      async
-                         {          
+                         {    
+                             closeItMyBaby ()
+
                              //failwith "Simulated exception"  
                              counterAndProgressBar.Post(Incr 1)
                              
@@ -677,8 +645,7 @@ module KODIS_Submain =
                                      
                              match response.statusCode with
                              | HttpStatusCode.OK -> return! response.SaveFileAsync >> Async.AwaitTask <| pathToFile      //Original FsHttp library function                                                                                                 
-                             | _                 -> return message.msgParam8 "Chyba v průběhu stahování JŘ KODIS." //nechame chybu projit v loop   
-                                                                                                                                
+                             | _                 -> return message.msgParam8 "Chyba v průběhu stahování JŘ KODIS."       //nechame chybu projit v loop                                                                                                                                  
                          } 
                          |> Async.Catch
                          |> Async.RunSynchronously  
@@ -720,7 +687,7 @@ module KODIS_Submain =
                          | false ->  
                                   asyncDownload counterAndProgressBar env
                                   message.msgParam4 pathToDir  
-                         | true  ->          
+                         | true  ->                                
                                   let myList = splitListIntoEqualParts numberOfThreads1 env                             
                               
                                   fun i -> <@ async { return asyncDownload counterAndProgressBar (%%expr myList |> List.item %%(expr i)) } @>

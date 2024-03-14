@@ -4,7 +4,10 @@ module MsgBoxClosing =
 
     open System
     open System.Windows.Forms
+    open System.Net.NetworkInformation
     open System.Runtime.InteropServices
+
+    open FSharp.Control
 
     open Types
 
@@ -67,51 +70,84 @@ module MsgBoxClosing =
                 messageLoop ()
             )              
 
-    let internal processor () = 
+    let internal processor (waitingTime : int) variant = 
         MailboxProcessor.Start
             (fun inbox 
                 ->
                    let rec loop isFirst =
                        async
                            {
-                               let boxTitle = "No jéje, zase problém ..."
                                let! msg = inbox.Receive()
+                               
                                match msg with
                                | First(x) when isFirst 
-                                           ->
-                                            match findMsgBox boxTitle with
-                                            | true  -> ()//clickOnOKButton boxTitle
-                                            | false -> 
-                                                     let result =
+                                    ->
+                                    let boxTitle = "No jéje, zase problém ..."
 
-                                                         let s1 = "Není připojení k internetu. Obnov jej, stahování příslušných souborů bude pak pokračovat."
-                                                         let s2 = "Některé soubory se možná nestáhnou, program ti řekne, které."
-                                                         let str = sprintf "%s %s" s1 s2
-                                                         
-                                                         MessageBox.Show
-                                                             (
-                                                                 str, 
-                                                                 boxTitle, 
-                                                                 MessageBoxButtons.OK
-                                                             ) 
+                                    match findMsgBox boxTitle with
+                                    | true  -> 
+                                                () //clickOnOKButton boxTitle
+                                    | false ->                                                          
+                                                match variant with
+                                                | Json -> 
+                                                        let s1 = "Není připojení k internetu. Obnov jej, stahování příslušných souborů bude pak pokračovat."
+                                                        let s2 = String.Empty
+                                                        let str = sprintf "%s %s" s1 s2
+                                                              
+                                                        let result () =
+                                                            MessageBox.Show
+                                                                (
+                                                                    str, 
+                                                                    boxTitle, 
+                                                                    MessageBoxButtons.OK
+                                                                ) 
+
+                                                        AsyncSeq.initInfinite (fun _ -> result () <> DialogResult.OK)
+                                                        |> AsyncSeq.takeWhile ((<>) true) 
+                                                        |> AsyncSeq.iterAsync (fun _ -> async { do! Async.Sleep(waitingTime) }) 
+                                                        |> Async.StartImmediate 
+            
+                                                | Pdf  ->
+                                                        let s1 = "Není připojení k internetu. Stahování souborů se musí ukončit, i kdyby zrovna došlo k obnovení připojení."
+                                                        let s2 = "Zmáčknutím tlačítka Ok vypni tento program. Je pak nutné jej spustit znovu."
+                                                        let str = sprintf "%s %s" s1 s2
+
+                                                        let result () = 
+                                                            MessageBox.Show
+                                                                (
+                                                                    str, 
+                                                                    boxTitle, 
+                                                                    MessageBoxButtons.OK
+                                                                )  
+
+                                                        match findMsgBox boxTitle with
+                                                        | true  -> 
+                                                                () //clickOnOKButton boxTitle
+                                                        | false ->                                                                
+                                                                match result () = DialogResult.OK with
+                                                                | true  -> System.Environment.Exit(1)                                                                               
+                                                                | false -> ()                                                      
                                                      
-                                                     //while result <> DialogResult.OK do
-                                                       // do! Async.Sleep(60000)
+                                        //while result <> DialogResult.OK do
+                                        // do! Async.Sleep(120000)
 
-                                                     Seq.initInfinite (fun _ -> result <> DialogResult.OK)
-                                                     |> Seq.takeWhile ((<>) true) 
-                                                     |> Seq.map (fun _ -> async { do! Async.Sleep(120000) }) 
-                                                     |> Seq.head
-                                                     |> Async.StartImmediate
-                                                     |> ignore
-
-                                            return! loop false // Set isFirst to false to ignore subsequent messages
+                                    return! loop false // Set isFirst to false to ignore subsequent messages
                                | _         ->                      
                                             return! loop isFirst
                            }
 
                    loop true // Start with isFirst set to true
            ) 
+
+    let internal closeItMyBaby () = 
+
+        async 
+            {                  
+                match NetworkInterface.GetIsNetworkAvailable() with
+                | true  -> ()
+                | false -> (processor 120000 Pdf).Post(First(1)) 
+
+            } |> Async.StartImmediate
     
               
     

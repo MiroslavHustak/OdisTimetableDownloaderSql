@@ -208,14 +208,14 @@ module MyString = //priklad pouziti: getString(8, "0")//tuple a compiled nazev v
 
 module CheckNetConnection =  
       
-    let internal checkNetConn() =                 
+    let internal checkNetConn (timeout : int) =                 
        
         try
             use myPing = new Ping()      
                 
             let host: string = "8.8.4.4" //IP google.com
             let buffer: byte[] = Array.zeroCreate <| 32
-            let timeout = 1000
+            
             let pingOptions: PingOptions = new PingOptions()                
      
             myPing.Send(host, timeout, buffer, pingOptions)
