@@ -5,9 +5,7 @@ module KODIS_Submain =
     open System
     open System.IO
     open System.Net
-    open System.Windows    
     open System.Threading
-    open System.Windows.Forms
     open System.Net.NetworkInformation
     open System.Text.RegularExpressions
 
@@ -46,10 +44,27 @@ module KODIS_Submain =
 
     //space for helpers
 
-    let inline private expr (param : 'a) = Expr.Value(param)   
+    let inline private expr (param : 'a) = Expr.Value(param)  
     
-    let private cts = new CancellationTokenSource()
+    //********************* infinite checking for Json files download ******************************
+    
+    //Cancellation tokens for educational purposes
+    let private cts = new CancellationTokenSource() //TODO podumat, kaj zrobit cts.Dispose()
     let private tokenJson = cts.Token 
+
+    AsyncSeq.initInfinite (fun _ -> tokenJson.IsCancellationRequested)
+    |> AsyncSeq.takeWhile ((=) false) 
+    |> AsyncSeq.iterAsync
+        (fun _ ->
+                async
+                    {
+                        match not <| NetworkInterface.GetIsNetworkAvailable() with
+                        | true  -> (processor 120000 Json).Post(First(1))                                                                                                                                            
+                        | false -> () 
+                        do! Async.Sleep(5000) 
+                    }
+        )   
+    |> Async.StartImmediate   
 
     //************************Main code***********************************************************
            
@@ -79,22 +94,8 @@ module KODIS_Submain =
         let updateJson listTuple =    
         
             Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
-            Console.CursorLeft <- 0 
-            
-            AsyncSeq.initInfinite (fun _ -> tokenJson.IsCancellationRequested)
-            |> AsyncSeq.takeWhile ((=) false) 
-            |> AsyncSeq.iterAsync
-                (fun _ ->
-                        async
-                            {
-                                match not <| NetworkInterface.GetIsNetworkAvailable() with
-                                | true  -> (processor 120000 Json).Post(First(1))                                                                                                                                            
-                                | false -> () 
-                                do! Async.Sleep(10000) 
-                            }
-                )   
-            |> Async.StartImmediate
-
+            Console.CursorLeft <- 0            
+   
             let (jsonLinkList1, pathToJsonList1) = listTuple     
 
             (jsonLinkList1, pathToJsonList1)
@@ -628,24 +629,34 @@ module KODIS_Submain =
 
         let asyncDownload (counterAndProgressBar : MailboxProcessor<Msg>) list =   
             
-            cts.Cancel() //aby prestala fungovat nekonecna smycka pro msgboxy u stahovani Json souboru
-
+            cts.Cancel()
+            
             list 
             |> List.iter 
                 (fun (uri, (pathToFile: string)) 
                     ->                         
                      async
                          {    
-                             closeItMyBaby ()
-
-                             //failwith "Simulated exception"  
-                             counterAndProgressBar.Post(Incr 1)
-                             
-                             use! response = get >> Request.sendAsync <| uri //anebo get rucne definovane viz Bungie.NET let get uri = http { GET (uri) }    
+                            match not <| NetworkInterface.GetIsNetworkAvailable() with
+                            | true  ->                                    
+                                     (processor 120000 Pdf).Post(First(1)) 
+                                     Thread.Sleep(600000)
+                            | false ->  
+                                     //failwith "Simulated exception"  
+                                     counterAndProgressBar.Post(Incr 1)
+                                       
+                                     let get uri =
+                                         http 
+                                             {
+                                                config_timeoutInSeconds 120  //for educational purposes
+                                                GET(uri) 
+                                             }    
                                      
-                             match response.statusCode with
-                             | HttpStatusCode.OK -> return! response.SaveFileAsync >> Async.AwaitTask <| pathToFile      //Original FsHttp library function                                                                                                 
-                             | _                 -> return message.msgParam8 "Chyba v průběhu stahování JŘ KODIS."       //nechame chybu projit v loop                                                                                                                                  
+                                     use! response = get >> Request.sendAsync <| uri  
+                                     
+                                     match response.statusCode with
+                                     | HttpStatusCode.OK -> return! response.SaveFileAsync >> Async.AwaitTask <| pathToFile      //Original FsHttp library function                                                                                                 
+                                     | _                 -> return message.msgParam8 "Chyba v průběhu stahování JŘ KODIS."       //nechame chybu projit v loop                                                                                                                                  
                          } 
                          |> Async.Catch
                          |> Async.RunSynchronously  
@@ -730,5 +741,5 @@ module KODIS_Submain =
 
                  tryWith2 (lazy ()) (downloadAndSaveTimetables message dir filterTimetables)           
                  |> function    
-                     | Ok value -> value
+                     | Ok value -> value                                
                      | Error _  -> closeItBaby message message.msg16     
