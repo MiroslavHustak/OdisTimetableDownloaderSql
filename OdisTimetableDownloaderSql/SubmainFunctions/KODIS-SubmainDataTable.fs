@@ -1,6 +1,6 @@
-﻿namespace SubmainFunctions
+﻿namespace SubmainFunctionsDataTable
 
-module KODIS_Submain =
+module KODIS_SubmainDataTable =
 
     open System
     open System.IO
@@ -497,21 +497,13 @@ module KODIS_Submain =
                                  pathToDir    
                      link, path 
                 )          
-        //DataTable.InsertInto.filter dataToBeInserted
-
-        let selectDataFromDb1 = 
+        
+        let selectDataFromDb = 
             match param with 
             | CurrentValidity           -> "dbo.ITVF_GetLinksCurrentValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
             | FutureValidity            -> "dbo.ITVF_GetLinksFutureValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
             | ReplacementService        -> "dbo.ITVF_GetLinksReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles   
             | WithoutReplacementService -> "dbo.ITVF_GetLinksWithoutReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles 
-
-        let selectDataFromDb = 
-            match param with 
-            | CurrentValidity           -> DataTable.InsertInto.filter dataToBeInserted CurrentValidity |> createPathsForDownloadedFiles
-            | FutureValidity            -> DataTable.InsertInto.filter dataToBeInserted FutureValidity |> createPathsForDownloadedFiles
-            | ReplacementService        -> DataTable.InsertInto.filter dataToBeInserted ReplacementService |> createPathsForDownloadedFiles  
-            | WithoutReplacementService -> DataTable.InsertInto.filter dataToBeInserted WithoutReplacementService |> createPathsForDownloadedFiles 
         
         selectDataFromDb
  
