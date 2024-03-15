@@ -62,7 +62,7 @@ module WebScraping_KODISFMDataTable =
                                                                   <| pathToDir 
                                                                   <| createDirName variant listODISDefault4 
                                                               createFolders message dirList
-                                                              KODIS_Submain.downloadAndSave message variant (dirList |> List.head)  
+                                                              KODIS_SubmainDataTable.downloadAndSave message variant (dirList |> List.head)  
 
                                                          //BulkVariantDownload       
                                                          | _ ->  
@@ -70,7 +70,7 @@ module WebScraping_KODISFMDataTable =
                                                               let dirList = createNewDirectories pathToDir listODISDefault4
                                                               createFolders message dirList 
                                                               (variantList, dirList)
-                                                              ||> List.iter2 (fun variant dir ->  KODIS_Submain.downloadAndSave message variant dir)     
+                                                              ||> List.iter2 (fun variant dir ->  KODIS_SubmainDataTable.downloadAndSave message variant dir)     
                                                                                                              
                                                          in errorHandling downloadSelectedVariant  
 
