@@ -3,7 +3,7 @@
 open System
 open System.Data
 
-module DtoGet = 
+module Dto = 
 
     type DbDataDtoGet = 
         {

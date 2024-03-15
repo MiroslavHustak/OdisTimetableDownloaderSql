@@ -4,7 +4,7 @@ open System
 open System.Data
 
 open Helpers
-open DomainModelling.DtoGet
+open DomainModelling.Dto
 open DomainModelling.DomainModel
 
 open Helpers.TryParserDate

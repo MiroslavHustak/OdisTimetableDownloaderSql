@@ -8,7 +8,7 @@ open FsToolkit.ErrorHandling
 open Types
 open Helpers
 open DomainModelling.DomainModel
-open DomainModelling.DtoGet
+open DomainModelling.Dto
 open TransformationLayers.TransormationLayerGet
 open TransformationLayers.TransormationLayerSend
 open Helpers.Builders

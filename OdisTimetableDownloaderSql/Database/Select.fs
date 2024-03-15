@@ -7,7 +7,7 @@ open Microsoft.Data.SqlClient
 open Helpers
 open Types.Messages
 
-open DomainModelling.DtoGet
+open DomainModelling.Dto
 open DomainModelling.DomainModel
 open TransformationLayers.TransormationLayerGet
 
