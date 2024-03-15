@@ -1,5 +1,7 @@
 ﻿namespace SubmainFunctions
 
+open TransformationLayers.TransormationLayerSend
+
 module KODIS_Submain =
 
     open System
@@ -434,6 +436,8 @@ module KODIS_Submain =
                 completeLink = input
                 fileToBeSaved = fileToBeSaved
             }
+            |> dbDataTransferLayerSend  
+
      
         //**********************Filtering and SQL data inserting********************************************************
         let dataToBeInserted =           
@@ -497,16 +501,15 @@ module KODIS_Submain =
                                  pathToDir    
                      link, path 
                 )          
-        //DataTable.InsertInto.filter dataToBeInserted
 
-        let selectDataFromDb1 = 
+        let selectDataFromDb = 
             match param with 
             | CurrentValidity           -> "dbo.ITVF_GetLinksCurrentValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
             | FutureValidity            -> "dbo.ITVF_GetLinksFutureValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
             | ReplacementService        -> "dbo.ITVF_GetLinksReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles   
             | WithoutReplacementService -> "dbo.ITVF_GetLinksWithoutReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles 
 
-        let selectDataFromDb = 
+        let selectDataFromDb1 = 
             match param with 
             | CurrentValidity           -> DataTable.InsertInto.filter dataToBeInserted CurrentValidity |> createPathsForDownloadedFiles
             | FutureValidity            -> DataTable.InsertInto.filter dataToBeInserted FutureValidity |> createPathsForDownloadedFiles

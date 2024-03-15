@@ -1,5 +1,8 @@
 ﻿namespace Helpers
-           
+       
+open System       
+open System.Data
+
 module Builders =
    
     [<Struct>]
@@ -48,10 +51,10 @@ module Builders =
 
      let internal pyramidOfDoom = Builder2
 
-    //**************************************************************************************
+     //**************************************************************************************
 
     type internal Reader<'e, 'a> = 'e -> 'a
-
+    
     [<Struct>] 
     type internal ReaderBuilder = ReaderBuilder with
         member __.Bind(m, f) = fun env -> f (m env) env      

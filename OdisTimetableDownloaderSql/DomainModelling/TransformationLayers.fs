@@ -1,8 +1,13 @@
 ﻿namespace TransformationLayers
 
+open System
+open System.Data
+
 open Helpers
 open DomainModelling.DtoGet
 open DomainModelling.DomainModel
+
+open Helpers.TryParserDate
 
 module TransormationLayerGet =
         
@@ -18,8 +23,8 @@ module TransormationLayerSend =
         {
             oldPrefix = dbDataDomain.oldPrefix
             newPrefix = dbDataDomain.newPrefix
-            startDate = dbDataDomain.startDate
-            endDate = dbDataDomain.endDate
+            startDate = parseDate dbDataDomain.startDate
+            endDate = parseDate dbDataDomain.endDate
             totalDateInterval = dbDataDomain.totalDateInterval
             suffix = dbDataDomain.suffix
             jsGeneratedString = dbDataDomain.jsGeneratedString

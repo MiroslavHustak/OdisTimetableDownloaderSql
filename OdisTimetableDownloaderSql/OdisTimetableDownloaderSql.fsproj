@@ -44,7 +44,6 @@
     <Compile Include="SubmainFunctions\DPO-Submain.fs" />
     <Compile Include="SubmainFunctions\MDPO-Submain.fs" />
     <Compile Include="SubmainFunctions\KODIS-Submain.fs" />
-    <Compile Include="SubmainFunctions\KODIS-SubmainDataTable.fs" />
     <Compile Include="MainFunctions\KODISFM.fs" />
     <Compile Include="MainFunctions\MDPO.fs" />
     <Compile Include="MainFunctions\DPO.fs" />

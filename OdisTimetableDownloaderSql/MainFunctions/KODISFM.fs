@@ -42,9 +42,9 @@ module WebScraping_KODISFM =
                                                      interpret message param
 
             | Free (DownloadAndSaveJsonFM next)     ->                                                 
-                                                     let downloadAndSaveJson =  
-                                                         downloadAndSaveJson message  
-                                                         in errorHandling downloadAndSaveJson
+                                                     //let downloadAndSaveJson =  
+                                                        // downloadAndSaveJson message  
+                                                        // in errorHandling downloadAndSaveJson
 
                                                      let param = next ()
                                                      interpret message param                                                

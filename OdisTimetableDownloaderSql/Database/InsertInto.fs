@@ -6,11 +6,14 @@ open FsToolkit.ErrorHandling
 open Microsoft.Data.SqlClient
 
 open Types.Messages
+open Helpers.Builders
+open DomainModelling.DtoGet
 open DomainModelling.DomainModel
+
 
 module InsertInto = 
 
-    let internal insert getConnection closeConnection (dataToBeInserted : DbDataDomainSend list) message =
+    let internal insert getConnection closeConnection (dataToBeInserted : DbDataDtoSend list) message =
 
         let queryDeleteAll = "DELETE FROM TimetableLinks"
          
@@ -48,23 +51,33 @@ module InsertInto =
                 
                 dataToBeInserted     
                 |> List.iter
-                    (fun item ->                        
+                    (fun item -> 
+                               let (startDate, endDate) =   
+
+                                   pyramidOfDoom
+                                       {
+                                           let! startDate = item.startDate, (DateTime.MinValue, DateTime.MinValue)                                                      
+                                           let! endDate = item.endDate, (DateTime.MinValue, DateTime.MinValue)                             
+                                          
+                                           return (startDate, endDate)
+                                       }
+
                                cmdInsert.Parameters.Clear() // Clear parameters for each iteration     
                                cmdInsert.Parameters.AddWithValue("@OldPrefix", item.oldPrefix) |> ignore
                                cmdInsert.Parameters.AddWithValue("@NewPrefix", item.newPrefix) |> ignore
 
-                               parameterStart.Value <- item.startDate
+                               parameterStart.Value <- startDate
                                cmdInsert.Parameters.Add(parameterStart) |> ignore
 
-                               parameterEnd.Value <- item.endDate                                
+                               parameterEnd.Value <- endDate                                
                                cmdInsert.Parameters.Add(parameterEnd) |> ignore
 
                                cmdInsert.Parameters.AddWithValue("@TotalDateInterval", item.totalDateInterval) |> ignore
                                cmdInsert.Parameters.AddWithValue("@VT_Suffix", item.suffix) |> ignore
                                cmdInsert.Parameters.AddWithValue("@JS_GeneratedString", item.jsGeneratedString) |> ignore
                                cmdInsert.Parameters.AddWithValue("@CompleteLink", item.completeLink) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@FileToBeSaved", item.fileToBeSaved) |> ignore
-    
+                               cmdInsert.Parameters.AddWithValue("@FileToBeSaved", item.fileToBeSaved) |> ignore       
+                           
                                cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows                               
                     )                
             finally

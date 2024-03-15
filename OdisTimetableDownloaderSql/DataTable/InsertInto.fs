@@ -3,7 +3,6 @@
 open System
 open System.Data
 
-open Fugit
 open FsToolkit.ErrorHandling
 
 open Types
@@ -11,6 +10,8 @@ open Helpers
 open DomainModelling.DomainModel
 open DomainModelling.DtoGet
 open TransformationLayers.TransormationLayerGet
+open TransformationLayers.TransormationLayerSend
+open Helpers.Builders
 
 module InsertInto = 
         
@@ -38,28 +39,37 @@ module InsertInto =
         dtTimetableLinks
         
 
-    let insertIntoDataTable (dataToBeInserted : DbDataDomainSend list) =
+    let insertIntoDataTable dataToBeInserted =
             
         dataToBeInserted 
         |> List.iter 
             (fun item ->
+                       let (startDate, endDate) =   
+
+                           pyramidOfDoom
+                               {
+                                   let! startDate = item.startDate, (DateTime.MinValue, DateTime.MinValue)                                                      
+                                   let! endDate = item.endDate, (DateTime.MinValue, DateTime.MinValue)                             
+                              
+                                   return (startDate, endDate)
+                               }
+                            
                        let newRow = dt.NewRow()
                        newRow.["OldPrefix"] <- item.oldPrefix
                        newRow.["NewPrefix"] <- item.newPrefix
-                       newRow.["StartDate"] <- item.startDate
-                       newRow.["EndDate"] <- item.endDate
+                       newRow.["StartDate"] <- startDate
+                       newRow.["EndDate"] <- endDate
                        newRow.["TotalDateInterval"] <- item.totalDateInterval
                        newRow.["VT_Suffix"] <- item.suffix
                        newRow.["JS_GeneratedString"] <- item.jsGeneratedString
                        newRow.["CompleteLink"] <- item.completeLink
                        newRow.["FileToBeSaved"] <- item.fileToBeSaved
                        dt.Rows.Add(newRow)
-            )
-                  
+            )                  
 
     let internal filter dataToBeInserted validity = 
 
-        insertIntoDataTable dataToBeInserted 
+        insertIntoDataTable dataToBeInserted  
 
         let condition (dateValidityStart : DateTime) (dateValidityEnd : DateTime) (currentTime: DateTime) (fileToBeSaved : string)  = 
             match validity with 
@@ -115,7 +125,7 @@ module InsertInto =
                           condition startDate endDate currentTime fileToBeSaved
                 )
             |> Seq.sortByDescending (fun row -> Convert.ToDateTime(row.["StartDate"]))
-            |> Seq.groupBy (fun row -> row.["NewPrefix"])
+            |> Seq.groupBy (fun row -> Convert.ToString(row.["NewPrefix"]))
             |> Seq.map
                 (fun (newPrefix, group)
                     ->

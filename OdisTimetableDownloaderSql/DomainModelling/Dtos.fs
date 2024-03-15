@@ -1,5 +1,8 @@
 ﻿namespace DomainModelling
 
+open System
+open System.Data
+
 module DtoGet = 
 
     type DbDataDtoGet = 
@@ -12,8 +15,8 @@ module DtoGet =
         {
             oldPrefix : string 
             newPrefix : string 
-            startDate : string 
-            endDate : string 
+            startDate : DateTime option 
+            endDate : DateTime option  
             totalDateInterval : string 
             suffix : string 
             jsGeneratedString : string 
