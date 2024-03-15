@@ -35,8 +35,7 @@
     <Compile Include="DomainModelling\DomainModels.fs" />
     <Compile Include="DomainModelling\Dtos.fs" />
     <Compile Include="DomainModelling\TransformationLayers.fs" />
-    <Compile Include="DataTable\InsertInto.fs" />
-    <Compile Include="DataTable\Select.fs" />
+    <Compile Include="DataTable\InsertSelectSort.fs" />
     <Content Include="Database\ITVFs.txt" />
     <Compile Include="Database\Connection.fs" />
     <Compile Include="Database\InsertInto.fs" />
@@ -44,6 +43,8 @@
     <Compile Include="SubmainFunctions\DPO-Submain.fs" />
     <Compile Include="SubmainFunctions\MDPO-Submain.fs" />
     <Compile Include="SubmainFunctions\KODIS-Submain.fs" />
+    <Compile Include="SubmainFunctions\Kodis-SubmainDataTable.fs" />
+    <Compile Include="MainFunctions\KODISFMDataTable.fs" />
     <Compile Include="MainFunctions\KODISFM.fs" />
     <Compile Include="MainFunctions\MDPO.fs" />
     <Compile Include="MainFunctions\DPO.fs" />

@@ -19,6 +19,7 @@ open Settings.SettingsGeneral
 open MainFunctions.WebScraping_DPO
 open MainFunctions.WebScraping_MDPO
 open MainFunctions.WebScraping_KODISFM
+open MainFunctions.WebScraping_KODISFMDataTable
 
 
 [<TailCall>] 
@@ -54,7 +55,7 @@ let main argv =
   
     //*****************************Console******************************  
     
-    let updateDate = "14-03-2024"
+    let updateDate = "15-03-2024"
 
     let consoleSettings f = 
 
@@ -195,8 +196,8 @@ let main argv =
                                             
                                          Console.Clear()
                                             
-                                         webscraping_KODISFM path variant 
-                                         //webscraping_KODISDP path variant 
+                                         webscraping_KODISFMDataTable path variant 
+                                         //webscraping_KODISFM path variant 
                                             
                                          printfn "%c" <| char(32)         
                                          printfn "JŘ s chybějícími údaji o platnosti (např. NAD bez dalších údajů), pokud existovaly, nebyly staženy."

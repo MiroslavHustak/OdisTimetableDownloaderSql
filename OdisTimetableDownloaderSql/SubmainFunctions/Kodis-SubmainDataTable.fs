@@ -1,6 +1,6 @@
 ﻿namespace SubmainFunctions
 
-module KODIS_Submain =
+module KODIS_SubmainDataTable =
 
     open System
     open System.IO
@@ -27,11 +27,7 @@ module KODIS_Submain =
     open Helpers.TryWithRF    
     open Helpers.MsgBoxClosing
     open Helpers.ProgressBarFSharp  
-    open Helpers.CollectionSplitting
-
-    open Database.Select
-    open Database.InsertInto
-    open Database.Connection
+    open Helpers.CollectionSplitting   
 
     open DomainModelling.DomainModel
     open TransformationLayers.TransormationLayerSend
@@ -459,7 +455,6 @@ module KODIS_Submain =
             |> List.map 
                 (fun item -> splitKodisLink item) 
 
-        insert getConnection closeConnection dataToBeInserted message
         
         //**********************Cesty pro soubory pro aktualni a dlouhodobe platne a pro ostatni********************************************************
         let createPathsForDownloadedFiles list =
@@ -500,14 +495,14 @@ module KODIS_Submain =
                                  pathToDir    
                      link, path 
                 )          
-
+                      
         let selectDataFromDb = 
             match param with 
-            | CurrentValidity           -> "dbo.ITVF_GetLinksCurrentValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
-            | FutureValidity            -> "dbo.ITVF_GetLinksFutureValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
-            | ReplacementService        -> "dbo.ITVF_GetLinksReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles   
-            | WithoutReplacementService -> "dbo.ITVF_GetLinksWithoutReplacementService()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles 
-                   
+            | CurrentValidity           -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted CurrentValidity |> createPathsForDownloadedFiles
+            | FutureValidity            -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted FutureValidity |> createPathsForDownloadedFiles
+            | ReplacementService        -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted ReplacementService |> createPathsForDownloadedFiles  
+            | WithoutReplacementService -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted WithoutReplacementService |> createPathsForDownloadedFiles 
+        
         selectDataFromDb
  
     let internal deleteAllODISDirectories message pathToDir = 
@@ -746,3 +741,4 @@ module KODIS_Submain =
                  |> function    
                      | Ok value -> value                                
                      | Error _  -> closeItBaby message message.msg16     
+

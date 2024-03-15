@@ -1,6 +1,6 @@
 ﻿namespace MainFunctions
 
-module WebScraping_KODISFM = 
+module WebScraping_KODISFMDataTable = 
 
     open System
          
@@ -13,11 +13,11 @@ module WebScraping_KODISFM =
     open Helpers.FreeMonads
 
     open SubmainFunctions
-    open SubmainFunctions.KODIS_Submain
+    open SubmainFunctions.KODIS_SubmainDataTable
     
     //FREE MONAD 
 
-    let internal webscraping_KODISFM pathToDir (variantList: Validity list) = 
+    let internal webscraping_KODISFMDataTable pathToDir (variantList: Validity list) = 
             
         let rec interpret message clp  = 
 

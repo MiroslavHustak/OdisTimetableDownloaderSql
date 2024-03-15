@@ -13,9 +13,9 @@ open TransformationLayers.TransormationLayerGet
 open TransformationLayers.TransormationLayerSend
 open Helpers.Builders
 
-module InsertInto = 
+module InsertSelectSort = 
         
-    let private dt = //timetableLinksTable () !!!
+    let private dt = 
 
         let dtTimetableLinks = new DataTable()
         
@@ -26,6 +26,7 @@ module InsertInto =
             dtColumn.ColumnName <- name
             dtTimetableLinks.Columns.Add(dtColumn)
         
+        //musi byt jen .NET type, aby nebyly problemy 
         addColumn "OldPrefix" typeof<string>
         addColumn "NewPrefix" typeof<string>
         addColumn "StartDate" typeof<DateTime>
@@ -37,9 +38,8 @@ module InsertInto =
         addColumn "FileToBeSaved" typeof<string>
         
         dtTimetableLinks
-        
 
-    let insertIntoDataTable dataToBeInserted =
+    let private insertIntoDataTable dataToBeInserted =
             
         dataToBeInserted 
         |> List.iter 
@@ -67,7 +67,7 @@ module InsertInto =
                        dt.Rows.Add(newRow)
             )                  
 
-    let internal filter dataToBeInserted validity = 
+    let internal sortLinksOut dataToBeInserted validity = 
 
         insertIntoDataTable dataToBeInserted  
 
@@ -109,57 +109,54 @@ module InsertInto =
                                          &&
                                          (not <| fileToBeSaved.Contains("_v") 
                                          && not <| fileToBeSaved.Contains("X")
-                                         && not <| fileToBeSaved.Contains("NAD")) 
-        
+                                         && not <| fileToBeSaved.Contains("NAD"))        
 
-        // LINQ query to filter the DataTable
         let currentTime = DateTime.Now.Date
+
+        dt.AsEnumerable()
+        |> Seq.filter
+            (fun row ->
+                      let startDate = Convert.ToDateTime(row.["StartDate"])
+                      let endDate = Convert.ToDateTime(row.["EndDate"])
+                      let fileToBeSaved = Convert.ToString(row.["FileToBeSaved"])
+                      condition startDate endDate currentTime fileToBeSaved
+            )
+        |> Seq.sortByDescending (fun row -> Convert.ToDateTime(row.["StartDate"]))
+        |> Seq.groupBy (fun row -> Convert.ToString(row.["NewPrefix"]))
+        |> Seq.map
+            (fun (newPrefix, group)
+                ->
+                 newPrefix,
+                 group |> Seq.head
+            )
+        |> Seq.map
+            (fun (_ , row) 
+                ->
+                 //Convert.ToString(row.["CompleteLink"]),
+                 //Convert.ToString(row.["FileToBeSaved"])
+                 row.["CompleteLink"],
+                 row.["FileToBeSaved"]
+            )
+        |> List.ofSeq
+        |> List.map 
+            (fun (link, file) ->                                       
+                               let record : DbDataDtoGet = 
+                                   {
+                                       completeLink = link
+                                       fileToBeSaved = file
+                                   }
+
+                               let result = dbDataTransferLayerGet record
+
+                               (result.completeLink, result.fileToBeSaved)
+                               |> function
+                                   | Some link, Some file -> 
+                                                           Some (link, file)
+                                   | _                    ->
+                                                           failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO predelat na result type az se bude zmobilnovat 
+                                                           None
+            )
+        |> List.choose id
+
         
-        let query =
-            dt.AsEnumerable()
-            |> Seq.filter
-                (fun row ->
-                          let startDate = Convert.ToDateTime(row.["StartDate"])
-                          let endDate = Convert.ToDateTime(row.["EndDate"])
-                          let fileToBeSaved = Convert.ToString(row.["FileToBeSaved"])
-                          condition startDate endDate currentTime fileToBeSaved
-                )
-            |> Seq.sortByDescending (fun row -> Convert.ToDateTime(row.["StartDate"]))
-            |> Seq.groupBy (fun row -> Convert.ToString(row.["NewPrefix"]))
-            |> Seq.map
-                (fun (newPrefix, group)
-                    ->
-                     newPrefix,
-                     group |> Seq.head
-                )
-            |> Seq.map
-                (fun (_ , row) 
-                    ->
-                     Convert.ToString(row.["CompleteLink"]),
-                     Convert.ToString(row.["FileToBeSaved"])
-                )
-            (*
-            |> Seq.map 
-                (fun (link, file) ->                                       
-                                   let record : DbDataDtoGet = 
-                                       {
-                                           completeLink = link
-                                           fileToBeSaved = file
-                                       }
-
-                                   let result = dbDataTransferLayerGet record
-                                   
-                                   (result.completeLink, result.fileToBeSaved)
-                                   |> function
-                                       | Some link, Some file -> 
-                                                               Some (link, file)
-                                       | _                    ->
-                                                               failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO, kdyz bude cas, predelat na result type 
-                                                               None
-                )
-                *)
-            //|> Seq.choose id 
-            |> List.ofSeq
-
-        query
            
