@@ -9,6 +9,8 @@ open Helpers.TryParserDate
 
 open DomainModelling.Dto
 open DomainModelling.DomainModel
+open Helpers.TryWithRF
+open Settings
 
 module TransformationLayerGet =
         
@@ -18,19 +20,15 @@ module TransformationLayerGet =
             fileToBeSaved = Casting.castAs<string> dbDataDtoGet.fileToBeSaved
         }
 
-    let internal dtDataTransformLayerGet (dtDataDtoGet : DtDataDtoGet) : DtDataDomainGet =
-        
-        try
-            {      
-                newPrefix = Convert.ToString(dtDataDtoGet.newPrefix) //u datatable bohuzel nelze Casting.castAs<string>, musi se pouzit Convert
-                startDate = Convert.ToDateTime(dtDataDtoGet.startDate)
-                endDate = Convert.ToDateTime(dtDataDtoGet.endDate)
-                completeLink = Convert.ToString(dtDataDtoGet.completeLink)
-                fileToBeSaved = Convert.ToString(dtDataDtoGet.fileToBeSaved)
-            } 
-        with
-        | _ -> failwith "Chyba při čtení z datatable" //zcela vyjimecne //TODO predelat na result type az se bude zmobilnovat 
-
+    let internal dtDataTransformLayerGet (dtDataDtoGet : DtDataDtoGet) : DtDataDomainGet =        
+        {      
+            newPrefix = Convert.ToString(dtDataDtoGet.newPrefix) //u datatable bohuzel nelze Casting.castAs<string>, musi se pouzit Convert
+            startDate = Convert.ToDateTime(dtDataDtoGet.startDate)
+            endDate = Convert.ToDateTime(dtDataDtoGet.endDate)
+            completeLink = Convert.ToString(dtDataDtoGet.completeLink)
+            fileToBeSaved = Convert.ToString(dtDataDtoGet.fileToBeSaved)
+        } 
+       
 module TransformationLayerSend =
         
     let internal dbDataTransformLayerSend (dbDataDomain : DbDataDomainSend) : DbDataDtoSend =
