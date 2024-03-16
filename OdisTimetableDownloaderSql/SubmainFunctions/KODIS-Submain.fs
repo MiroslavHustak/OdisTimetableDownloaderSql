@@ -437,7 +437,6 @@ module KODIS_Submain =
                 }
 
             record |> dbDataTransformLayerSend  
-
      
         //**********************Filtering and SQL data inserting********************************************************
         let dataToBeInserted =           

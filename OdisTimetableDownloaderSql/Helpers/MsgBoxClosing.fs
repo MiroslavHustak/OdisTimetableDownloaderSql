@@ -11,7 +11,7 @@ open Builders
 
 module MsgBoxClosing =  
 
-    //This module is for educational purposes, neb pouzivat msg boxes v konzolove app se mi nejevi jako vhodne. Ale procvicil jsem si async a tokens.
+    //This module is for educational purposes, sice to funguje, ale pouzivat msg boxes v konzolove app se mi nejevi jako vhodne. Ale procvicil jsem si async a tokens.
 
     [<DllImport("user32.dll", CharSet = CharSet.Auto)>]
     extern int private SendMessage(IntPtr hWnd, uint msg, int wParam, IntPtr lParam)

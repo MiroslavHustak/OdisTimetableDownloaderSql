@@ -8,7 +8,6 @@ module Messages =
 
     [<Literal>] 
     let formatBody = "\n%s%s"
-
         
     let internal messagesDefault : Messages = 
         {

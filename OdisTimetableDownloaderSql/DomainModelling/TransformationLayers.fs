@@ -19,7 +19,7 @@ module TransformationLayerGet =
         }
 
     let internal dtDataTransformLayerGet (dtDataDtoGet : DtDataDtoGet) : DtDataDomainGet =
-       
+        
         try
             {      
                 newPrefix = Convert.ToString(dtDataDtoGet.newPrefix) //u datatable bohuzel nelze Casting.castAs<string>, musi se pouzit Convert

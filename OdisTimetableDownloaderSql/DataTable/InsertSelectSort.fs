@@ -6,7 +6,11 @@ open System.Data
 open FsToolkit.ErrorHandling
 
 open Types
+
 open Helpers.Builders
+open Helpers.TryWithRF
+
+open Settings
 
 open DomainModelling.Dto
 open DomainModelling.DomainModel
@@ -129,7 +133,15 @@ module InsertSelectSort =
                 fileToBeSaved = row.["FileToBeSaved"]
             } 
 
-        let dataTransformation row = dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row 
+        let dataTransformation row = 
+            
+            tryWith2 (lazy ()) (dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row )           
+                |> function    
+                    | Ok value  ->
+                                 value
+                    | Error err -> 
+                                 closeItBaby Messages.messagesDefault err   
+                                 (dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row ) 
         
         let seqFromDataTable = dt.AsEnumerable() |> Seq.distinct 
 
