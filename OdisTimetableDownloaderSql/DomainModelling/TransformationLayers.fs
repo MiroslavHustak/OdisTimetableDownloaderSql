@@ -22,7 +22,7 @@ module TransformationLayerGet =
        
         try
             {      
-                newPrefix = Convert.ToString(dtDataDtoGet.newPrefix) //u datatable bohuzel nelze Casting.castAs<string>
+                newPrefix = Convert.ToString(dtDataDtoGet.newPrefix) //u datatable bohuzel nelze Casting.castAs<string>, musi se pouzit Convert
                 startDate = Convert.ToDateTime(dtDataDtoGet.startDate)
                 endDate = Convert.ToDateTime(dtDataDtoGet.endDate)
                 completeLink = Convert.ToString(dtDataDtoGet.completeLink)
@@ -51,7 +51,7 @@ module TransformationLayerSend =
             oldPrefix = dtDataDomain.oldPrefix
             newPrefix = dtDataDomain.newPrefix
             startDate = match dtDataDomain.startDate with Some value -> value | None -> DateTime.MinValue
-            endDate =  match dtDataDomain.endDate with Some value -> value | None -> DateTime.MinValue
+            endDate = match dtDataDomain.endDate with Some value -> value | None -> DateTime.MinValue
             totalDateInterval = dtDataDomain.totalDateInterval
             suffix = dtDataDomain.suffix
             jsGeneratedString = dtDataDomain.jsGeneratedString

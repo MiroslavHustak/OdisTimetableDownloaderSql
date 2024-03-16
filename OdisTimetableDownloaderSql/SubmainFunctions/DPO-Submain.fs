@@ -95,15 +95,15 @@ module DPO_Submain =
                                             let pathToFile = 
                                                 let lineName = 
                                                     match item2.Contains("NAD") with
-                                                    | true when item2.Contains("NAD1") -> @"NAD1.pdf"
-                                                    | true when item2.Contains("NAD2") -> @"NAD2.pdf"
-                                                    | true when item2.Contains("NAD3") -> @"NAD3.pdf"
-                                                    | true when item2.Contains("NAD4") -> @"NAD4.pdf"
-                                                    | true when item2.Contains("NAD5") -> @"NAD5.pdf"
-                                                    | true when item2.Contains("NAD6") -> @"NAD6.pdf"
-                                                    | true when item2.Contains("NAD7") -> @"NAD7.pdf"
-                                                    | true when item2.Contains("NAD8") -> @"NAD8.pdf"
-                                                    | true when item2.Contains("NAD9") -> @"NAD9.pdf"
+                                                    | true when item2.Contains("NAD1") -> "NAD1.pdf"
+                                                    | true when item2.Contains("NAD2") -> "NAD2.pdf"
+                                                    | true when item2.Contains("NAD3") -> "NAD3.pdf"
+                                                    | true when item2.Contains("NAD4") -> "NAD4.pdf"
+                                                    | true when item2.Contains("NAD5") -> "NAD5.pdf"
+                                                    | true when item2.Contains("NAD6") -> "NAD6.pdf"
+                                                    | true when item2.Contains("NAD7") -> "NAD7.pdf"
+                                                    | true when item2.Contains("NAD8") -> "NAD8.pdf"
+                                                    | true when item2.Contains("NAD9") -> "NAD9.pdf"
                                                     | _                                -> lineName
                                             
                                                 sprintf "%s/%s" pathToDir lineName

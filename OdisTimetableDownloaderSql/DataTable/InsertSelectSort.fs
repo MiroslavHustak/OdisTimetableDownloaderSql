@@ -131,12 +131,11 @@ module InsertSelectSort =
 
         let dataTransformation row = dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row 
         
-        let seqFromDataTable = dt.AsEnumerable()
+        let seqFromDataTable = dt.AsEnumerable() |> Seq.distinct 
 
         match validity with
         | FutureValidity -> 
-                          seqFromDataTable
-                          |> Seq.distinct
+                          seqFromDataTable                          
                           |> Seq.filter
                               (fun row ->
                                         let startDate = (row |> dataTransformation).startDate
@@ -149,11 +148,11 @@ module InsertSelectSort =
                                         (row |> dataTransformation).completeLink,
                                         (row |> dataTransformation).fileToBeSaved
                               )
-                          |> Seq.distinct
+                          |> Seq.distinct //na rozdil od SQL v ITVF se musi pouzit distinct
                           |> List.ofSeq
+
         | _              -> 
                           seqFromDataTable
-                          |> Seq.distinct
                           |> Seq.filter
                               (fun row ->
                                         let startDate = (row |> dataTransformation).startDate

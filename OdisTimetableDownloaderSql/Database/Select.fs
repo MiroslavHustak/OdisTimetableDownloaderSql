@@ -48,11 +48,13 @@ module Select =
 
                          (result.completeLink, result.fileToBeSaved)
                          |> function
-                             | Some link, Some file -> 
-                                                     Some (link, file)
-                             | _                    ->
-                                                     failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO predelat na result type az se bude zmobilnovat 
-                                                     None
+                             | Some link, Some file 
+                                 -> 
+                                  Some (link, file)
+                             | _                   
+                                 ->
+                                  failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO predelat na result type az se bude zmobilnovat 
+                                  None
                     )
                 |> List.choose id
               
