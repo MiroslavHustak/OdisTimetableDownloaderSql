@@ -3,6 +3,7 @@
 open System
 open System.Data
 
+open FsToolkit
 open FsToolkit.ErrorHandling
 
 open Types
@@ -135,13 +136,17 @@ module InsertSelectSort =
 
         let dataTransformation row = 
             
-            tryWith2 (lazy ()) (dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row )           
-                |> function    
-                    | Ok value  ->
-                                 value
-                    | Error err -> 
-                                 closeItBaby Messages.messagesDefault err   
-                                 (dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row ) 
+            pyramidOfInferno
+                {
+                    let errorFn err = 
+                        closeItBaby Messages.messagesDefault err
+                        dtDataDtoGetDataTable >> dtDataTransformLayerGetDefault <| row
+
+                    let! resultTypeValue = tryWith2 (lazy ()) (dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row), errorFn
+                    let! value = resultTypeValue, errorFn
+
+                    return value
+                }
         
         let seqFromDataTable = dt.AsEnumerable() |> Seq.distinct 
 
@@ -150,7 +155,7 @@ module InsertSelectSort =
                           seqFromDataTable                          
                           |> Seq.filter
                               (fun row ->
-                                        let startDate = (row |> dataTransformation).startDate
+                                        let startDate = ((row |> dataTransformation).startDate)
                                         let endDate = (row |> dataTransformation).endDate
                                         let fileToBeSaved = (row |> dataTransformation).fileToBeSaved                      
                                         condition startDate endDate currentTime fileToBeSaved
@@ -160,7 +165,7 @@ module InsertSelectSort =
                                         (row |> dataTransformation).completeLink,
                                         (row |> dataTransformation).fileToBeSaved
                               )
-                          |> Seq.distinct //na rozdil od SQL v ITVF se musi pouzit distinct
+                          |> Seq.distinct //na rozdil od ITVF v SQL se musi pouzit distinct
                           |> List.ofSeq
 
         | _              -> 

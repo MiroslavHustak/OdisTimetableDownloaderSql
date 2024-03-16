@@ -16,14 +16,14 @@ module Builders =
     let internal strictStringCheck = MyTypeBuilder 
         
     [<Struct>]
-    type internal MyTypeBuilderGeneric (param: obj) =        
-         member _.Bind(condition, nextFunc) = 
-             match condition with
-             | false -> nextFunc() 
-             | true  -> param
+    type internal MyBuilder3 = MyBuilder3 with       
+         member _.Bind(resultExpr, nextFunc) = 
+             match fst resultExpr with
+             | Ok value -> nextFunc value 
+             | Error err  -> (snd resultExpr) err
          member _.Return x = x  
      
-    let internal pyramidOfInferno = MyTypeBuilderGeneric 
+    let internal pyramidOfInferno = MyBuilder3 
     
     //**************************************************************************************
 
@@ -41,17 +41,17 @@ module Builders =
     //**************************************************************************************
 
     [<Struct>]
-     type internal Builder2 = Builder2 with    
-          member _.Bind((optionExpr, err), nextFunc) =
-              match optionExpr with
-              | Some value -> nextFunc value 
-              | _          -> err  
-          member _.Return x : 'a = x
-          //member _.Zero x = x
+    type internal Builder2 = Builder2 with    
+         member _.Bind((optionExpr, err), nextFunc) =
+             match optionExpr with
+             | Some value -> nextFunc value 
+             | _          -> err  
+         member _.Return x : 'a = x
+         //member _.Zero x = x
 
-     let internal pyramidOfDoom = Builder2
-
-     //**************************************************************************************
+    let internal pyramidOfDoom = Builder2
+         
+    //**************************************************************************************
 
     type internal Reader<'e, 'a> = 'e -> 'a
     

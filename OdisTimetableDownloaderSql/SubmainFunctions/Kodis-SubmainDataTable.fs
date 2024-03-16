@@ -663,7 +663,7 @@ module KODIS_SubmainDataTable =
                          |> Async.RunSynchronously  
                          |> Result.ofChoice                      
                          |> function
-                             | Ok _    -> ()                                                                                 
+                             | Ok _      -> ()                                                                                 
                              | Error err -> printfn "%s" err.Message//message.msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
                 )  
 

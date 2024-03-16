@@ -9,8 +9,6 @@ open Helpers.TryParserDate
 
 open DomainModelling.Dto
 open DomainModelling.DomainModel
-open Helpers.TryWithRF
-open Settings
 
 module TransformationLayerGet =
         
@@ -20,15 +18,53 @@ module TransformationLayerGet =
             fileToBeSaved = Casting.castAs<string> dbDataDtoGet.fileToBeSaved
         }
 
-    let internal dtDataTransformLayerGet (dtDataDtoGet : DtDataDtoGet) : DtDataDomainGet =        
+    let internal dtDataTransformLayerGetDefault (dtDataDtoGet : DtDataDtoGet) : DtDataDomainGet = 
         {      
-            newPrefix = Convert.ToString(dtDataDtoGet.newPrefix) //u datatable bohuzel nelze Casting.castAs<string>, musi se pouzit Convert
-            startDate = Convert.ToDateTime(dtDataDtoGet.startDate)
-            endDate = Convert.ToDateTime(dtDataDtoGet.endDate)
-            completeLink = Convert.ToString(dtDataDtoGet.completeLink)
-            fileToBeSaved = Convert.ToString(dtDataDtoGet.fileToBeSaved)
+            newPrefix = String.Empty
+            startDate = DateTime.MinValue
+            endDate = DateTime.MinValue
+            completeLink = String.Empty
+            fileToBeSaved = String.Empty
         } 
-       
+
+    let internal dtDataTransformLayerGet (dtDataDtoGet : DtDataDtoGet) : Result<DtDataDomainGet, string> =  
+        
+        let newPrefix = Convert.ToString(dtDataDtoGet.newPrefix) //u datatable nelze Casting.castAs<string>, musi se pouzit Convert
+        let startDate = Convert.ToDateTime(dtDataDtoGet.startDate)
+        let endDate = Convert.ToDateTime(dtDataDtoGet.endDate)
+        let completeLink = Convert.ToString(dtDataDtoGet.completeLink)
+        let fileToBeSaved = Convert.ToString(dtDataDtoGet.fileToBeSaved)
+
+        let testString = 
+            [
+                newPrefix |> Option.ofNull  
+                completeLink |> Option.ofNull
+                fileToBeSaved |> Option.ofNull
+            ] 
+
+        let testDateTime = 
+            [
+                startDate |> Option.ofNull
+                endDate |> Option.ofNull
+            ] 
+
+        pyramidOfHell
+           {
+               let! tString = not (testString |> List.contains None), Error "Chyba při načítání hodnot z datatable" 
+               let! tDateTime = not (testDateTime |> List.contains None), Error "Chyba při načítání hodnot z datatable" 
+
+               let result = 
+                   {      
+                       newPrefix = newPrefix
+                       startDate = startDate
+                       endDate = endDate
+                       completeLink = completeLink
+                       fileToBeSaved = fileToBeSaved
+                   } 
+
+               return Ok result
+           }
+
 module TransformationLayerSend =
         
     let internal dbDataTransformLayerSend (dbDataDomain : DbDataDomainSend) : DbDataDtoSend =
