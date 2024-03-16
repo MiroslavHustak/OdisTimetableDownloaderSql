@@ -549,7 +549,11 @@ module KODIS_SubmainDataTable =
  
     let internal createNewDirectories pathToDir : Reader<string list, string list> =
         //Reader monad for educational purposes only, no real benefit here
-        reader { let! getDefaultRecordValues = fun env -> env in return getDefaultRecordValues |> List.map (fun item -> sprintf"%s\%s"pathToDir item) } 
+        reader
+            { 
+                let! getDefaultRecordValues = 
+                    fun env -> env in return getDefaultRecordValues |> List.map (fun item -> sprintf"%s\%s"pathToDir item) 
+            } 
 
     let internal createDirName variant : Reader<string list, string> = //Reader monad for educational purposes only, no real benefit here
 
