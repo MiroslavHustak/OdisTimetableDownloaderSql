@@ -122,7 +122,7 @@ module KODIS_SubmainDataTable =
                  |> Result.sequence 
                  |> function
                      | Ok _    -> ()
-                     | Error _ -> failwith "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."                                 
+                     | Error _ -> closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."                                 
                                  
         message.msg2()      
         

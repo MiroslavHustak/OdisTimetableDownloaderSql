@@ -15,7 +15,7 @@ module SettingsKODIS =
             let path = AppDomain.CurrentDomain.BaseDirectory + "KODISJson" + @"/kodisMHDTotal.json" //Copy Always     
             path
         with
-        | ex -> failwith (sprintf "Some mysterious exception: %s" ex.Message)  
+        | ex -> sprintf "Some mysterious exception: %s" ex.Message  
 
     let [<Literal>] internal pathJson = @"KODISJson/kodisMHDTotal.json" //v hl. adresari projektu
 
