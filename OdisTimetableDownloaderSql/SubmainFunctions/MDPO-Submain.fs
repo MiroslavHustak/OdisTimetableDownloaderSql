@@ -48,7 +48,7 @@ module MDPO_Submain =
 
     //************************Submain functions************************************************************************
 
-    let internal filterTimetables pathToDir (message: Messages) = 
+    let internal filterTimetables pathToDir (message : Messages) = 
 
         let urlList = //aby to bylo jednotne s DPO
             [
@@ -83,35 +83,35 @@ module MDPO_Submain =
         |> Seq.fold (fun acc (key, value) -> Map.add key value acc) Map.empty //vyzkousime si tvorbu Map
 
     //FsHttp
-    let internal downloadAndSaveTimetables (message: Messages) (pathToDir: string) (filterTimetables: Map<string, string>) =  
+    let internal downloadAndSaveTimetables (message : Messages) (pathToDir : string) (filterTimetables : Map<string, string>) =  
 
-        let downloadFileTaskAsync (uri: string) (path: string) : Async<Result<unit, string>> =  
+        let downloadFileTaskAsync (uri : string) (path : string) : Async<Result<unit, string>> =  
             
             async
                 {                      
                     try    
                         match File.Exists(path) with
                         | true  -> 
-                                return Ok () 
+                                 return Ok () 
                         | false -> 
-                                use! response = get >> Request.sendAsync <| uri //anebo get rucne definovane viz Bungie.NET let get uri = http { GET (uri) }                                                         
+                                 use! response = get >> Request.sendAsync <| uri //anebo get rucne definovane viz Bungie.NET let get uri = http { GET (uri) }                                                         
                                         
-                                match response.statusCode with
-                                | HttpStatusCode.OK                  ->                                                                   
-                                                                      do! response.SaveFileAsync >> Async.AwaitTask <| path
-                                                                      return Ok () 
-                                | HttpStatusCode.BadRequest          ->
-                                                                      return Error connErrorCodeDefault.BadRequest
-                                | HttpStatusCode.InternalServerError -> 
-                                                                      return Error connErrorCodeDefault.InternalServerError
-                                | HttpStatusCode.NotImplemented      ->
-                                                                      return Error connErrorCodeDefault.NotImplemented
-                                | HttpStatusCode.ServiceUnavailable  ->
-                                                                      return Error connErrorCodeDefault.ServiceUnavailable
-                                | HttpStatusCode.NotFound            ->
-                                                                      return Error uri  
-                                | _                                  ->
-                                                                      return Error connErrorCodeDefault.CofeeMakerUnavailable                                                   
+                                 match response.statusCode with
+                                 | HttpStatusCode.OK                  ->                                                                   
+                                                                       do! response.SaveFileAsync >> Async.AwaitTask <| path
+                                                                       return Ok () 
+                                 | HttpStatusCode.BadRequest          ->
+                                                                       return Error connErrorCodeDefault.BadRequest
+                                 | HttpStatusCode.InternalServerError -> 
+                                                                       return Error connErrorCodeDefault.InternalServerError
+                                 | HttpStatusCode.NotImplemented      ->
+                                                                       return Error connErrorCodeDefault.NotImplemented
+                                 | HttpStatusCode.ServiceUnavailable  ->
+                                                                       return Error connErrorCodeDefault.ServiceUnavailable
+                                 | HttpStatusCode.NotFound            ->
+                                                                       return Error uri  
+                                 | _                                  ->
+                                                                       return Error connErrorCodeDefault.CofeeMakerUnavailable                                                   
                                       
                     with                                                         
                     | ex ->                        
@@ -128,33 +128,34 @@ module MDPO_Submain =
             filterTimetables
             |> Map.toList 
             |> List.iteri  //bohuzel s Map nelze iteri
-                (fun i (link, pathToFile) -> 
-                                           //vzhledem k nutnosti propustit chybu pri nestahnuti JR (message.msgParam2 link) nepouzito Result.sequence   
-                                           let mapErr3 err =    
-                                               function
-                                               | Ok value  ->
-                                                            value   
-                                                            |> List.tryFind (fun item -> (=) err item)
-                                                            |> function
-                                                                | Some err -> closeItBaby message err                                                                      
-                                                                | None     -> message.msgParam2 link 
-                                               | Error err ->
-                                                            closeItBaby message err              
+                (fun i (link, pathToFile) 
+                    -> 
+                     //vzhledem k nutnosti propustit chybu pri nestahnuti JR (message.msgParam2 link) nepouzito Result.sequence   
+                     let mapErr3 err =    
+                         function
+                         | Ok value  ->
+                                      value   
+                                      |> List.tryFind (fun item -> (=) err item)
+                                      |> function
+                                         | Some err -> closeItBaby message err                                                                      
+                                         | None     -> message.msgParam2 link 
+                         | Error err ->
+                                      closeItBaby message err              
 
-                                           let mapErr2 =      
-                                               function
-                                               | Ok value  -> value |> ignore
-                                               | Error err -> mapErr3 err (Ok listConnErrorCodeDefault) //Ok je legacy drivejsiho reflection a Result.sequence
+                     let mapErr2 =      
+                         function
+                         | Ok value  -> value |> ignore
+                         | Error err -> mapErr3 err (Ok listConnErrorCodeDefault) //Ok je legacy drivejsiho reflection a Result.sequence
                                                  
-                                           async                                                
-                                               {   
-                                                   progressBarContinuous message i l  //progressBarContinuous  
-                                                   return! downloadFileTaskAsync link pathToFile                                                                                                                               
-                                               } 
-                                               |> Async.Catch
-                                               |> Async.RunSynchronously
-                                               |> Result.ofChoice  
-                                               |> Result.mapErr mapErr2 (lazy message.msgParam2 link)                                                   
+                     async                                                
+                         {   
+                             progressBarContinuous message i l  //progressBarContinuous  
+                             return! downloadFileTaskAsync link pathToFile                                                                                                                               
+                         } 
+                         |> Async.Catch
+                         |> Async.RunSynchronously
+                         |> Result.ofChoice  
+                         |> Result.mapErr mapErr2 (lazy message.msgParam2 link)                                                   
                 )     
 
         downloadTimetables  

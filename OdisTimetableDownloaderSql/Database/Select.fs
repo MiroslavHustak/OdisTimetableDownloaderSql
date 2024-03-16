@@ -9,7 +9,7 @@ open Types.Messages
 
 open DomainModelling.Dto
 open DomainModelling.DomainModel
-open TransformationLayers.TransormationLayerGet
+open TransformationLayers.TransformationLayerGet
 
 module Select =
 
@@ -36,22 +36,23 @@ module Select =
                     (fun _ -> seq { reader.["CompleteLink"], reader.["FileToBeSaved"] }) 
                 |> List.ofSeq  
                 |> List.map 
-                    (fun (link, file) ->                                       
-                                       let record : DbDataDtoGet = 
-                                           {
-                                               completeLink = link
-                                               fileToBeSaved = file
-                                           }
+                    (fun (link, file)
+                        ->                                       
+                         let record : DbDataDtoGet = 
+                             {
+                                 completeLink = link
+                                 fileToBeSaved = file
+                             }
 
-                                       let result = dbDataTransferLayerGet record
+                         let result = dbDataTransformLayerGet record
 
-                                       (result.completeLink, result.fileToBeSaved)
-                                       |> function
-                                           | Some link, Some file -> 
-                                                                   Some (link, file)
-                                           | _                    ->
-                                                                   failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO, kdyz bude cas, predelat na result type 
-                                                                   None
+                         (result.completeLink, result.fileToBeSaved)
+                         |> function
+                             | Some link, Some file -> 
+                                                     Some (link, file)
+                             | _                    ->
+                                                     failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO predelat na result type az se bude zmobilnovat 
+                                                     None
                     )
                 |> List.choose id
               

@@ -44,7 +44,7 @@ module WebScraping_KODISFMDataTable =
 
             | Free (DownloadAndSaveJsonFM next)     ->                                                 
                                                      let downloadAndSaveJson =  
-                                                         downloadAndSaveJson message  
+                                                         KODIS_SubmainDataTable.downloadAndSaveJson message  
                                                          in errorHandling downloadAndSaveJson
 
                                                      let param = next ()
@@ -56,21 +56,21 @@ module WebScraping_KODISFMDataTable =
                                                          //SingleVariantDownload
                                                          | 1 -> 
                                                               let variant = variantList |> List.head
-                                                              deleteOneODISDirectory message variant pathToDir                                                        
+                                                              KODIS_SubmainDataTable.deleteOneODISDirectory message variant pathToDir                                                        
                                                               let dirList = 
-                                                                  createOneNewDirectory  //list -> aby bylo mozno pouzit funkci createFolders bez uprav  
+                                                                  KODIS_SubmainDataTable.createOneNewDirectory  //list -> aby bylo mozno pouzit funkci createFolders bez uprav  
                                                                   <| pathToDir 
-                                                                  <| createDirName variant listODISDefault4 
-                                                              createFolders message dirList
+                                                                  <| KODIS_SubmainDataTable.createDirName variant listODISDefault4 
+                                                              KODIS_SubmainDataTable.createFolders message dirList
                                                               KODIS_SubmainDataTable.downloadAndSave message variant (dirList |> List.head)  
 
                                                          //BulkVariantDownload       
                                                          | _ ->  
-                                                              deleteAllODISDirectories message pathToDir
-                                                              let dirList = createNewDirectories pathToDir listODISDefault4
-                                                              createFolders message dirList 
+                                                              KODIS_SubmainDataTable.deleteAllODISDirectories message pathToDir
+                                                              let dirList = KODIS_SubmainDataTable.createNewDirectories pathToDir listODISDefault4
+                                                              KODIS_SubmainDataTable.createFolders message dirList 
                                                               (variantList, dirList)
-                                                              ||> List.iter2 (fun variant dir ->  KODIS_SubmainDataTable.downloadAndSave message variant dir)     
+                                                              ||> List.iter2 (fun variant dir -> KODIS_SubmainDataTable.downloadAndSave message variant dir)     
                                                                                                              
                                                          in errorHandling downloadSelectedVariant  
 

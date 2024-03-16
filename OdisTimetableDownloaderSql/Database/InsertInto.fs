@@ -10,7 +10,6 @@ open Helpers.Builders
 open DomainModelling.Dto
 open DomainModelling.DomainModel
 
-
 module InsertInto = 
 
     let internal insert getConnection closeConnection (dataToBeInserted : DbDataDtoSend list) message =
@@ -52,6 +51,7 @@ module InsertInto =
                 dataToBeInserted     
                 |> List.iter
                     (fun item -> 
+                               (*   
                                let (startDate, endDate) =   
 
                                    pyramidOfDoom
@@ -61,15 +61,15 @@ module InsertInto =
                                           
                                            return (startDate, endDate)
                                        }
-
+                               *)
                                cmdInsert.Parameters.Clear() // Clear parameters for each iteration     
                                cmdInsert.Parameters.AddWithValue("@OldPrefix", item.oldPrefix) |> ignore
                                cmdInsert.Parameters.AddWithValue("@NewPrefix", item.newPrefix) |> ignore
 
-                               parameterStart.Value <- startDate
+                               parameterStart.Value <- item.startDate
                                cmdInsert.Parameters.Add(parameterStart) |> ignore
 
-                               parameterEnd.Value <- endDate                                
+                               parameterEnd.Value <- item.endDate                                
                                cmdInsert.Parameters.Add(parameterEnd) |> ignore
 
                                cmdInsert.Parameters.AddWithValue("@TotalDateInterval", item.totalDateInterval) |> ignore

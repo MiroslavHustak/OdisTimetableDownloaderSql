@@ -4,12 +4,12 @@ open System
 open System.Net.Http
 open FsToolkit.ErrorHandling
 
-open Helpers
 open Types
-
 open Types.Messages
+
 open Settings.Messages
 
+open Helpers
 open Helpers.Builders
             
 module Result = 

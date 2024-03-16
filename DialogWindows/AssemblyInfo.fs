@@ -4,6 +4,6 @@ module AssemblyInfo =
 
     open System.Runtime.CompilerServices
 
-    [<assembly: InternalsVisibleTo("OdisTimetableDownloaderSql")>]
+    [<assembly : InternalsVisibleTo("OdisTimetableDownloaderSql")>]
     do ()
 

@@ -70,7 +70,7 @@ module WebScraping_KODISFM =
                                                               let dirList = createNewDirectories pathToDir listODISDefault4
                                                               createFolders message dirList 
                                                               (variantList, dirList)
-                                                              ||> List.iter2 (fun variant dir ->  KODIS_Submain.downloadAndSave message variant dir)     
+                                                              ||> List.iter2 (fun variant dir -> KODIS_Submain.downloadAndSave message variant dir)     
                                                                                                              
                                                          in errorHandling downloadSelectedVariant  
 

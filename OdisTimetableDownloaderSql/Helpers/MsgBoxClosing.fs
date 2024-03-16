@@ -1,15 +1,15 @@
 ﻿namespace Helpers
 
-module MsgBoxClosing =
+open System
+open System.Windows.Forms
+open System.Runtime.InteropServices
 
-    open System
-    open System.Windows.Forms
-    open System.Runtime.InteropServices
+open FSharp.Control
 
-    open FSharp.Control
+open Types 
+open Builders
 
-    open Types 
-    open Builders
+module MsgBoxClosing =  
 
     //This module is for educational purposes, neb pouzivat msg boxes v konzolove app se mi nejevi jako vhodne. Ale procvicil jsem si async a tokens.
 
@@ -111,10 +111,10 @@ module MsgBoxClosing =
                                             let rec keepOneMsgBox () = 
                                                 match findMsgBox boxTitle with
                                                 | true  -> 
-                                                        clickOnOKButton boxTitle
-                                                        keepOneMsgBox ()
+                                                         clickOnOKButton boxTitle
+                                                         keepOneMsgBox ()
                                                 | false ->                                                                
-                                                        result ()                                  
+                                                         result ()                                  
                                             keepOneMsgBox ()      
             
                                     | Pdf  ->
@@ -135,7 +135,7 @@ module MsgBoxClosing =
                                             
                                             pyramidOfHell
                                                 {
-                                                    let!_ = findMsgBox boxTitle, result ()  //zrejme 2 threads
+                                                    let!_ = findMsgBox boxTitle, result ()  //zrejme quli 2 threads per core
                                                     let!_ = findMsgBox boxTitle, result () 
 
                                                     return ()
@@ -147,7 +147,7 @@ module MsgBoxClosing =
                            }
 
                    loop true // Start with isFirst set to true
-           )     
+            )     
               
     
       

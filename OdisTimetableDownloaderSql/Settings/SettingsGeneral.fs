@@ -1,11 +1,11 @@
 ﻿namespace Settings
 
-module SettingsGeneral =
+open System
 
-    open System
+open Types.DirNames
+open Types.ErrorTypes
 
-    open Types.DirNames
-    open Types.ErrorTypes
+module SettingsGeneral =  
 
     let internal ODISDefault =  
         {          
@@ -19,8 +19,10 @@ module SettingsGeneral =
 
     let internal listODISDefault4 = 
         [ 
-            ODISDefault.odisDir1; ODISDefault.odisDir2; 
-            ODISDefault.odisDir3; ODISDefault.odisDir4; 
+            ODISDefault.odisDir1
+            ODISDefault.odisDir2
+            ODISDefault.odisDir3
+            ODISDefault.odisDir4 
         ]  
 
     let internal connErrorCodeDefault =                        

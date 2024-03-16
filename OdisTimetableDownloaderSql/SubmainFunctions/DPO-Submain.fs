@@ -12,17 +12,13 @@ module DPO_Submain =
 
     open Settings.SettingsDPO
     open Settings.SettingsGeneral
-    open Helpers.ProgressBarFSharp
-    open Settings.Messages
-    //open Messages.MessagesMocking
-
-    open Types.DirNames
-    open Types.ErrorTypes
 
     open Types.Messages
+    open Types.ErrorTypes   
 
     open Helpers
     open Helpers.TryWithRF
+    open Helpers.ProgressBarFSharp
 
     //************************Submain functions************************************************************************
 

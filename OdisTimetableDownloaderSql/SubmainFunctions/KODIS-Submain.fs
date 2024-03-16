@@ -34,8 +34,7 @@ module KODIS_Submain =
     open Database.Connection
 
     open DomainModelling.DomainModel
-    open TransformationLayers.TransormationLayerSend
-
+    open TransformationLayers.TransformationLayerSend
     
     //DO NOT DIVIDE this module into parts in line with the main design pattern yet - KODIS keeps making unpredictable changes or amendments
 
@@ -47,7 +46,7 @@ module KODIS_Submain =
 
     let inline private expr (param : 'a) = Expr.Value(param)  
     
-    //********************* infinite checking for Json files download ******************************
+    //********************* infinite checking for net conn during Json files download ******************************
     
     //Cancellation tokens for educational purposes
     let private cts = new CancellationTokenSource() //TODO podumat, kaj zrobit cts.Dispose()
@@ -101,7 +100,7 @@ module KODIS_Submain =
 
             (jsonLinkList1, pathToJsonList1)
             ||> List.map2
-                 (fun (uri: string) path
+                 (fun (uri : string) path
                      ->                       
                       async
                           {    
@@ -271,7 +270,7 @@ module KODIS_Submain =
 
         //*************************************Helpers for SQL columns********************************************
 
-        let extractSubstring (input: string) =
+        let extractSubstring (input : string) =
                         
             let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
             let regex = new Regex(pattern) 
@@ -286,7 +285,7 @@ module KODIS_Submain =
                 | Ok value -> value
                 | Error _  -> String.Empty            
         
-        let extractSubstring1 (input: string) =
+        let extractSubstring1 (input : string) =
 
             let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
             let regex = new Regex(pattern) 
@@ -301,21 +300,21 @@ module KODIS_Submain =
                 | Ok value -> value
                 | Error _  -> String.Empty       
 
-        let extractStartDate (input: string) =
+        let extractStartDate (input : string) =
              let result = 
                  match input.Equals(String.Empty) with
                  | true  -> String.Empty
                  | _     -> input.[0..min 9 (input.Length - 1)] 
              result.Replace("_", "-")
          
-        let extractEndDate (input: string) =
+        let extractEndDate (input : string) =
             let result = 
                 match input.Equals(String.Empty) with
                 | true  -> String.Empty
                 | _     -> input.[max 0 (input.Length - 10)..]
             result.Replace("_", "-")
 
-        let splitString (input: string) =   
+        let splitString (input : string) =   
             match input.StartsWith(pathKodisAmazonLink) with
             | true  -> [pathKodisAmazonLink; input.Substring(pathKodisAmazonLink.Length)]
             | false -> [pathKodisAmazonLink; input]
@@ -360,7 +359,7 @@ module KODIS_Submain =
                 | false when tIndex <> -1 -> partAfter.Substring(tIndex + 2)
                 | _                       -> partAfter
         
-            let newPrefix (oldPrefix: string) =
+            let newPrefix (oldPrefix : string) =
 
                 let conditions =
                     [
@@ -424,18 +423,20 @@ module KODIS_Submain =
         
             let fileToBeSaved = sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
 
-            {
-                oldPrefix = oldPrefix
-                newPrefix = newPrefix oldPrefix
-                startDate = extractStartDate totalDateInterval
-                endDate = extractEndDate totalDateInterval
-                totalDateInterval = totalDateInterval
-                suffix = suffix
-                jsGeneratedString = jsGeneratedString
-                completeLink = input
-                fileToBeSaved = fileToBeSaved
-            }
-            |> dbDataTransferLayerSend  
+            let record : DbDataDomainSend = 
+                {
+                    oldPrefix = oldPrefix
+                    newPrefix = newPrefix oldPrefix
+                    startDate = extractStartDate totalDateInterval
+                    endDate = extractEndDate totalDateInterval
+                    totalDateInterval = totalDateInterval
+                    suffix = suffix
+                    jsGeneratedString = jsGeneratedString
+                    completeLink = input
+                    fileToBeSaved = fileToBeSaved
+                }
+
+            record |> dbDataTransformLayerSend  
 
      
         //**********************Filtering and SQL data inserting********************************************************
@@ -651,7 +652,7 @@ module KODIS_Submain =
                                       let get uri =
                                           http 
                                               {
-                                                  config_timeoutInSeconds 120  //for educational purposes
+                                                  config_timeoutInSeconds 120  //for educational purposes - the default value should be 100 s
                                                   GET(uri) 
                                               }    
                                      
@@ -672,7 +673,7 @@ module KODIS_Submain =
         reader
             {   
                 return! 
-                    (fun (env: (string*string) list)
+                    (fun (env : (string*string) list)
                         ->                           
                          let l = env |> List.length
 

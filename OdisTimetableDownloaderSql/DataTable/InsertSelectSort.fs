@@ -6,12 +6,12 @@ open System.Data
 open FsToolkit.ErrorHandling
 
 open Types
-open Helpers
-open DomainModelling.DomainModel
-open DomainModelling.Dto
-open TransformationLayers.TransormationLayerGet
-open TransformationLayers.TransormationLayerSend
 open Helpers.Builders
+
+open DomainModelling.Dto
+open DomainModelling.DomainModel
+
+open TransformationLayers.TransformationLayerGet
 
 module InsertSelectSort = 
         
@@ -19,11 +19,13 @@ module InsertSelectSort =
 
         let dtTimetableLinks = new DataTable()
         
-        let addColumn (name: string) (dataType: Type) =
+        let addColumn (name : string) (dataType : Type) =
 
             let dtColumn = new DataColumn()
+
             dtColumn.DataType <- dataType
             dtColumn.ColumnName <- name
+
             dtTimetableLinks.Columns.Add(dtColumn)
         
         //musi byt jen .NET type, aby nebyly problemy 
@@ -39,11 +41,12 @@ module InsertSelectSort =
         
         dtTimetableLinks
 
-    let private insertIntoDataTable dataToBeInserted =
+    let private insertIntoDataTable (dataToBeInserted : DtDataDtoSend list) =
             
         dataToBeInserted 
         |> List.iter 
             (fun item ->
+                       (*
                        let (startDate, endDate) =   
 
                            pyramidOfDoom
@@ -53,25 +56,29 @@ module InsertSelectSort =
                               
                                    return (startDate, endDate)
                                }
+                       *)
                             
                        let newRow = dt.NewRow()
+                       
                        newRow.["OldPrefix"] <- item.oldPrefix
                        newRow.["NewPrefix"] <- item.newPrefix
-                       newRow.["StartDate"] <- startDate
-                       newRow.["EndDate"] <- endDate
+                       newRow.["StartDate"] <- item.startDate
+                       newRow.["EndDate"] <- item.endDate
                        newRow.["TotalDateInterval"] <- item.totalDateInterval
                        newRow.["VT_Suffix"] <- item.suffix
                        newRow.["JS_GeneratedString"] <- item.jsGeneratedString
                        newRow.["CompleteLink"] <- item.completeLink
                        newRow.["FileToBeSaved"] <- item.fileToBeSaved
+
                        dt.Rows.Add(newRow)
             )                  
 
-    let internal sortLinksOut dataToBeInserted validity = 
-
+    let internal sortLinksOut (dataToBeInserted : DtDataDtoSend list) validity = 
+                
         insertIntoDataTable dataToBeInserted  
 
-        let condition (dateValidityStart : DateTime) (dateValidityEnd : DateTime) (currentTime: DateTime) (fileToBeSaved : string)  = 
+        let condition dateValidityStart dateValidityEnd currentTime (fileToBeSaved : string) = 
+
             match validity with 
             | CurrentValidity           -> 
                                          ((dateValidityStart <= currentTime
@@ -113,50 +120,60 @@ module InsertSelectSort =
 
         let currentTime = DateTime.Now.Date
 
-        dt.AsEnumerable()
-        |> Seq.filter
-            (fun row ->
-                      let startDate = Convert.ToDateTime(row.["StartDate"])
-                      let endDate = Convert.ToDateTime(row.["EndDate"])
-                      let fileToBeSaved = Convert.ToString(row.["FileToBeSaved"])
-                      condition startDate endDate currentTime fileToBeSaved
-            )
-        |> Seq.sortByDescending (fun row -> Convert.ToDateTime(row.["StartDate"]))
-        |> Seq.groupBy (fun row -> Convert.ToString(row.["NewPrefix"]))
-        |> Seq.map
-            (fun (newPrefix, group)
-                ->
-                 newPrefix,
-                 group |> Seq.head
-            )
-        |> Seq.map
-            (fun (_ , row) 
-                ->
-                 //Convert.ToString(row.["CompleteLink"]),
-                 //Convert.ToString(row.["FileToBeSaved"])
-                 row.["CompleteLink"],
-                 row.["FileToBeSaved"]
-            )
-        |> List.ofSeq
-        |> List.map 
-            (fun (link, file) ->                                       
-                               let record : DbDataDtoGet = 
-                                   {
-                                       completeLink = link
-                                       fileToBeSaved = file
-                                   }
+        let dtDataDtoGetDataTable (row : DataRow) : DtDataDtoGet =                         
+            {           
+                newPrefix = row.["NewPrefix"]
+                startDate = row.["StartDate"]
+                endDate = row.["EndDate"]
+                completeLink = row.["CompleteLink"]
+                fileToBeSaved = row.["FileToBeSaved"]
+            } 
 
-                               let result = dbDataTransferLayerGet record
-
-                               (result.completeLink, result.fileToBeSaved)
-                               |> function
-                                   | Some link, Some file -> 
-                                                           Some (link, file)
-                                   | _                    ->
-                                                           failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO predelat na result type az se bude zmobilnovat 
-                                                           None
-            )
-        |> List.choose id
-
+        let dataTransformation row = dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row 
         
-           
+        let seqFromDataTable = dt.AsEnumerable()
+
+        match validity with
+        | FutureValidity -> 
+                          seqFromDataTable
+                          |> Seq.distinct
+                          |> Seq.filter
+                              (fun row ->
+                                        let startDate = (row |> dataTransformation).startDate
+                                        let endDate = (row |> dataTransformation).endDate
+                                        let fileToBeSaved = (row |> dataTransformation).fileToBeSaved                      
+                                        condition startDate endDate currentTime fileToBeSaved
+                              )     
+                          |> Seq.map
+                              (fun row ->
+                                        (row |> dataTransformation).completeLink,
+                                        (row |> dataTransformation).fileToBeSaved
+                              )
+                          |> Seq.distinct
+                          |> List.ofSeq
+        | _              -> 
+                          seqFromDataTable
+                          |> Seq.distinct
+                          |> Seq.filter
+                              (fun row ->
+                                        let startDate = (row |> dataTransformation).startDate
+                                        let endDate = (row |> dataTransformation).endDate
+                                        let fileToBeSaved = (row |> dataTransformation).fileToBeSaved                      
+                                        condition startDate endDate currentTime fileToBeSaved
+                              )           
+                          |> Seq.sortByDescending (fun row -> (row |> dataTransformation).startDate)
+                          |> Seq.groupBy (fun row -> (row |> dataTransformation).newPrefix)
+                          |> Seq.map
+                              (fun (newPrefix, group)
+                                  ->
+                                   newPrefix, 
+                                   group |> Seq.head
+                              )
+                          |> Seq.map
+                              (fun (_ , row) 
+                                  ->
+                                   (row |> dataTransformation).completeLink,
+                                   (row |> dataTransformation).fileToBeSaved
+                              )
+                          |> Seq.distinct 
+                          |> List.ofSeq

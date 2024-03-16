@@ -11,16 +11,38 @@ module Dto =
             fileToBeSaved : obj 
         }
 
+    type DtDataDtoGet = 
+        {           
+            newPrefix : obj 
+            startDate : obj
+            endDate : obj 
+            completeLink : obj 
+            fileToBeSaved : obj 
+        } 
+
     type DbDataDtoSend = 
         {
             oldPrefix : string 
             newPrefix : string 
-            startDate : DateTime option 
-            endDate : DateTime option  
+            startDate : DateTime  
+            endDate : DateTime   
             totalDateInterval : string 
             suffix : string 
             jsGeneratedString : string 
             completeLink : string 
             fileToBeSaved : string 
+        }
+
+    type DtDataDtoSend = 
+        {
+            oldPrefix : string 
+            newPrefix : string 
+            startDate : DateTime  
+            endDate : DateTime   
+            totalDateInterval : string 
+            suffix : string 
+            jsGeneratedString : string 
+            completeLink : string 
+            fileToBeSaved : string  
         }
 

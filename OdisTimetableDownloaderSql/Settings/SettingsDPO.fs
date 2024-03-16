@@ -1,8 +1,8 @@
 ﻿namespace Settings
 
-module SettingsDPO =
+open System
 
-    open System
+module SettingsDPO =
 
     let [<Literal>] internal pathDpoWeb = @"https://www.dpo.cz"
     let [<Literal>] internal pathDpoWebTimetablesBus = @"https://www.dpo.cz/pro-cestujici/jizdni-rady/jr-bus.html"  

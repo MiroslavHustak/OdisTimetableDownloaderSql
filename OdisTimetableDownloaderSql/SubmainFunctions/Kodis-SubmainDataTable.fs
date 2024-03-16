@@ -30,8 +30,7 @@ module KODIS_SubmainDataTable =
     open Helpers.CollectionSplitting   
 
     open DomainModelling.DomainModel
-    open TransformationLayers.TransormationLayerSend
-
+    open TransformationLayers.TransformationLayerSend
     
     //DO NOT DIVIDE this module into parts in line with the main design pattern yet - KODIS keeps making unpredictable changes or amendments
 
@@ -263,11 +262,11 @@ module KODIS_SubmainDataTable =
         //kodisAttachments() |> Set.ofArray //over cas od casu
         //kodisTimetables() |> Set.ofArray //over cas od casu
 
-    let private filterTimetables message param (pathToDir: string) diggingResult = 
+    let private filterTimetables message param (pathToDir : string) diggingResult = 
 
         //*************************************Helpers for SQL columns********************************************
 
-        let extractSubstring (input: string) =
+        let extractSubstring (input : string) =
                         
             let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
             let regex = new Regex(pattern) 
@@ -282,7 +281,7 @@ module KODIS_SubmainDataTable =
                 | Ok value -> value
                 | Error _  -> String.Empty            
         
-        let extractSubstring1 (input: string) =
+        let extractSubstring1 (input : string) =
 
             let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
             let regex = new Regex(pattern) 
@@ -297,21 +296,21 @@ module KODIS_SubmainDataTable =
                 | Ok value -> value
                 | Error _  -> String.Empty       
 
-        let extractStartDate (input: string) =
+        let extractStartDate (input : string) =
              let result = 
                  match input.Equals(String.Empty) with
                  | true  -> String.Empty
                  | _     -> input.[0..min 9 (input.Length - 1)] 
              result.Replace("_", "-")
          
-        let extractEndDate (input: string) =
+        let extractEndDate (input : string) =
             let result = 
                 match input.Equals(String.Empty) with
                 | true  -> String.Empty
                 | _     -> input.[max 0 (input.Length - 10)..]
             result.Replace("_", "-")
 
-        let splitString (input: string) =   
+        let splitString (input : string) =   
             match input.StartsWith(pathKodisAmazonLink) with
             | true  -> [pathKodisAmazonLink; input.Substring(pathKodisAmazonLink.Length)]
             | false -> [pathKodisAmazonLink; input]
@@ -423,18 +422,18 @@ module KODIS_SubmainDataTable =
             {
                 oldPrefix = oldPrefix
                 newPrefix = newPrefix oldPrefix
-                startDate = extractStartDate totalDateInterval
-                endDate = extractEndDate totalDateInterval
+                startDate = TryParserDate.parseDate <| extractStartDate totalDateInterval
+                endDate = TryParserDate.parseDate <| extractEndDate totalDateInterval
                 totalDateInterval = totalDateInterval
                 suffix = suffix
                 jsGeneratedString = jsGeneratedString
                 completeLink = input
                 fileToBeSaved = fileToBeSaved
             }
-            |> dbDataTransferLayerSend  
+            |> dtDataTransformLayerSend  
 
      
-        //**********************Filtering and SQL data inserting********************************************************
+        //**********************Filtering and datatable data inserting********************************************************
         let dataToBeInserted =           
             diggingResult       
             |> Array.Parallel.map 
@@ -494,16 +493,16 @@ module KODIS_SubmainDataTable =
                          | _    -> 
                                  pathToDir    
                      link, path 
-                )          
-                      
-        let selectDataFromDb = 
+                )   
+
+        let selectDataFromDt = 
             match param with 
             | CurrentValidity           -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted CurrentValidity |> createPathsForDownloadedFiles
             | FutureValidity            -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted FutureValidity |> createPathsForDownloadedFiles
             | ReplacementService        -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted ReplacementService |> createPathsForDownloadedFiles  
             | WithoutReplacementService -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted WithoutReplacementService |> createPathsForDownloadedFiles 
         
-        selectDataFromDb
+        selectDataFromDt
  
     let internal deleteAllODISDirectories message pathToDir = 
 
@@ -661,13 +660,13 @@ module KODIS_SubmainDataTable =
                          |> Result.ofChoice                      
                          |> function
                              | Ok _    -> ()                                                                                 
-                             | Error _ -> message.msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
+                             | Error err -> printfn "%s" err.Message//message.msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
                 )  
 
         reader
             {   
                 return! 
-                    (fun (env: (string*string) list)
+                    (fun (env : (string*string) list)
                         ->                           
                          let l = env |> List.length
 

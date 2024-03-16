@@ -1,21 +1,16 @@
 ﻿namespace Helpers
 
-open System.Net.NetworkInformation
-open System.Windows
+open System
+
+open Types.Messages
+open Helpers.TryWithRF
 
 module ProgressBarFSharp =
 
     // ************************************************************************************************************
     // Adapted from C# code under MIT License, Copyright (c) 2017 Daniel Wolf, https://gist.github.com/DanielSWolf
     // ************************************************************************************************************
-
-    open System
-
-    open Types.Messages
-
-    open Helpers
-    open Helpers.TryWithRF
-
+    
     let private (++) a = (+) a 1
 
     let inline private updateProgressBar (message: Messages) (currentProgress : int) (totalProgress : int) : unit =

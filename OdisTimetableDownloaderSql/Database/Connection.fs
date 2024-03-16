@@ -1,10 +1,10 @@
 ﻿namespace Database
 
+open Microsoft.Data.SqlClient
+
+open Helpers.TryWithRF
+
 module Connection =
-
-    open Microsoft.Data.SqlClient
-
-    open Helpers.TryWithRF
 
     [<Literal>] 
     let internal connString = @"Data Source=Misa\SQLEXPRESS;Initial Catalog=TimetableDownloader;Integrated Security=True;Encrypt=False"

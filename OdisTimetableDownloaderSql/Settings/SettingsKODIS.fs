@@ -1,8 +1,8 @@
 ﻿namespace Settings
 
-module SettingsKODIS =
+open System
 
-    open System
+module SettingsKODIS =
 
     //************************Constants and types**********************************************************************
 
