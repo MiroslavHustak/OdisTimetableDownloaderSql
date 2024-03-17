@@ -553,7 +553,7 @@ module KODIS_SubmainDataTable =
             | ReplacementService        -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted ReplacementService |> createPathsForDownloadedFiles  
             | WithoutReplacementService -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted WithoutReplacementService |> createPathsForDownloadedFiles 
         
-        selectDataFromDt
+        selectDataFromDt  // |> List.iter _.Delete(true) 
  
     let internal deleteAllODISDirectories message pathToDir = 
 
@@ -561,37 +561,25 @@ module KODIS_SubmainDataTable =
     
             reader //Reader monad for educational purposes only, no real benefit here  
                 {
-                    let! getDefaultRecordValues = fun env -> env
-
-                    let l = getDefaultRecordValues |> List.length
-
-                    let numberOfThreads1 = numberOfThreads message l
-
-                    let myList =                         
-                        //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
-                        let dirInfo = new DirectoryInfo(pathToDir)  
-                        //smazeme pouze adresare obsahujici stare JR, ostatni ponechame                           
+                    let! getDefaultRecordValues = fun env -> env  
+                                      
+                    //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
+                    let dirInfo = new DirectoryInfo(pathToDir)  
+                    //smazeme pouze adresare obsahujici stare JR, ostatni ponechame                           
+                        in
                         dirInfo.EnumerateDirectories() 
                         |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
                         |> Seq.distinct 
-                        |> Seq.toList
-                        |> splitListIntoEqualParts numberOfThreads1 
-
-                    let myDeleteFunction (list : DirectoryInfo list) = list |> List.iter _.Delete(true)    
-                
-                    fun i -> <@ async { return myDeleteFunction (%%expr myList |> List.item %%(expr i)) } @>
-                    |> List.init myList.Length
-                    |> List.map _.Compile()       
-                    |> Async.Parallel 
-                    |> Async.Catch  //Async.Catch by mel stacit  
-                    |> Async.RunSynchronously
-                    |> Result.ofChoice  
-                    |> function
-                        | Ok _      -> 
-                                     ()                                                                      
-                        | Error err ->
-                                     logInfoMsg <| sprintf "012 %s" (string err.Message)
-                                     closeItBaby message message.msg16                                      
+                        |> Seq.iter _.Delete(true) //tady nebude parallel rychlejsi
+                        // |> Seq.toList
+                        // |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true))
+                        |> tryWith2 (lazy ())            
+                        |> function    
+                            | Ok value  ->
+                                         value
+                            | Error err ->
+                                         logInfoMsg <| sprintf "012 %s" err
+                                         closeItBaby message message.msg16                                                  
                     return ()
                 }
 
@@ -631,23 +619,21 @@ module KODIS_SubmainDataTable =
             reader //Reader monad for educational purposes only, no real benefit here  
                 {   
                     let! getDefaultRecordValues = fun env -> env
-
-                    let myDeleteFunction = 
-                        //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
-                        let dirInfo = new DirectoryInfo(pathToDir)        
-                            in
-                            dirInfo.EnumerateDirectories()
-                            |> Seq.filter (fun item -> item.Name = createDirName variant getDefaultRecordValues) 
-                            |> Seq.iter _.Delete(true) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce                 
-                
-                    return 
-                        tryWith2 (lazy ()) myDeleteFunction           
+                  
+                    //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
+                    let dirInfo = new DirectoryInfo(pathToDir)        
+                        in
+                        dirInfo.EnumerateDirectories()
+                        |> Seq.filter (fun item -> item.Name = createDirName variant getDefaultRecordValues) 
+                        |> Seq.iter _.Delete(true) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce  
+                        |> tryWith2 (lazy ())            
                         |> function    
                             | Ok value  ->
-                                         value
+                                        value
                             | Error err ->
-                                         logInfoMsg <| sprintf "012A %s" err
-                                         closeItBaby message message.msg16 
+                                        logInfoMsg <| sprintf "012A %s" err
+                                        closeItBaby message message.msg16                                                  
+                    return ()
                 }
 
         deleteIt listODISDefault4    
@@ -683,8 +669,8 @@ module KODIS_SubmainDataTable =
                         logInfoMsg <| sprintf "013 %s" err
                         closeItBaby message message.msg16                                    
 
-    let private downloadAndSaveTimetables message pathToDir =     //FsHttp
-        
+    let private downloadAndSaveTimetables message pathToDir =     //FsHttp        
+                        
         message.msgParam3 pathToDir  
 
         let asyncDownload (counterAndProgressBar : MailboxProcessor<Msg>) list =   
@@ -700,7 +686,7 @@ module KODIS_SubmainDataTable =
                              match not <| NetworkInterface.GetIsNetworkAvailable() with
                              | true  ->                                    
                                       (processor 0 Pdf).Post(First(1)) 
-                                      Thread.Sleep(600000)
+                                      Thread.Sleep(600000) //TODO zhodnotit uzitecnost
                              | false ->  
                                       //failwith "Simulated exception"  
                                       counterAndProgressBar.Post(Incr 1)
@@ -733,7 +719,25 @@ module KODIS_SubmainDataTable =
             {   
                 return! 
                     (fun (env : (string*string) list)
-                        ->                           
+                        -> 
+                          //*************************************************
+                          //just messing about...
+                         (* 
+                         env 
+                         |> List.Parallel.iter 
+                             (fun (uri, (pathToFile: string)) ->
+                                 let get uri =
+                                     http 
+                                         {
+                                             config_timeoutInSeconds 120  
+                                             GET(uri) 
+                                         }    
+                                     
+                                 use response = get >> Request.send <| uri  
+                                 response.SaveFile <| pathToFile           
+                             )
+                         //***************************************************
+                         *)    
                          let l = env |> List.length
 
                          let numberOfThreads1 = numberOfThreads message l
@@ -755,31 +759,26 @@ module KODIS_SubmainDataTable =
                                                                        return! loop n
                                              }
                                      loop 0
-                                )
-
-                         match env.Length >= numberOfThreads1 with 
-                         | false ->  
-                                  asyncDownload counterAndProgressBar env
-                                  message.msgParam4 pathToDir  
-                         | true  ->                                
-                                  let myList = splitListIntoEqualParts numberOfThreads1 env                             
+                                )                        
+                                            
+                         let myList = splitListIntoEqualParts numberOfThreads1 env                             
                               
-                                  fun i -> <@ async { return asyncDownload counterAndProgressBar (%%expr myList |> List.item %%(expr i)) } @>
-                                  |> List.init myList.Length
-                                  |> List.map _.Compile()       
-                                  |> Async.Parallel 
-                                  |> Async.Catch 
-                                  |> Async.RunSynchronously
-                                  |> Result.ofChoice  
-                                  |> function
-                                      | Ok _      ->
-                                                   message.msgParam4 pathToDir
-                                      | Error err ->
-                                                   logInfoMsg <| sprintf "015 %s" (string err.Message)   
-                                                   message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop                                            
-                    )                        
-            } 
-            
+                         fun i -> <@ async { return asyncDownload counterAndProgressBar (%%expr myList |> List.item %%(expr i)) } @>
+                         |> List.init myList.Length
+                         |> List.map _.Compile()       
+                         |> Async.Parallel 
+                         |> Async.Catch 
+                         |> Async.RunSynchronously
+                         |> Result.ofChoice  
+                         |> function
+                             | Ok _      ->
+                                         message.msgParam4 pathToDir
+                             | Error err ->
+                                         logInfoMsg <| sprintf "015 %s" (string err.Message)   
+                                         message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop  *)                                          
+                    )                     
+            }                  
+         
     let internal downloadAndSave message variant dir = 
 
         match dir |> Directory.Exists with 

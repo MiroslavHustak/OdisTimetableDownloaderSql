@@ -45,34 +45,34 @@ module CollectionSplitting =
     
     let internal splitListIntoEqualParts (numParts: int) (originalList: 'a list) =   //almost equal parts :-)    
             
-            //[<TailCall>] vyzkouseno separatne, bez varovnych hlasek
-            let rec splitAccumulator remainingList partsAccumulator acc =
+        //[<TailCall>] vyzkouseno separatne, bez varovnych hlasek
+        let rec splitAccumulator remainingList partsAccumulator acc =
     
-                match remainingList with
-                | [] -> 
-                      partsAccumulator |> List.rev 
-                | _  ->                     
-                      let currentPartLength =
+            match remainingList with
+            | [] -> 
+                    partsAccumulator |> List.rev 
+            | _  ->                     
+                    let currentPartLength =
     
-                          let partLength list n = 
+                        let partLength list n = 
 
-                              let totalLength = list |> List.length 
-                              let partLength = totalLength / n    
+                            let totalLength = list |> List.length 
+                            let partLength = totalLength / n    
                               
-                              totalLength % n > 0
-                              |> function
-                                  | true  -> partLength + 1
-                                  | false -> partLength 
+                            totalLength % n > 0
+                            |> function
+                                | true  -> partLength + 1
+                                | false -> partLength 
     
-                          match (=) acc numParts with
-                          | true  -> partLength originalList numParts    
-                          | false -> partLength remainingList acc                                 
+                        match (=) acc numParts with
+                        | true  -> partLength originalList numParts    
+                        | false -> partLength remainingList acc                                 
         
-                      let (part, rest) = remainingList |> List.splitAt currentPartLength 
+                    let (part, rest) = remainingList |> List.splitAt currentPartLength 
 
-                      splitAccumulator rest (part :: partsAccumulator) (acc - 1)
+                    splitAccumulator rest (part :: partsAccumulator) (acc - 1)
                       
-            splitAccumulator originalList [] numParts
+        splitAccumulator originalList [] numParts
     
     let internal numberOfThreads message l =  
         

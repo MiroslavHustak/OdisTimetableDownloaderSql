@@ -92,6 +92,20 @@ module KODIS_Submain =
                              }
                      loop 0
                 )
+
+        //a redundant function, just messing about.. 
+        let updateJson1 (jsonLinkList1 : string list) (pathToJsonList1 : string list) =     
+            
+            Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
+            Console.CursorLeft <- 0 
+               
+            (jsonLinkList1, pathToJsonList1)
+            ||> List.Parallel.iter2   //just messing about...
+                (fun (uri: string) path
+                    ->
+                     use response = get >> Request.send <| uri 
+                     response.SaveFile <| path         
+                )  
        
         let updateJson listTuple =    
         
@@ -565,37 +579,24 @@ module KODIS_Submain =
     
             reader //Reader monad for educational purposes only, no real benefit here  
                 {
-                    let! getDefaultRecordValues = fun env -> env
-
-                    let l = getDefaultRecordValues |> List.length
-
-                    let numberOfThreads1 = numberOfThreads message l
-
-                    let myList =                         
-                        //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
-                        let dirInfo = new DirectoryInfo(pathToDir)  
-                        //smazeme pouze adresare obsahujici stare JR, ostatni ponechame                           
+                    let! getDefaultRecordValues = fun env -> env  
+                                      
+                    //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
+                    let dirInfo = new DirectoryInfo(pathToDir)  
+                    //smazeme pouze adresare obsahujici stare JR, ostatni ponechame                           
+                        in
                         dirInfo.EnumerateDirectories() 
                         |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
                         |> Seq.distinct 
                         |> Seq.toList
-                        |> splitListIntoEqualParts numberOfThreads1 
-
-                    let myDeleteFunction (list : DirectoryInfo list) = list |> List.iter _.Delete(true)    
-                
-                    fun i -> <@ async { return myDeleteFunction (%%expr myList |> List.item %%(expr i)) } @>
-                    |> List.init myList.Length
-                    |> List.map _.Compile()       
-                    |> Async.Parallel 
-                    |> Async.Catch  //Async.Catch by mel stacit  
-                    |> Async.RunSynchronously
-                    |> Result.ofChoice  
-                    |> function
-                        | Ok _      -> 
-                                     ()                                                                      
-                        | Error err ->
-                                     logInfoMsg <| sprintf "012 %s" (string err.Message)
-                                     closeItBaby message message.msg16                                      
+                        |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true))
+                        |> tryWith2 (lazy ())            
+                        |> function    
+                            | Ok value  ->
+                                         value
+                            | Error err ->
+                                         logInfoMsg <| sprintf "012 %s" err
+                                         closeItBaby message message.msg16                                                  
                     return ()
                 }
 
@@ -635,23 +636,21 @@ module KODIS_Submain =
             reader //Reader monad for educational purposes only, no real benefit here  
                 {   
                     let! getDefaultRecordValues = fun env -> env
-
-                    let myDeleteFunction = 
-                        //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
-                        let dirInfo = new DirectoryInfo(pathToDir)        
-                            in
-                            dirInfo.EnumerateDirectories()
-                            |> Seq.filter (fun item -> item.Name = createDirName variant getDefaultRecordValues) 
-                            |> Seq.iter _.Delete(true) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce                 
-                
-                    return 
-                        tryWith2 (lazy ()) myDeleteFunction           
+                  
+                    //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
+                    let dirInfo = new DirectoryInfo(pathToDir)        
+                        in
+                        dirInfo.EnumerateDirectories()
+                        |> Seq.filter (fun item -> item.Name = createDirName variant getDefaultRecordValues) 
+                        |> Seq.iter _.Delete(true) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce  
+                        |> tryWith2 (lazy ())            
                         |> function    
                             | Ok value  ->
-                                         value
+                                        value
                             | Error err ->
-                                         logInfoMsg <| sprintf "012A %s" err
-                                         closeItBaby message message.msg16 
+                                        logInfoMsg <| sprintf "012A %s" err
+                                        closeItBaby message message.msg16                                                  
+                    return ()
                 }
 
         deleteIt listODISDefault4    
@@ -759,28 +758,23 @@ module KODIS_Submain =
                                                                        return! loop n
                                              }
                                      loop 0
-                                )
-
-                         match env.Length >= numberOfThreads1 with 
-                         | false ->  
-                                  asyncDownload counterAndProgressBar env
-                                  message.msgParam4 pathToDir  
-                         | true  ->                                
-                                  let myList = splitListIntoEqualParts numberOfThreads1 env                             
+                                )                       
+                                                 
+                         let myList = splitListIntoEqualParts numberOfThreads1 env                             
                               
-                                  fun i -> <@ async { return asyncDownload counterAndProgressBar (%%expr myList |> List.item %%(expr i)) } @>
-                                  |> List.init myList.Length
-                                  |> List.map _.Compile()       
-                                  |> Async.Parallel 
-                                  |> Async.Catch 
-                                  |> Async.RunSynchronously
-                                  |> Result.ofChoice  
-                                  |> function
-                                      | Ok _      ->
-                                                   message.msgParam4 pathToDir
-                                      | Error err ->
-                                                   logInfoMsg <| sprintf "015 %s" (string err.Message)   
-                                                   message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop                                            
+                         fun i -> <@ async { return asyncDownload counterAndProgressBar (%%expr myList |> List.item %%(expr i)) } @>
+                         |> List.init myList.Length
+                         |> List.map _.Compile()       
+                         |> Async.Parallel 
+                         |> Async.Catch 
+                         |> Async.RunSynchronously
+                         |> Result.ofChoice  
+                         |> function
+                             | Ok _      ->
+                                          message.msgParam4 pathToDir
+                             | Error err ->
+                                          logInfoMsg <| sprintf "015 %s" (string err.Message)   
+                                          message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop                                            
                     )                        
             } 
             

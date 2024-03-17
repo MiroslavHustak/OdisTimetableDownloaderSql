@@ -32,6 +32,7 @@
     <Compile Include="Helpers\ErrorHandling.fs" />
     <Compile Include="Helpers\Helpers.fs" />
     <Compile Include="Helpers\CollectionSplitting.fs" />
+    <Compile Include="Helpers\ListParallel.fs" />
     <Compile Include="Helpers\ProgressBarFSharp.fs" />
     <Compile Include="DomainModelling\DomainModels.fs" />
     <Compile Include="DomainModelling\Dtos.fs" />

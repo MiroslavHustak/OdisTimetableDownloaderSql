@@ -52,7 +52,19 @@ let rec private pathToFolder () =
 [<EntryPoint; STAThread>] // STAThread> musi byt quli openFolderBrowserDialog()
 //[<EntryPoint>] 
 let main argv =
-     
+    printfn "%s" "**************************map2********************"
+    (["Ahoj1"; "Ahoj2"; "Ahoj3"; "Ahoj4"; "Ahoj5"; "Ahoj6"; "Ahoj7"; "Ahoj8"; "Ahoj9"; "Ahoj10"; "Ahoj11"; "Ahoj12"], [" vole1"; " vole2"; " vole3"; " vole4"; " vole5"; " vole6"; " vole7"; " vole8"; " vole9"; " vole10"; " vole11"; " vole12"])
+    ||> List.Parallel.map2
+       ( fun item1 item2 -> item1 + item2)
+    |> List.iter (fun item -> printfn "%s" item)
+
+    printfn "%s" "**************************map********************"
+    ["Ahoj1"; "Ahoj2"; "Ahoj3"; "Ahoj4"; "Ahoj5"; "Ahoj6"; "Ahoj7"; "Ahoj8"; "Ahoj9"; "Ahoj10"; "Ahoj11"; "Ahoj12"]
+    |> List.Parallel.map
+       ( fun item1 -> item1 + " Lojzo")
+    |> List.iter (fun item -> printfn "%s" item)
+    
+    Console.ReadKey() |> ignore
     //*****************************Console******************************  
     
     let updateDate = "15-03-2024"
@@ -196,8 +208,8 @@ let main argv =
                                             
                                          Console.Clear()
                                             
-                                         webscraping_KODISFMDataTable path variant 
-                                         //webscraping_KODISFM path variant 
+                                         //webscraping_KODISFMDataTable path variant 
+                                         webscraping_KODISFM path variant 
                                             
                                          printfn "%c" <| char(32)         
                                          printfn "JŘ s chybějícími údaji o platnosti (např. NAD bez dalších údajů), pokud existovaly, nebyly staženy."
