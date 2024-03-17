@@ -1,6 +1,4 @@
-﻿
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-[<RequireQualifiedAccess>]
+﻿[<RequireQualifiedAccess>]
 module List.Parallel
 
 open System
