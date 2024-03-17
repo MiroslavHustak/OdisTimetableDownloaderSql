@@ -85,7 +85,7 @@ module KODIS_SubmainDataTable =
                                  | Fetch replyChannel ->
                                                        replyChannel.Reply n 
                                                        return! loop n
-                         }
+                             }
                      loop 0
                 )
        
@@ -114,10 +114,10 @@ module KODIS_SubmainDataTable =
                                        return Ok ()                                
                                   | _ ->  
                                        return Error "HttpStatusCode.OK is not OK"      
-                          }                         
-                          |> Async.Catch 
-                          |> Async.RunSynchronously
-                          |> Result.ofChoice                                  
+                              }                         
+                              |> Async.Catch 
+                              |> Async.RunSynchronously
+                              |> Result.ofChoice                                  
                      ) 
                 |> Result.sequence              
                
