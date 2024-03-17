@@ -55,7 +55,7 @@ let main argv =
     
     //*****************************Console******************************  
     
-    let updateDate = "15-03-2024"
+    let updateDate = "17-03-2024"
 
     let consoleSettings f = 
 
@@ -196,8 +196,8 @@ let main argv =
                                             
                                          Console.Clear()
                                             
-                                         //webscraping_KODISFMDataTable path variant 
-                                         webscraping_KODISFM path variant 
+                                         webscraping_KODISFMDataTable path variant 
+                                         //webscraping_KODISFM path variant 
                                             
                                          printfn "%c" <| char(32)         
                                          printfn "JŘ s chybějícími údaji o platnosti (např. NAD bez dalších údajů), pokud existovaly, nebyly staženy."
