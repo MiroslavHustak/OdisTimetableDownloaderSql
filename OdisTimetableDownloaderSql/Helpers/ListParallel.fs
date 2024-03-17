@@ -11,8 +11,6 @@ open FSharp.Quotations.Evaluator.QuotationEvaluationExtensions
 //Functions seem to be as fast as Array.Parallel.iter/iter2/map/map2 for non-CPU-bound operations
 //But I have not tested too intensively....
 
-open System.Linq
-
 let private expr (param : 'a) = Expr.Value(param)  
 
 let private splitListIntoEqualParts (numParts: int) (originalList: 'a list) =   //well, almost equal parts :-)           
