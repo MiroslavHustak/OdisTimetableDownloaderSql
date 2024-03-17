@@ -4,6 +4,8 @@ open System
 open FsToolkit.ErrorHandling
 
 open Types.Messages
+open Logging.Logging
+
 open Helpers.TryWithRF
 open Settings.SettingsKODIS
 
@@ -18,11 +20,12 @@ module CollectionSplitting =
         |> List.map snd
         |> tryWith2 (lazy ())            
         |> function    
-            | Ok value -> 
-                        value
-            | Error _  -> 
-                        closeItBaby message message.msg16 
-                        [ [] ]   
+            | Ok value  -> 
+                         value
+            | Error err ->
+                         logInfoMsg <| sprintf "024 %s" err 
+                         closeItBaby message message.msg16 
+                         [ [] ]   
                         
     let internal splitListByPrefixExplanation message (list: string list) : string list list = 
                 
@@ -33,11 +36,12 @@ module CollectionSplitting =
         |> List.map (fun item -> snd item)        
         |> tryWith2 (lazy ())            
         |> function    
-            | Ok value -> 
-                        value
-            | Error _  -> 
-                        closeItBaby message message.msg16 
-                        [ [] ]          
+            | Ok value  -> 
+                         value
+            | Error err ->
+                         logInfoMsg <| sprintf "025 %s" err 
+                         closeItBaby message message.msg16 
+                         [ [] ]      
     
     let internal splitListIntoEqualParts (numParts: int) (originalList: 'a list) =   //almost equal parts :-)    
             
@@ -81,5 +85,6 @@ module CollectionSplitting =
                  | false when l > 0 -> l
                  | _                -> 0  
         | false ->
+                 logInfoMsg <| sprintf "026 %s" "Chyba při rozdělování listu pro multi-threading." 
                  closeItBaby message "Chyba při rozdělování listu pro multi-threading."; -1
 

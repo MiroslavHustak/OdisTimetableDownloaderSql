@@ -5,6 +5,8 @@ module WebScraping_DPO =
     open System
     open System.IO
     open System.Net
+
+    open Logging.Logging
     
     open Helpers.TryWithRF
 
@@ -47,7 +49,7 @@ module WebScraping_DPO =
         { 
             filterTimetables = filterTimetables
             downloadAndSaveTimetables = downloadAndSaveTimetables
-            client = client (lazy (messagesDefault.msgParam7 "Error4")) messagesDefault.msgParam1 
+            client = client (lazy (messagesDefault.msgParam7 "Error DPO")) messagesDefault.msgParam1 
         }    
 
     let internal webscraping_DPO pathToDir =  
@@ -61,8 +63,11 @@ module WebScraping_DPO =
             let errorHandling fn = 
                 tryWith2 (lazy ()) fn           
                 |> function    
-                    | Ok value -> value
-                    | Error _  -> closeItBaby message message.msg16      
+                    | Ok value  ->
+                                 value
+                    | Error err ->
+                                 logInfoMsg <| sprintf "052 %s" err
+                                 closeItBaby message message.msg16      
 
             match action with                                                   
             | StartProcess           -> 

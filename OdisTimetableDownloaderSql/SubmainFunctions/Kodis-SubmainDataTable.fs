@@ -18,6 +18,8 @@ module KODIS_SubmainDataTable =
 
     open Settings.SettingsKODIS
     open Settings.SettingsGeneral
+
+    open Logging.Logging
     
     open Types
     open Types.Messages
@@ -31,7 +33,7 @@ module KODIS_SubmainDataTable =
 
     open DomainModelling.DomainModel
     open TransformationLayers.TransformationLayerSend
-    
+        
     //DO NOT DIVIDE this module into parts in line with the main design pattern yet - KODIS keeps making unpredictable changes or amendments
 
     type internal KodisTimetables = JsonProvider<pathJson> 
@@ -42,7 +44,7 @@ module KODIS_SubmainDataTable =
 
     let inline private expr (param : 'a) = Expr.Value(param)  
     
-    //********************* infinite checking for Json files download ******************************
+    //********************* Infinite checking for Json files download ******************************
     
     //Cancellation tokens for educational purposes
     let private cts = new CancellationTokenSource() //TODO podumat, kaj zrobit cts.Dispose()
@@ -90,40 +92,51 @@ module KODIS_SubmainDataTable =
         let updateJson listTuple =    
         
             Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
-            Console.CursorLeft <- 0            
-   
+            Console.CursorLeft <- 0   
+            
             let (jsonLinkList1, pathToJsonList1) = listTuple     
 
-            (jsonLinkList1, pathToJsonList1)
-            ||> List.map2
-                 (fun (uri: string) path
-                     ->                       
-                      async
-                          {    
-                              //failwith "Simulated exception"  
-                              use! response = get >> Request.sendAsync <| uri 
+            let result = 
+                (jsonLinkList1, pathToJsonList1)
+                ||> List.map2
+                     (fun (uri: string) path
+                         ->                       
+                          async
+                              {    
+                                  //failwith "Simulated exception"  
+                                  use! response = get >> Request.sendAsync <| uri 
 
-                              match response.statusCode with
-                              | HttpStatusCode.OK ->
-                                                   //Adapted FsHttp library function
-                                                   //do! responseSaveFileAsync counterAndProgressBarPost path response |> Async.AwaitTask
-                                                   
-                                                   counterAndProgressBar.Post(Incr 1)
-                                                   
-                                                   do! response.SaveFileAsync >> Async.AwaitTask <| path  //Original library function                                                                                                          
-                                                   return Ok ()                                   
-                              | _                 ->  
-                                                   return Error String.Empty      
-                      }                         
-                      |> Async.Catch 
-                      |> Async.RunSynchronously
-                      |> Result.ofChoice                                  
-                 ) 
-                 |> Result.sequence 
-                 |> function
-                     | Ok _    -> ()
-                     | Error _ -> closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."                                 
-                                 
+                                  match response.statusCode with
+                                  | HttpStatusCode.OK
+                                      ->                                                                                                   
+                                       counterAndProgressBar.Post(Incr 1)                                                   
+                                       do! response.SaveFileAsync >> Async.AwaitTask <| path                                                   
+                                       return Ok ()                                
+                                  | _ ->  
+                                       return Error "HttpStatusCode.OK is not OK"      
+                          }                         
+                          |> Async.Catch 
+                          |> Async.RunSynchronously
+                          |> Result.ofChoice                                  
+                     ) 
+                |> Result.sequence              
+               
+            pyramidOfInferno
+                {
+                    let errorFn1 err = 
+                        logInfoMsg <| sprintf "001 %s" err
+                        closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."
+
+                    let errorFn2 (err : exn) = 
+                        logInfoMsg <| sprintf "002 %s" (string err.Message)
+                        closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."
+
+                    let! value = result, errorFn2 
+                    let! value = value |> List.head, errorFn1
+
+                    return value
+                }             
+                                                 
         message.msg2()      
         
         let fSharpAsyncParallel message =  
@@ -148,7 +161,8 @@ module KODIS_SubmainDataTable =
                              message.msg3() 
                              message.msg4()
                 | Error err ->
-                             closeItBaby message (string err.Message)  
+                             logInfoMsg <| sprintf "003 %s" (string err.Message)
+                             closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."  
 
         fSharpAsyncParallel message      
    
@@ -171,21 +185,32 @@ module KODIS_SubmainDataTable =
                                  kodisJsonSamples 
                                  |> function 
                                      | Some value -> 
-                                                   value |> Array.map _.Timetable //quli tomuto je nutno Array
+                                                   value |> Option.ofNull 
+                                                   |> function
+                                                      | Some value -> value |> Array.map _.Timetable  //quli tomuto je nutno Array //nejde Some, nejde Ok
+                                                      | None       -> [||]  
                                      | None       -> 
-                                                   message.msg5()                                                          
-                                                   closeItBaby message message.msg16 
-                                                   [||]    
-                            ) 
+                                                   [||] 
+                            )                     
                         
                     return
                         tryWith2 (lazy ()) result           
                         |> function    
-                            | Ok value -> 
-                                        value
-                            | Error _  -> 
-                                        closeItBaby message message.msg16 
-                                        [||]               
+                            | Ok value  -> 
+                                         value
+                                         |> function
+                                             | [||] -> 
+                                                     logInfoMsg <| sprintf "004 %s" "msg16" 
+                                                     message.msg5()
+                                                     closeItBaby message message.msg16
+                                                     [||]
+                                             | _    -> 
+                                                     value
+                            | Error err -> 
+                                         logInfoMsg <| sprintf "005 %s" err 
+                                         message.msg5()
+                                         closeItBaby message message.msg16 
+                                         [||]               
                 }
 
         let kodisAttachments : Reader<string list, string array> = //Reader monad for educational purposes only, no real benefit here
@@ -198,7 +223,7 @@ module KODIS_SubmainDataTable =
 
                         pathToJsonList
                         |> Array.ofList 
-                        |> Array.collect  //vzhledem ke komplikovanosti nepouzivam Result.sequence pro Array.collect
+                        |> Array.collect  //vzhledem ke komplikovanosti nepouzivam Result.sequence pro Array.collect, nejde Some, nejde Ok jako vyse
                             (fun pathToJson 
                                 -> 
                                  let fn1 (value: JsonProvider<pathJson>.Attachment array) = 
@@ -213,7 +238,7 @@ module KODIS_SubmainDataTable =
                                                        value |> fn1
                                          | None       -> 
                                                        message.msg6() 
-                                                       closeItBaby message message.msg16 
+                                                       //closeItBaby message message.msg16 
                                                        [||]                 
 
                                  let fn3 (item: JsonProvider<pathJson>.Root) =  //quli tomuto je nutno Array 
@@ -221,9 +246,9 @@ module KODIS_SubmainDataTable =
                                      |> function 
                                          | Some value ->
                                                        value |> Array.collect fn2 
-                                           | None     ->
+                                         | None       ->
                                                        message.msg7() 
-                                                       closeItBaby message message.msg16 
+                                                       //closeItBaby message message.msg16 
                                                        [||] 
                                                       
                                  let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull  
@@ -234,18 +259,28 @@ module KODIS_SubmainDataTable =
                                                    value |> Array.collect fn3 
                                      | None       -> 
                                                    message.msg8() 
-                                                   closeItBaby message message.msg16 
+                                                   //closeItBaby message message.msg16 
                                                    [||]                                 
                             ) 
                 
                     return
                         tryWith2 (lazy ()) result           
                         |> function    
-                            | Ok value -> 
-                                        value
-                            | Error _  -> 
-                                        closeItBaby message message.msg16 
-                                        [||]               
+                            | Ok value  -> 
+                                         value
+                                         |> function
+                                             | [||] -> 
+                                                     logInfoMsg <| sprintf "006 %s" "msg16" 
+                                                     message.msg5()
+                                                     closeItBaby message message.msg16
+                                                     [||]
+                                             | _    -> 
+                                                     value
+                            | Error err -> 
+                                         logInfoMsg <| sprintf "007 %s" err 
+                                         message.msg5()
+                                         closeItBaby message message.msg16 
+                                         [||]                       
                 }
         
         let addOn () = 
@@ -278,8 +313,12 @@ module KODIS_SubmainDataTable =
 
             |> tryWith2 (lazy ())            
             |> function    
-                | Ok value -> value
-                | Error _  -> String.Empty            
+                | Ok value  -> 
+                             value
+                | Error err -> 
+                             logInfoMsg <| sprintf "008 %s" err 
+                             message.msg9()
+                             String.Empty                
         
         let extractSubstring1 (input : string) =
 
@@ -293,8 +332,12 @@ module KODIS_SubmainDataTable =
 
             |> tryWith2 (lazy ())            
             |> function    
-                | Ok value -> value
-                | Error _  -> String.Empty       
+                | Ok value  -> 
+                             value
+                | Error err -> 
+                             logInfoMsg <| sprintf "009 %s" err 
+                             message.msg9()
+                             String.Empty        
 
         let extractStartDate (input : string) =
              let result = 
@@ -326,8 +369,12 @@ module KODIS_SubmainDataTable =
                 |> List.item 1
                 |> tryWith2 (lazy ())            
                 |> function    
-                    | Ok value -> value
-                    | Error _  -> String.Empty 
+                    | Ok value  -> 
+                                 value
+                    | Error err -> 
+                                 logInfoMsg <| sprintf "010 %s" err 
+                                 message.msg9()
+                                 String.Empty     
 
             let totalDateInterval = extractSubstring1 input
 
@@ -337,8 +384,12 @@ module KODIS_SubmainDataTable =
                 |> List.item 1    
                 |> tryWith2 (lazy ())            
                 |> function    
-                    | Ok value -> value
-                    | Error _  -> String.Empty 
+                    | Ok value  -> 
+                                 value
+                    | Error err -> 
+                                 logInfoMsg <| sprintf "011 %s" err 
+                                 message.msg9()
+                                 String.Empty     
         
             let vIndex = partAfter.IndexOf "_v"
             let tIndex = partAfter.IndexOf "_t"
@@ -536,9 +587,11 @@ module KODIS_SubmainDataTable =
                     |> Async.RunSynchronously
                     |> Result.ofChoice  
                     |> function
-                        | Ok _    -> ()                                                                      
-                        | Error _ -> closeItBaby message message.msg16 
-                                     
+                        | Ok _      -> 
+                                     ()                                                                      
+                        | Error err ->
+                                     logInfoMsg <| sprintf "012 %s" (string err.Message)
+                                     closeItBaby message message.msg16                                      
                     return ()
                 }
 
@@ -590,8 +643,11 @@ module KODIS_SubmainDataTable =
                     return 
                         tryWith2 (lazy ()) myDeleteFunction           
                         |> function    
-                            | Ok value -> value
-                            | Error _  -> closeItBaby message message.msg16 
+                            | Ok value  ->
+                                         value
+                            | Error err ->
+                                         logInfoMsg <| sprintf "012A %s" err
+                                         closeItBaby message message.msg16 
                 }
 
         deleteIt listODISDefault4    
@@ -621,8 +677,11 @@ module KODIS_SubmainDataTable =
             )              
        |> tryWith2 (lazy ())            
        |> function    
-           | Ok value -> value                                    
-           | Error _  -> closeItBaby message message.msg16                                    
+           | Ok _      ->
+                        ()                                      
+           | Error err ->
+                        logInfoMsg <| sprintf "013 %s" err
+                        closeItBaby message message.msg16                                    
 
     let private downloadAndSaveTimetables message pathToDir =     //FsHttp
         
@@ -663,8 +722,11 @@ module KODIS_SubmainDataTable =
                          |> Async.RunSynchronously  
                          |> Result.ofChoice                      
                          |> function
-                             | Ok _      -> ()                                                                                 
-                             | Error err -> printfn "%s" err.Message//message.msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
+                             | Ok _      ->    
+                                          ()
+                             | Error err ->
+                                          logInfoMsg <| sprintf "014 %s" (string err.Message)
+                                          message.msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
                 )  
 
         reader
@@ -710,8 +772,11 @@ module KODIS_SubmainDataTable =
                                   |> Async.RunSynchronously
                                   |> Result.ofChoice  
                                   |> function
-                                      | Ok _    -> message.msgParam4 pathToDir
-                                      | Error _ -> message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop                                            
+                                      | Ok _      ->
+                                                   message.msgParam4 pathToDir
+                                      | Error err ->
+                                                   logInfoMsg <| sprintf "015 %s" (string err.Message)   
+                                                   message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop                                            
                     )                        
             } 
             
@@ -725,23 +790,28 @@ module KODIS_SubmainDataTable =
                  let digThroughJsonStructure = 
                      tryWith2 (lazy ()) (digThroughJsonStructure message)           
                      |> function    
-                         | Ok value -> 
-                                     value
-                         | Error _  -> 
-                                     closeItBaby message message.msg16 
-                                     [||]
+                         | Ok value  -> 
+                                      value
+                         | Error err -> 
+                                      logInfoMsg <| sprintf "016 %s" err
+                                      closeItBaby message message.msg16 
+                                      [||]
                                  
                  let filterTimetables = 
                      tryWith2 (lazy ()) (filterTimetables message variant dir digThroughJsonStructure)           
                      |> function    
-                         | Ok value -> 
+                        | Ok value  -> 
                                      value
-                         | Error _  -> 
+                        | Error err -> 
+                                     logInfoMsg <| sprintf "017 %s" err
                                      closeItBaby message message.msg16 
-                                     []                                
+                                     []                           
 
                  tryWith2 (lazy ()) (downloadAndSaveTimetables message dir filterTimetables)           
                  |> function    
-                     | Ok value -> value                                
-                     | Error _  -> closeItBaby message message.msg16     
-
+                     | Ok value  -> 
+                                  value
+                     | Error err -> 
+                                  logInfoMsg <| sprintf "018 %s" err
+                                  closeItBaby message message.msg16 
+                                

@@ -8,6 +8,8 @@ module WebScraping_MDPO =
     open Types.Messages
     open Types.DirNames
     
+    open Logging.Logging
+    
     open Helpers.TryWithRF
     
     open Settings.Messages
@@ -58,8 +60,11 @@ module WebScraping_MDPO =
             let errorHandling fn = 
                 tryWith2 (lazy ()) fn           
                 |> function    
-                    | Ok value -> value
-                    | Error _  -> closeItBaby message message.msg16      
+                    | Ok value  ->
+                                 value
+                    | Error err ->
+                                 logInfoMsg <| sprintf "051 %s" err
+                                 closeItBaby message message.msg16      
 
             match action with                                                   
             | StartProcess           -> 

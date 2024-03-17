@@ -41,10 +41,11 @@ module TransformationLayerGet =
                 completeLink |> Option.ofNull
                 fileToBeSaved |> Option.ofNull
             ] 
-
+        
+        //ja vim, ze DataTime je non-nullable, ale radeji to tady tak nechavam, kdyby se neco menilo a preslo se na string a parseDate 
         let testDateTime = 
             [
-                startDate |> Option.ofNull
+                startDate |> Option.ofNull 
                 endDate |> Option.ofNull
             ] 
 

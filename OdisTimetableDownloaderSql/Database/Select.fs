@@ -5,7 +5,10 @@ open FsToolkit.ErrorHandling
 open Microsoft.Data.SqlClient
 
 open Helpers
+open Helpers.TryWithRF
+
 open Types.Messages
+open Logging.Logging
 
 open DomainModelling.Dto
 open DomainModelling.DomainModel
@@ -50,20 +53,25 @@ module Select =
                          |> function
                              | Some link, Some file 
                                  -> 
-                                  Some (link, file)
+                                  Ok (link, file)
                              | _                   
                                  ->
-                                  failwith "Chyba při čtení z databáze" //zcela vyjimecne //TODO predelat na result type az se bude zmobilnovat 
-                                  None
+                                  //failwith "Chyba při čtení z databáze" 
+                                  Error "Chyba při čtení z databáze"
                     )
-                |> List.choose id
-              
+                |> Result.sequence
+                |> function   
+                    | Ok value  -> 
+                                 value
+                    | Error err -> 
+                                 logInfoMsg <| sprintf "019 %s" err
+                                 closeItBaby Settings.Messages.messagesDefault err
+                                 []
             finally
                 closeConnection connection message
         with
         | ex -> 
-              message.msgParam1 <| string ex.Message
-              Console.ReadKey() |> ignore
-              System.Environment.Exit(1)
+              logInfoMsg <| sprintf "020 %s" (string ex.Message)
+              closeItBaby Settings.Messages.messagesDefault "Chyba při čtení z databáze"             
               []
 

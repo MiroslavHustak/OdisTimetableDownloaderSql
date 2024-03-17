@@ -1,5 +1,7 @@
 ﻿namespace SubmainFunctions
 
+open Logging.Logging
+
 module DPO_Submain =
 
     open System
@@ -24,14 +26,15 @@ module DPO_Submain =
 
     let internal client (printToConsole1 : Lazy<unit>) (printToConsole2: string -> unit) : HttpClient = 
     
-        let f = Some (new HttpClient()) //|> Option.ofNull -> priste to uz tak nerobit, aplikovat Result type   
+        let f = new HttpClient() |> Option.ofNull    
     
-        tryWithLazy printToConsole2 (optionToResultPrint f printToConsole1) ()           
+        tryWithLazy printToConsole2 (optionToResultPrint f printToConsole1) ()    //to uz takto priste nerobit, tryWithLazy uz nepouzivat       
         |> function    
             | Ok value  ->
                          value 
             | Error err -> 
                          err.Force()
+                         logInfoMsg <| sprintf "034 %s" "HttpClient()"
                          new System.Net.Http.HttpClient()  
 
     //[<TailCall>]
@@ -146,9 +149,10 @@ module DPO_Submain =
                                           
                                           return errorType     
                     with                                                         
-                    | ex ->                        
-                          closeItDpo client message (string ex) //"Chyba v průběhu stahování JŘ DPO."//(string ex) 
-                          return Error String.Empty    
+                    | ex ->  
+                          logInfoMsg <| sprintf "035 %s" (string ex.Message)
+                          closeItDpo client message "Chyba v průběhu stahování JŘ DPO." 
+                          return Error "Chyba v průběhu stahování JŘ DPO."    
                 }   
     
         message.msgParam3 pathToDir 
@@ -159,33 +163,41 @@ module DPO_Submain =
         
             filterTimetables 
             |> List.iteri
-                (fun i (link, pathToFile) -> 
-                                           //vzhledem k nutnosti propustit chybu pri nestahnuti JR (message.msgParam2 link) nepouzito Result.sequence   
-                                           let mapErr3 err =                  
-                                               function
-                                               | Ok value  ->
-                                                            value    
-                                                            |> List.tryFind (fun item -> (=) err item)
-                                                            |> function
-                                                                | Some err -> closeItDpo client message err                                                                      
-                                                                | None     -> message.msgParam2 link 
-                                               | Error err ->
-                                                            closeItDpo client message err              
+                (fun i (link, pathToFile)
+                    -> 
+                     //vzhledem k nutnosti propustit chybu pri nestahnuti JR (message.msgParam2 link) nepouzito Result.sequence   
+                     let mapErr3 err =                  
+                         function
+                         | Ok value  ->
+                                      value    
+                                      |> List.tryFind (fun item -> (=) err item)
+                                      |> function
+                                          | Some err ->
+                                                      logInfoMsg <| sprintf "036 %s" err
+                                                      closeItDpo client message err                                                                      
+                                          | None     -> 
+                                                      message.msgParam2 link 
+                          | Error err ->
+                                       logInfoMsg <| sprintf "037 %s" err
+                                       closeItDpo client message err              
 
-                                           let mapErr2 = 
-                                               function
-                                               | Ok value  -> value |> ignore
-                                               | Error err -> mapErr3 err (Ok listConnErrorCodeDefault) //Ok je legacy drivejsiho reflection a Result.sequence
+                     let mapErr2 = 
+                         function
+                         | Ok value  -> 
+                                      value |> ignore
+                         | Error err ->
+                                      logInfoMsg <| sprintf "038 %s" err
+                                      mapErr3 err (Ok listConnErrorCodeDefault) //Ok je legacy drivejsiho reflection a Result.sequence
                                                  
-                                           async                                                
-                                               {   
-                                                   progressBarContinuous message i l  //progressBarContinuous  
-                                                   return! downloadFileTaskAsync client link pathToFile                                                                                                                               
-                                               } 
-                                               |> Async.Catch
-                                               |> Async.RunSynchronously
-                                               |> Result.ofChoice  
-                                               |> Result.mapErr mapErr2 (lazy message.msgParam2 link)                                                   
+                     async                                                
+                         {   
+                             progressBarContinuous message i l  //progressBarContinuous  
+                             return! downloadFileTaskAsync client link pathToFile                                                                                                                               
+                         } 
+                         |> Async.Catch
+                         |> Async.RunSynchronously
+                         |> Result.ofChoice  
+                         |> Result.mapErr mapErr2 (lazy message.msgParam2 link)                                                   
                 ) 
 
         downloadTimetables client     

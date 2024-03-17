@@ -14,13 +14,15 @@ module MDPO_Submain =
 
     open Settings.SettingsMDPO
     open Settings.SettingsGeneral
-    open Helpers.ProgressBarFSharp
-
-    open Types.Messages
-    open Types.ErrorTypes
 
     open Helpers
     open Helpers.TryWithRF
+    open Helpers.ProgressBarFSharp
+
+    open Logging.Logging
+
+    open Types.Messages
+    open Types.ErrorTypes
 
     //************************Submain helpers**************************************************************************
 
@@ -100,7 +102,7 @@ module MDPO_Submain =
                                  | HttpStatusCode.OK                  ->                                                                   
                                                                        do! response.SaveFileAsync >> Async.AwaitTask <| path
                                                                        return Ok () 
-                                 | HttpStatusCode.BadRequest          ->
+                                 | HttpStatusCode.BadRequest          ->                                                                       
                                                                        return Error connErrorCodeDefault.BadRequest
                                  | HttpStatusCode.InternalServerError -> 
                                                                        return Error connErrorCodeDefault.InternalServerError
@@ -114,9 +116,10 @@ module MDPO_Submain =
                                                                        return Error connErrorCodeDefault.CofeeMakerUnavailable                                                   
                                       
                     with                                                         
-                    | ex ->                        
+                    | ex -> 
+                          logInfoMsg <| sprintf "039 %s" (string ex.Message)
                           closeItBaby message "Chyba v průběhu stahování JŘ, u JŘ MDPO se to někdy stává. Zkus to za chvíli znovu."//(string ex)                                                 
-                          return Error String.Empty    
+                          return Error "Chyba v průběhu stahování JŘ, u JŘ MDPO se to někdy stává. Zkus to za chvíli znovu."    
                 }                 
     
         message.msgParam3 pathToDir 
@@ -137,15 +140,22 @@ module MDPO_Submain =
                                       value   
                                       |> List.tryFind (fun item -> (=) err item)
                                       |> function
-                                         | Some err -> closeItBaby message err                                                                      
-                                         | None     -> message.msgParam2 link 
+                                         | Some err ->
+                                                     logInfoMsg <| sprintf "040 %s" err
+                                                     closeItBaby message err                                                                      
+                                         | None     -> 
+                                                     message.msgParam2 link 
                          | Error err ->
+                                      logInfoMsg <| sprintf "041 %s" err
                                       closeItBaby message err              
 
                      let mapErr2 =      
                          function
-                         | Ok value  -> value |> ignore
-                         | Error err -> mapErr3 err (Ok listConnErrorCodeDefault) //Ok je legacy drivejsiho reflection a Result.sequence
+                         | Ok value  ->
+                                      value |> ignore
+                         | Error err ->
+                                      logInfoMsg <| sprintf "042 %s" err
+                                      mapErr3 err (Ok listConnErrorCodeDefault) //Ok je legacy drivejsiho reflection a Result.sequence
                                                  
                      async                                                
                          {   

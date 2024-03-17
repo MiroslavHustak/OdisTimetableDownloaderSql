@@ -11,6 +11,8 @@ open Helpers.ConsoleFixers
 open Types
 open Types.DirNames
 
+open Logging.Logging
+
 open BrowserDialogWindow
 
 open Settings.Messages
@@ -20,7 +22,6 @@ open MainFunctions.WebScraping_DPO
 open MainFunctions.WebScraping_MDPO
 open MainFunctions.WebScraping_KODISFM
 open MainFunctions.WebScraping_KODISFMDataTable
-
 
 [<TailCall>] 
 let rec private pathToFolder () =
@@ -37,12 +38,11 @@ let rec private pathToFolder () =
                         Console.Clear()
                         tryWith2 (lazy ()) ()           
                         |> function    
-                            | Ok value -> 
-                                        value
-                            | Error ex -> 
-                                        messagesDefault.msgParam1 str   
-                                        Console.ReadKey() |> ignore 
-                                        System.Environment.Exit(1)        
+                            | Ok value  -> 
+                                         value
+                            | Error err -> 
+                                         logInfoMsg <| sprintf "043 %s" err
+                                         closeItBaby messagesDefault str    
                         e
     | _                -> 
                         Console.Clear()
@@ -52,7 +52,7 @@ let rec private pathToFolder () =
 [<EntryPoint; STAThread>] // STAThread> musi byt quli openFolderBrowserDialog()
 //[<EntryPoint>] 
 let main argv =
-  
+     
     //*****************************Console******************************  
     
     let updateDate = "15-03-2024"
@@ -63,10 +63,10 @@ let main argv =
             |> function    
                 | Ok (value : Lazy<unit>) -> 
                                            value.Force()
-                | Error ex                -> 
+                | Error ex                ->   
                                            ex.Force()
-                                           Console.ReadKey() |> ignore 
-                                           System.Environment.Exit(1)   
+                                           logInfoMsg <| sprintf "045 %s" "Problém s oknem konzole."
+                                           closeItBaby messagesDefault "Problém s oknem konzole."  
     
     //Ok jen z duvodu vyuziti funkce tryWithLazy (zmenit ji nemohu quli educational code)
     consoleSettings (Ok <| lazy consoleAppProblemFixer()) 
@@ -224,12 +224,12 @@ let main argv =
             
             tryWith2 (lazy result) ()           
             |> function    
-                | Ok value -> 
-                            value
-                | Error ex -> 
-                            messagesDefault.msgParam1 ex   
-                            Console.ReadKey() |> ignore 
-                            System.Environment.Exit(1)   
+                | Ok value  -> 
+                             value
+                | Error err -> 
+                             messagesDefault.msgParam1 err  
+                             logInfoMsg <| sprintf "046 %s" err
+                             closeItBaby messagesDefault err
 
         Console.Clear()
 

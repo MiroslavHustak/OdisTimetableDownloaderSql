@@ -2,6 +2,7 @@
 
 open Microsoft.Data.SqlClient
 
+open Logging.Logging
 open Helpers.TryWithRF
 
 module Connection =
@@ -17,11 +18,12 @@ module Connection =
         
         |> tryWith2 (lazy ())            
         |> function    
-            | Ok value -> 
-                        value
-            | Error _  -> 
-                        closeItBaby message message.msg16 
-                        new SqlConnection(connString)              
+            | Ok value  -> 
+                         value
+            | Error err -> 
+                         logInfoMsg <| sprintf "031 %s" err 
+                         closeItBaby message message.msg16 
+                         new SqlConnection(connString)              
 
     let internal closeConnection (connection: SqlConnection) message =
        
@@ -30,5 +32,8 @@ module Connection =
 
         |> tryWith2 (lazy ())            
         |> function    
-            | Ok value -> value
-            | Error _  -> closeItBaby message message.msg16 
+            | Ok value  -> 
+                         value
+            | Error err -> 
+                         logInfoMsg <| sprintf "032 %s" err 
+                         closeItBaby message message.msg16  

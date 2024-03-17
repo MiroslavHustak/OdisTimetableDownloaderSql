@@ -83,16 +83,7 @@ module TryWithRF =
                 f1
         with
         | ex -> Error <| lazy (pfPrint (string ex)) 
-                      
-    let internal tryWith f2 f1 : Result<'a, string> =            
-        try
-            try                 
-                f2
-            finally
-                f1
-        with
-        | ex -> Error "Chyba v průběhu stahování JŘ DPO nebo JŘ MDPO nebo JŘ KODIS."//(string ex)
-
+    
     let internal tryWith2 (f2 : Lazy<unit>) f1 =
           try
               try          
@@ -100,18 +91,7 @@ module TryWithRF =
               finally
                   f2.Force() 
           with
-          | ex -> Error <| string ex.Message  
-
-    let internal tryWith3 (f2 : Lazy<unit>) f1 =
-        try
-            try 
-                match f1 with
-                | Some value -> Ok value
-                | None       -> Error "Není připojení k internetu"                
-            finally
-                f2.Force() 
-        with
-        | ex -> Error <| string ex.Message  
+          | ex -> Error <| string ex.Message       
 
     let internal tryWithNone x : 'a option = 
         try           

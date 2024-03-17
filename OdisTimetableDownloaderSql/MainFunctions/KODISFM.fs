@@ -9,8 +9,10 @@ module WebScraping_KODISFM =
     open Settings.Messages
     open Settings.SettingsGeneral
     
+    open Logging.Logging
+
     open Helpers.TryWithRF  
-    open Helpers.FreeMonads
+    open Helpers.FreeMonads    
 
     open SubmainFunctions
     open SubmainFunctions.KODIS_Submain
@@ -24,8 +26,11 @@ module WebScraping_KODISFM =
             let errorHandling fn = 
                 tryWith2 (lazy ()) fn           
                 |> function    
-                    | Ok value -> value
-                    | Error _  -> closeItBaby message message.msg16       
+                    | Ok value  -> 
+                                 value
+                    | Error err ->
+                                logInfoMsg <| sprintf "050 %s" err
+                                closeItBaby message message.msg16       
 
             //function //CommandLineProgram<unit> -> unit
             match clp with

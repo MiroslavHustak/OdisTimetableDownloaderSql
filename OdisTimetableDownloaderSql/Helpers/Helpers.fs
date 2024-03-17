@@ -7,11 +7,13 @@ open System.Net.NetworkInformation
 
 open TryWithRF
 
+open Logging.Logging
+
 open Helpers
 open Helpers.Builders
 open Helpers.FreeMonadsCM
    
-module ConsoleFixers = 
+module ConsoleFixers = //tryWith blok je kajsy indze
 
     let internal consoleAppProblemFixer () = 
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance)  
@@ -75,7 +77,9 @@ module CopyingOrMovingFiles = //output in Result type
                 in 
                 processFile source destination action
         with
-        | _ -> Error <| sprintf "Chyba při kopírování souboru %s do %s" source destination
+        | err -> 
+               logInfoMsg <| sprintf "022 %s" (string err.Message)
+               Error <| sprintf "Chyba při kopírování souboru %s do %s" source destination
             
     let internal moveFiles source destination overwrite =
         try
@@ -83,7 +87,9 @@ module CopyingOrMovingFiles = //output in Result type
                 in 
                 processFile source destination action
         with
-        | _ -> Error <| sprintf "Chyba při přemísťování souboru %s do %s" source destination
+        | err ->
+              logInfoMsg <| sprintf "023 %s" (string err.Message)
+              Error <| sprintf "Chyba při přemísťování souboru %s do %s" source destination
     
 module CopyingOrMovingFilesFreeMonad =   //not used yet  
         
@@ -114,9 +120,8 @@ module CopyingOrMovingFilesFreeMonad =   //not used yet
             | Ok path1  -> 
                          path1
             | Error err -> 
-                         printf "%s%s" err path2 
-                         Console.ReadKey() |> ignore 
-                         System.Environment.Exit(1) 
+                         logInfoMsg <| sprintf "021 %s" err
+                         closeItBaby Settings.Messages.messagesDefault (sprintf "%s%s" err path2) 
                          String.Empty
 
         let f = 

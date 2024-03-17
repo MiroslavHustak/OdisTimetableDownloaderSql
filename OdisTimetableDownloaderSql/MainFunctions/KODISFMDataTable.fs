@@ -8,6 +8,8 @@ module WebScraping_KODISFMDataTable =
     open Types.Messages
     open Settings.Messages
     open Settings.SettingsGeneral
+
+    open Logging.Logging
     
     open Helpers.TryWithRF  
     open Helpers.FreeMonads
@@ -24,8 +26,11 @@ module WebScraping_KODISFMDataTable =
             let errorHandling fn = 
                 tryWith2 (lazy ()) fn           
                 |> function    
-                    | Ok value -> value
-                    | Error _  -> closeItBaby message message.msg16       
+                    | Ok value  -> 
+                                 value
+                    | Error err -> 
+                                 logInfoMsg <| sprintf "049 %s" err
+                                 closeItBaby message message.msg16       
 
             //function //CommandLineProgram<unit> -> unit
             match clp with

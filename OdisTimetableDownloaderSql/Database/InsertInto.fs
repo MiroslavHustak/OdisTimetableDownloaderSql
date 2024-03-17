@@ -7,6 +7,10 @@ open Microsoft.Data.SqlClient
 
 open Types.Messages
 open Helpers.Builders
+open Helpers.TryWithRF
+
+open Logging.Logging
+
 open DomainModelling.Dto
 open DomainModelling.DomainModel
 
@@ -85,7 +89,7 @@ module InsertInto =
         with
         | ex ->
               message.msgParam1 <| string ex.Message
-              Console.ReadKey() |> ignore
-              System.Environment.Exit(1)
+              logInfoMsg <| sprintf "033 %s" (string ex.Message)
+              closeItBaby message (string ex.Message)
 
              

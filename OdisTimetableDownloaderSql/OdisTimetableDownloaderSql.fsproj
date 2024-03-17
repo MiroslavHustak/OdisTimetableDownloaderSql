@@ -9,8 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Appsettings.json" />
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="EducationalCode\FsHttpLibraryCode.fs" />
+    <Compile Include="Logging.fs" />
     <Compile Include="EducationalCode\EducationalCode.fs" />
     <Content Include="KODISJson\kodisMHDTotal.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -52,7 +53,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ES.Fslog.Core" Version="2.3.1" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
     <PackageReference Include="FSharp.Data" Version="6.3.0" />
     <PackageReference Include="FSharp.Quotations.Evaluator" Version="2.1.0" />
@@ -61,6 +61,7 @@
     <PackageReference Include="Fugit" Version="0.4.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NReco.Logging.File" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
