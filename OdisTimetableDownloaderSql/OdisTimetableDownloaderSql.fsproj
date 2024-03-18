@@ -9,9 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Appsettings.json" />
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Logging.fs" />
+    <Compile Include="AssemblyInfo\AssemblyInfo.fs" />
     <Compile Include="EducationalCode\EducationalCode.fs" />
     <Content Include="KODISJson\kodisMHDTotal.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -25,6 +23,8 @@
     <Compile Include="Settings\SettingsMDPO.fs" />
     <Compile Include="Settings\SettingsDPO.fs" />
     <Compile Include="Settings\SettingsKODIS.fs" />
+    <Content Include="Logging\Appsettings.json" />
+    <Compile Include="Logging\Logging.fs" />
     <Compile Include="Helpers\FreeMonads.fs" />
     <Compile Include="Helpers\CEBuilders.fs" />
     <Compile Include="Helpers\MsgBoxClosing.fs" />
@@ -50,7 +50,7 @@
     <Compile Include="MainFunctions\KODISFM.fs" />
     <Compile Include="MainFunctions\MDPO.fs" />
     <Compile Include="MainFunctions\DPO.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="Start\Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
