@@ -73,7 +73,7 @@ let iter action list =
     |> Async.RunSynchronously 
     |> ignore
 
-let iter2<'T1, 'T2> (mapping: 'T1 -> 'T2 -> unit) (xs1: 'T1 list) (xs2: 'T2 list) = 
+let iter2<'a, 'b> (mapping: 'a -> 'b -> unit) (xs1: 'a list) (xs2: 'b list) = 
     
     let listToParallel (xs1, xs2) = (xs1, xs2) ||> List.iter2 mapping    
 
@@ -108,7 +108,7 @@ let map action list =
     |> List.ofArray
     |> List.concat
  
-let map2<'T1, 'T2, 'R> (mapping: 'T1 -> 'T2 -> 'R) (xs1: 'T1 list) (xs2: 'T2 list) =   
+let map2<'a, 'b, 'c> (mapping: 'a -> 'b -> 'c) (xs1: 'a list) (xs2: 'b list) =   
         
     let listToParallel (xs1, xs2) = (xs1, xs2) ||> List.map2 mapping    
 
