@@ -30,12 +30,12 @@ module DPO_Submain =
         
         match client |> Option.ofNull with
         | Some value -> 
-                        value
+                      value
         | None       ->
-                        logInfoMsg <| sprintf "034 %s" "new HttpClient() is null"
-                        client.Dispose()
-                        closeItBaby Settings.Messages.messagesDefault "Chyba v průběhu stahování JŘ DPO." 
-                        new HttpClient()                              
+                      logInfoMsg <| sprintf "034 %s" "new HttpClient() is null"
+                      client.Dispose()
+                      closeItBaby Settings.Messages.messagesDefault "Chyba v průběhu stahování JŘ DPO." 
+                      new HttpClient()                              
 
     //[<TailCall>]
     let internal filterTimetables pathToDir (message: Messages) = 
