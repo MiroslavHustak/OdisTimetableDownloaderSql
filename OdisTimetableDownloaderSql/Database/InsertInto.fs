@@ -112,14 +112,13 @@ module InsertInto =
                  ON target.[Timestamp] = source.[Timestamp]
                      AND target.Logname = source.Logname
                      AND target.[Message] = source.[Message]
-                 WHEN MATCHED THEN
-                    UPDATE SET target.[Timestamp] = 
-                    source.[Timestamp],
+                 WHEN MATCHED BY target THEN
+                    UPDATE SET target.[Timestamp] = source.[Timestamp],
                     target.Logname = source.Logname,
                     target.[Message] = source.[Message]
                  WHEN NOT MATCHED BY target THEN
                     INSERT ([Timestamp], Logname, [Message])
-                    VALUES (source.[Timestamp], source.Logname, source.[Message]);
+                    VALUES (source.[Timestamp], source.Logname, source.[Message]);                 
                 " 
 
              let queryInsert1 =                 
