@@ -31,18 +31,20 @@ module Logging =
     //***************************Log files******************************
     
     // Create a new instance of LoggerFactory
-    let internal loggerFactory = 
+    let private loggerFactory = 
         LoggerFactory.Create(
             fun builder ->                                        
-                         builder.AddFile("logs/app.log", 
-                         fun fileLoggerOpts ->
-                                             fileLoggerOpts.FormatLogEntry <- formatLogEntry
-                         ) |> ignore
-            )
+                         builder.AddFile(
+                             "logs/app.log", 
+                             fun fileLoggerOpts
+                                 ->
+                                  fileLoggerOpts.FormatLogEntry <- formatLogEntry
+                             ) |> ignore
+        )
        
     // Create a logger instance
-    let logger = loggerFactory.CreateLogger("TimetableDownloader")
+    let private logger = loggerFactory.CreateLogger("TimetableDownloader")
    
-    let logInfoMsg msg = logger.LogInformation(msg)
+    let internal logInfoMsg msg = logger.LogInformation(msg)
 
     
