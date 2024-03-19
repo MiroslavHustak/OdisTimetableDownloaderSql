@@ -371,7 +371,7 @@ module KODIS_Submain =
 
         //*************************************Splitting Kodis links into SQL columns********************************************
         let splitKodisLink input =
-
+           
             let oldPrefix = 
                 try
                     Regex.Split(input, extractSubstring1 input) 
@@ -556,6 +556,7 @@ module KODIS_Submain =
                 )          
 
         let selectDataFromDb = 
+
             match param with 
             | CurrentValidity           -> "dbo.ITVF_GetLinksCurrentValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles
             | FutureValidity            -> "dbo.ITVF_GetLinksFutureValidity()" |> select getConnection closeConnection message pathToDir |> createPathsForDownloadedFiles

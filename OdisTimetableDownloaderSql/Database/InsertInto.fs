@@ -94,7 +94,7 @@ module InsertInto =
               logInfoMsg <| sprintf "033 %s" (string ex.Message)
               closeItBaby message (string ex.Message)
 
-    let internal insertLogEntries getConnection closeConnection message =
+    let internal insertLogEntries getConnection2 closeConnection message =
 
         let dataToBeInserted = Database.LoggingSQL.extractLogEntries () 
 
@@ -104,35 +104,32 @@ module InsertInto =
         | _ -> 
              //let queryDeleteAll = "DELETE FROM LogEntries2"
              
-             let queryInsert1 =                 
+             let queryInsert =                 
                  "
                  MERGE INTO LogEntries2 AS target
-                 USING 
-                 (
-                    VALUES (@Timestamp, @Logname, @Message)
-                 )
+                 USING (VALUES (@Timestamp, @Logname, @Message))
                  AS source ([Timestamp], Logname, [Message])
                  ON target.[Timestamp] = source.[Timestamp]
-                 AND target.Logname = source.Logname
-                 AND target.[Message] = source.[Message]
+                     AND target.Logname = source.Logname
+                     AND target.[Message] = source.[Message]
                  WHEN MATCHED THEN
                     UPDATE SET target.[Timestamp] = 
                     source.[Timestamp],
                     target.Logname = source.Logname,
                     target.[Message] = source.[Message]
-                 WHEN NOT MATCHED BY TARGET THEN
+                 WHEN NOT MATCHED BY target THEN
                     INSERT ([Timestamp], Logname, [Message])
                     VALUES (source.[Timestamp], source.Logname, source.[Message]);
                 " 
 
-             let queryInsert =                 
+             let queryInsert1 =                 
                  "
                  INSERT INTO LogEntries2 ([Timestamp], Logname, [Message])
                  VALUES (@Timestamp, @Logname, @Message)                 
                 "  
                  
              try
-                 let connection: SqlConnection = getConnection message 
+                 let connection: SqlConnection = getConnection2 message 
                 
                  try                        
                      //use cmdDeleteAll = new SqlCommand(queryDeleteAll, connection)             
@@ -159,6 +156,7 @@ module InsertInto =
                                     cmdInsert.Parameters.Clear() // Clear parameters for each iteration    
                                     parameterTimeStamp.Value <- timestamp                             
                                     cmdInsert.Parameters.Add(parameterTimeStamp) |> ignore    
+
                                     cmdInsert.Parameters.AddWithValue("@Logname", logName) |> ignore
                                     cmdInsert.Parameters.AddWithValue("@Message", message) |> ignore
                                               

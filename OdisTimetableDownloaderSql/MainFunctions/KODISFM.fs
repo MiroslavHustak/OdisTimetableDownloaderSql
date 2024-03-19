@@ -86,7 +86,7 @@ module WebScraping_KODISFM =
 
             | Free (EndProcessFM _)                 ->
                                                      let processEndTime =    
-                                                         insertLogEntries getConnection closeConnection message 
+                                                         insertLogEntries getConnection2 closeConnection message 
                                                          let processEndTime = sprintf "Konec procesu: %s" <| DateTime.Now.ToString("HH:mm:ss")                       
                                                              in message.msgParam7 processEndTime
                                                          in errorHandling processEndTime
