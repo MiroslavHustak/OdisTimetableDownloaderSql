@@ -11,12 +11,15 @@ module WebScraping_KODISFM =
     
     open Logging.Logging
 
-    open Helpers.TryWithRF  
-    open Helpers.FreeMonads    
+    open Helpers.CloseApp  
+    open Helpers.FreeMonads  
+    
+    open Database.InsertInto
+    open Database.Connection
 
     open SubmainFunctions
     open SubmainFunctions.KODIS_Submain
-    
+        
     //FREE MONAD 
 
     let internal webscraping_KODISFM pathToDir (variantList: Validity list) = 
@@ -24,13 +27,12 @@ module WebScraping_KODISFM =
         let rec interpret message clp  = 
 
             let errorHandling fn = 
-                tryWith2 (lazy ()) fn           
-                |> function    
-                    | Ok value  -> 
-                                 value
-                    | Error err ->
-                                logInfoMsg <| sprintf "050 %s" err
-                                closeItBaby message message.msg16       
+                try
+                    fn
+                with
+                | ex ->
+                      logInfoMsg <| sprintf "050 %s" (string ex.Message)
+                      closeItBaby message message.msg16           
 
             //function //CommandLineProgram<unit> -> unit
             match clp with
@@ -48,9 +50,9 @@ module WebScraping_KODISFM =
                                                      interpret message param
 
             | Free (DownloadAndSaveJsonFM next)     ->                                                 
-                                                     let downloadAndSaveJson =  
-                                                         downloadAndSaveJson message  
-                                                         in errorHandling downloadAndSaveJson
+                                                     //let downloadAndSaveJson =  
+                                                        // downloadAndSaveJson message  
+                                                        // in errorHandling downloadAndSaveJson
 
                                                      let param = next ()
                                                      interpret message param                                                
@@ -84,6 +86,7 @@ module WebScraping_KODISFM =
 
             | Free (EndProcessFM _)                 ->
                                                      let processEndTime =    
+                                                         insertLogEntries getConnection closeConnection message 
                                                          let processEndTime = sprintf "Konec procesu: %s" <| DateTime.Now.ToString("HH:mm:ss")                       
                                                              in message.msgParam7 processEndTime
                                                          in errorHandling processEndTime

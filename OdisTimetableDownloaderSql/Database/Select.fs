@@ -5,7 +5,7 @@ open FsToolkit.ErrorHandling
 open Microsoft.Data.SqlClient
 
 open Helpers
-open Helpers.TryWithRF
+open Helpers.CloseApp
 
 open Types.Messages
 open Logging.Logging

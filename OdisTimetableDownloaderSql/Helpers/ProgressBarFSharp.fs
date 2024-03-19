@@ -4,7 +4,7 @@ open System
 
 open Types.Messages
 open Logging.Logging
-open Helpers.TryWithRF
+open Helpers.CloseApp
 
 module ProgressBarFSharp =
 
@@ -17,20 +17,20 @@ module ProgressBarFSharp =
     let inline private updateProgressBar (message: Messages) (currentProgress : int) (totalProgress : int) : unit =
 
         let bytes = //437 je tzv. Extended ASCII            
-            match tryWith2 (lazy ()) (System.Text.Encoding.GetEncoding(437).GetBytes("█")) with 
-            | Ok value  -> 
-                         value 
-            | Error err ->
-                         logInfoMsg <| sprintf "027 %s" err                        
-                         [||]
+            try
+                (System.Text.Encoding.GetEncoding(437).GetBytes("█")) 
+            with 
+            | ex ->
+                  logInfoMsg <| sprintf "027 %s" (string ex.Message)
+                  [||] 
                    
         let output =          
-            match tryWith2 (lazy ()) (System.Text.Encoding.GetEncoding(852).GetChars(bytes)) with 
-            | Ok value  -> 
-                         value 
-            | Error err ->
-                         logInfoMsg <| sprintf "028 %s" err                        
-                         [||]
+            try
+                System.Text.Encoding.GetEncoding(852).GetChars(bytes)
+            with 
+            | ex ->
+                  logInfoMsg <| sprintf "028 %s" (string ex.Message)
+                  [||] 
         
         let progressBar = 
 
@@ -41,20 +41,20 @@ module ProgressBarFSharp =
             let characterToFill = string (Array.item 0 output) //moze byt baj aji "#"
             
             let bar = 
-                match tryWith2 (lazy ()) (String.replicate barFill characterToFill) with 
-                | Ok value  -> 
-                             value
-                | Error err -> 
-                             logInfoMsg <| sprintf "029 %s" err
-                             String.Empty
-                
+                try                   
+                    String.replicate barFill characterToFill
+                with
+                | ex -> 
+                      logInfoMsg <| sprintf "029 %s" (string ex.Message)
+                      String.Empty
+                               
             let remaining = 
-                match tryWith2 (lazy ()) ( String.replicate (barWidth - (++) barFill) "*") with 
-                | Ok value  -> 
-                             value
-                | Error err -> 
-                             logInfoMsg <| sprintf "030 %s" err
-                             String.Empty
+                try
+                    String.replicate (barWidth - (++) barFill) "*"
+                with
+                | ex -> 
+                      logInfoMsg <| sprintf "030 %s" (string ex.Message)
+                      String.Empty
               
             sprintf "<%s%s> %d%%" bar remaining percentComplete 
 

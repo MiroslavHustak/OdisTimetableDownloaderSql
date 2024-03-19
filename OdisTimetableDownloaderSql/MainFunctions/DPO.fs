@@ -8,7 +8,7 @@ module WebScraping_DPO =
 
     open Logging.Logging
     
-    open Helpers.TryWithRF
+    open Helpers.CloseApp
 
     open Types.Messages
     open Types.DirNames
@@ -49,7 +49,7 @@ module WebScraping_DPO =
         { 
             filterTimetables = filterTimetables
             downloadAndSaveTimetables = downloadAndSaveTimetables
-            client = client (lazy (messagesDefault.msgParam7 "Error DPO")) messagesDefault.msgParam1 
+            client = client () 
         }    
 
     let internal webscraping_DPO pathToDir =  
@@ -61,13 +61,12 @@ module WebScraping_DPO =
             let dirList pathToDir = [ sprintf"%s\%s"pathToDir ODISDefault.odisDir5 ]
 
             let errorHandling fn = 
-                tryWith2 (lazy ()) fn           
-                |> function    
-                    | Ok value  ->
-                                 value
-                    | Error err ->
-                                 logInfoMsg <| sprintf "052 %s" err
-                                 closeItBaby message message.msg16      
+                try
+                    fn
+                with
+                | ex ->
+                      logInfoMsg <| sprintf "052 %s" (string ex.Message)
+                      closeItBaby message message.msg16      
 
             match action with                                                   
             | StartProcess           -> 

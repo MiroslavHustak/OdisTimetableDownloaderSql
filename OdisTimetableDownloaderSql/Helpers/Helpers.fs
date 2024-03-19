@@ -5,7 +5,7 @@ open System.IO
 open System.Windows.Forms
 open System.Net.NetworkInformation
 
-open TryWithRF
+open CloseApp
 
 open Logging.Logging
 

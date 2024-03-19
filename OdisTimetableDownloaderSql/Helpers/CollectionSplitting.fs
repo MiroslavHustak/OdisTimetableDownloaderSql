@@ -6,7 +6,7 @@ open FsToolkit.ErrorHandling
 open Types.Messages
 open Logging.Logging
 
-open Helpers.TryWithRF
+open Helpers.CloseApp
 open Settings.SettingsKODIS
 
 module CollectionSplitting =
@@ -15,33 +15,28 @@ module CollectionSplitting =
                 
         let prefix = fun (item: string) -> item.Substring(0, lineNumberLength)
 
-        (prefix, list)
-        ||> List.groupBy //List.groupBy automatically uses the first element of the tuple as the key 
-        |> List.map snd
-        |> tryWith2 (lazy ())            
-        |> function    
-            | Ok value  -> 
-                         value
-            | Error err ->
-                         logInfoMsg <| sprintf "024 %s" err 
-                         closeItBaby message message.msg16 
-                         [ [] ]   
+        try
+            (prefix, list)
+            ||> List.groupBy //List.groupBy automatically uses the first element of the tuple as the key 
+            |> List.map snd
+        with
+        | ex ->    
+              logInfoMsg <| sprintf "024 %s" (string ex.Message) 
+              closeItBaby message message.msg16 
+              [ [] ]   
                         
     let internal splitListByPrefixExplanation message (list: string list) : string list list = 
                 
         let prefix = fun (item: string) -> item.Substring(0, lineNumberLength)
-        
-        list 
-        |> List.groupBy (fun item -> prefix item)
-        |> List.map (fun item -> snd item)        
-        |> tryWith2 (lazy ())            
-        |> function    
-            | Ok value  -> 
-                         value
-            | Error err ->
-                         logInfoMsg <| sprintf "025 %s" err 
-                         closeItBaby message message.msg16 
-                         [ [] ]      
+        try
+            list 
+            |> List.groupBy (fun item -> prefix item)
+            |> List.map (fun item -> snd item)        
+        with
+        | ex ->    
+              logInfoMsg <| sprintf "025 %s" (string ex.Message) 
+              closeItBaby message message.msg16 
+              [ [] ]   
     
     let internal splitListIntoEqualParts (numParts: int) (originalList: 'a list) =   //almost equal parts :-)    
             

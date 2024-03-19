@@ -9,7 +9,7 @@ open FsToolkit.ErrorHandling
 open Types
 
 open Helpers.Builders
-open Helpers.TryWithRF
+open Helpers.CloseApp
 
 open Settings
 
@@ -134,19 +134,13 @@ module InsertSelectSort =
                 fileToBeSaved = row.["FileToBeSaved"]
             } 
 
-        let dataTransformation row = 
-            
-            pyramidOfInferno
-                {
-                    let errorFn err = 
-                        closeItBaby Messages.messagesDefault err
-                        dtDataDtoGetDataTable >> dtDataTransformLayerGetDefault <| row
-
-                    let! resultTypeValue = tryWith2 (lazy ()) (dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row), errorFn
-                    let! value = resultTypeValue, errorFn
-
-                    return value
-                }
+        let dataTransformation row =                                 
+            try
+                dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row
+            with
+            | ex -> 
+                    closeItBaby Messages.messagesDefault (string ex.Message)
+                    dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row                 
         
         let seqFromDataTable = dt.AsEnumerable() |> Seq.distinct 
 

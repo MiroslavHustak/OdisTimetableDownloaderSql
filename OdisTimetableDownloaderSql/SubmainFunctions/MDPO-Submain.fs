@@ -16,7 +16,7 @@ module MDPO_Submain =
     open Settings.SettingsGeneral
 
     open Helpers
-    open Helpers.TryWithRF
+    open Helpers.CloseApp
     open Helpers.ProgressBarFSharp
 
     open Logging.Logging

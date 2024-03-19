@@ -40,6 +40,7 @@
     <Compile Include="DataTable\InsertSelectSort.fs" />
     <Content Include="Database\ITVFs.txt" />
     <Compile Include="Database\Connection.fs" />
+    <Compile Include="Database\LoggingSQL.fs" />
     <Compile Include="Database\InsertInto.fs" />
     <Compile Include="Database\Select.fs" />
     <Compile Include="SubmainFunctions\DPO-Submain.fs" />

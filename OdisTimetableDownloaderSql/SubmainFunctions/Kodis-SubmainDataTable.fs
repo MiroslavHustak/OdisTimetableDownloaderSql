@@ -26,7 +26,7 @@ module KODIS_SubmainDataTable =
 
     open Helpers
     open Helpers.Builders
-    open Helpers.TryWithRF    
+    open Helpers.CloseApp    
     open Helpers.MsgBoxClosing
     open Helpers.ProgressBarFSharp  
     open Helpers.CollectionSplitting   
@@ -174,7 +174,7 @@ module KODIS_SubmainDataTable =
                 {
                     let! pathToJsonList = fun env -> env 
 
-                    let result = 
+                    let result () = 
                         pathToJsonList 
                         |> Array.ofList 
                         |> Array.collect 
@@ -194,23 +194,22 @@ module KODIS_SubmainDataTable =
                             )                     
                         
                     return
-                        tryWith2 (lazy ()) result           
-                        |> function    
-                            | Ok value  -> 
-                                         value
-                                         |> function
-                                             | [||] -> 
-                                                     logInfoMsg <| sprintf "004 %s" "msg16" 
-                                                     message.msg5()
-                                                     closeItBaby message message.msg16
-                                                     [||]
-                                             | _    -> 
-                                                     value
-                            | Error err -> 
-                                         logInfoMsg <| sprintf "005 %s" err 
-                                         message.msg5()
-                                         closeItBaby message message.msg16 
-                                         [||]               
+                        try
+                           let value = result ()   
+                           value
+                           |> function
+                           | [||] -> 
+                                   logInfoMsg <| sprintf "004 %s" "msg16" 
+                                   closeItBaby message message.msg16
+                                   [||]
+                           | _    -> 
+                                   value
+                        with
+                        | ex -> 
+                              logInfoMsg <| sprintf "005 %s" (string ex.Message) 
+                              closeItBaby message message.msg16 
+                              [||]      
+                                                  
                 }
 
         let kodisAttachments : Reader<string list, string array> = //Reader monad for educational purposes only, no real benefit here
@@ -219,7 +218,7 @@ module KODIS_SubmainDataTable =
                 {
                     let! pathToJsonList = fun env -> env 
                     
-                    let result = 
+                    let result () = 
 
                         pathToJsonList
                         |> Array.ofList 
@@ -264,26 +263,26 @@ module KODIS_SubmainDataTable =
                             ) 
                 
                     return
-                        tryWith2 (lazy ()) result           
-                        |> function    
-                            | Ok value  -> 
-                                         value
-                                         |> function
-                                             | [||] -> 
-                                                     logInfoMsg <| sprintf "006 %s" "msg16" 
-                                                     message.msg5()
-                                                     closeItBaby message message.msg16
-                                                     [||]
-                                             | _    -> 
-                                                     value
-                            | Error err -> 
-                                         logInfoMsg <| sprintf "007 %s" err 
-                                         message.msg5()
-                                         closeItBaby message message.msg16 
-                                         [||]                       
+                        try
+                            let value = result ()
+                            value
+                            |> function
+                                | [||] -> 
+                                        logInfoMsg <| sprintf "006 %s" "msg16" 
+                                        message.msg5()
+                                        closeItBaby message message.msg16
+                                        [||]
+                                | _    -> 
+                                        value
+                        with
+                        | ex -> 
+                              logInfoMsg <| sprintf "007 %s" (string ex.Message) 
+                              message.msg5()
+                              closeItBaby message message.msg16 
+                              [||]                          
                 }
         
-        let addOn () = 
+        let addOn () =  
             [
                 //pro pripad, kdyby KODIS strcil odkazy do uplne jinak strukturovaneho jsonu, tudiz by neslo pouzit dany type provider, anebo kdyz je vubec do jsonu neda (nize uvedene odkazy)
                 //@"https://kodis-files.s3.eu-central-1.amazonaws.com/76_2023_10_09_2023_10_20_v_f2b77c8fad.pdf"
@@ -297,47 +296,41 @@ module KODIS_SubmainDataTable =
         //kodisAttachments() |> Set.ofArray //over cas od casu
         //kodisTimetables() |> Set.ofArray //over cas od casu
 
-    let private filterTimetables message param (pathToDir : string) diggingResult = 
+    let private filterTimetables message param (pathToDir: string) diggingResult = 
 
         //*************************************Helpers for SQL columns********************************************
 
         let extractSubstring (input : string) =
-                        
-            let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
-            let regex = new Regex(pattern) 
-            let matchResult = regex.Match(input)
+            
+            try
+                let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
+                let regex = new Regex(pattern) 
+                let matchResult = regex.Match(input)
         
-            match matchResult.Success with
-            | true  -> input 
-            | false -> String.Empty 
-
-            |> tryWith2 (lazy ())            
-            |> function    
-                | Ok value  -> 
-                             value
-                | Error err -> 
-                             logInfoMsg <| sprintf "008 %s" err 
-                             message.msg9()
-                             String.Empty                
+                match matchResult.Success with
+                | true  -> input 
+                | false -> String.Empty 
+            with            
+            | ex ->
+                  logInfoMsg <| sprintf "008 %s" (string ex.Message) 
+                  message.msg9()
+                  String.Empty            
         
         let extractSubstring1 (input : string) =
 
-            let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
-            let regex = new Regex(pattern) 
-            let matchResult = regex.Match(input)
+            try
+                let pattern = @"202[3-9]_[0-1][0-9]_[0-3][0-9]_202[4-9]_[0-1][0-9]_[0-3][0-9]"
+                let regex = new Regex(pattern) 
+                let matchResult = regex.Match(input)
         
-            match matchResult.Success with
-            | true  -> matchResult.Value
-            | false -> String.Empty
-
-            |> tryWith2 (lazy ())            
-            |> function    
-                | Ok value  -> 
-                             value
-                | Error err -> 
-                             logInfoMsg <| sprintf "009 %s" err 
-                             message.msg9()
-                             String.Empty        
+                match matchResult.Success with
+                | true  -> matchResult.Value
+                | false -> String.Empty
+            with            
+            | ex ->
+                  logInfoMsg <| sprintf "009 %s" (string ex.Message) 
+                  message.msg9()
+                  String.Empty 
 
         let extractStartDate (input : string) =
              let result = 
@@ -362,34 +355,30 @@ module KODIS_SubmainDataTable =
         let splitKodisLink input =
 
             let oldPrefix = 
-                Regex.Split(input, extractSubstring1 input) 
-                |> Array.toList
-                |> List.item 0
-                |> splitString
-                |> List.item 1
-                |> tryWith2 (lazy ())            
-                |> function    
-                    | Ok value  -> 
-                                 value
-                    | Error err -> 
-                                 logInfoMsg <| sprintf "010 %s" err 
-                                 message.msg9()
-                                 String.Empty     
+                try
+                    Regex.Split(input, extractSubstring1 input) 
+                    |> Array.toList
+                    |> List.item 0
+                    |> splitString
+                    |> List.item 1
+                with
+                | ex -> 
+                      logInfoMsg <| sprintf "010 %s" (string ex.Message) 
+                      message.msg9()
+                      String.Empty     
 
             let totalDateInterval = extractSubstring1 input
 
             let partAfter =
-                Regex.Split(input, totalDateInterval)
-                |> Array.toList
-                |> List.item 1    
-                |> tryWith2 (lazy ())            
-                |> function    
-                    | Ok value  -> 
-                                 value
-                    | Error err -> 
-                                 logInfoMsg <| sprintf "011 %s" err 
-                                 message.msg9()
-                                 String.Empty     
+                try
+                    Regex.Split(input, totalDateInterval)
+                    |> Array.toList
+                    |> List.item 1    
+                with
+                | ex -> 
+                      logInfoMsg <| sprintf "011 %s" (string ex.Message) 
+                      message.msg9()
+                      String.Empty   
         
             let vIndex = partAfter.IndexOf "_v"
             let tIndex = partAfter.IndexOf "_t"
@@ -406,7 +395,7 @@ module KODIS_SubmainDataTable =
                 | false when tIndex <> -1 -> partAfter.Substring(tIndex + 2)
                 | _                       -> partAfter
         
-            let newPrefix (oldPrefix: string) =
+            let newPrefix (oldPrefix : string) =
 
                 let conditions =
                     [
@@ -561,26 +550,24 @@ module KODIS_SubmainDataTable =
     
             reader //Reader monad for educational purposes only, no real benefit here  
                 {
-                    let! getDefaultRecordValues = fun env -> env  
-                                      
-                    //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
-                    let dirInfo = new DirectoryInfo(pathToDir)  
-                    //smazeme pouze adresare obsahujici stare JR, ostatni ponechame                           
-                        in
-                        dirInfo.EnumerateDirectories() 
-                        |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
-                        |> Seq.distinct 
-                        |> Seq.iter _.Delete(true) //tady nebude parallel rychlejsi
-                        // |> Seq.toList
-                        // |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true))
-                        |> tryWith2 (lazy ())            
-                        |> function    
-                            | Ok value  ->
-                                         value
-                            | Error err ->
-                                         logInfoMsg <| sprintf "012 %s" err
-                                         closeItBaby message message.msg16                                                  
-                    return ()
+                    let! getDefaultRecordValues = fun env -> env 
+                    
+                    return 
+                        try
+                            //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
+                            let dirInfo = new DirectoryInfo(pathToDir)  
+                            //smazeme pouze adresare obsahujici stare JR, ostatni ponechame                           
+                                in
+                                dirInfo.EnumerateDirectories() 
+                                |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
+                                |> Seq.distinct 
+                                |> Seq.toList
+                                |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true))
+                                             
+                        with
+                        | ex -> 
+                              logInfoMsg <| sprintf "012 %s" (string ex.Message)
+                              closeItBaby message message.msg16 
                 }
 
         deleteIt listODISDefault4
@@ -619,21 +606,20 @@ module KODIS_SubmainDataTable =
             reader //Reader monad for educational purposes only, no real benefit here  
                 {   
                     let! getDefaultRecordValues = fun env -> env
-                  
-                    //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
-                    let dirInfo = new DirectoryInfo(pathToDir)        
-                        in
-                        dirInfo.EnumerateDirectories()
-                        |> Seq.filter (fun item -> item.Name = createDirName variant getDefaultRecordValues) 
-                        |> Seq.iter _.Delete(true) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce  
-                        |> tryWith2 (lazy ())            
-                        |> function    
-                            | Ok value  ->
-                                        value
-                            | Error err ->
-                                        logInfoMsg <| sprintf "012A %s" err
-                                        closeItBaby message message.msg16                                                  
-                    return ()
+                                                          
+                    return 
+                        try
+                            //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
+                            let dirInfo = new DirectoryInfo(pathToDir)        
+                                in
+                                dirInfo.EnumerateDirectories()
+                                |> Seq.filter (fun item -> item.Name = createDirName variant getDefaultRecordValues) 
+                                |> Seq.iter _.Delete(true) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce  
+                                             
+                        with
+                        | ex -> 
+                              logInfoMsg <| sprintf "012A %s" (string ex.Message)
+                              closeItBaby message message.msg16 
                 }
 
         deleteIt listODISDefault4    
@@ -645,32 +631,29 @@ module KODIS_SubmainDataTable =
     let internal createOneNewDirectory pathToDir dirName = [ sprintf"%s\%s"pathToDir dirName ] 
  
     let internal createFolders message dirList =  
-        
-        dirList
-        |> List.iter
-            (fun (dir: string) 
-                ->                
-                 match dir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || dir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
-                 | true ->    
-                         sortedLines 
-                         |> List.iter
-                             (fun item -> 
-                                        let dir = dir.Replace("_vyluk", sprintf "%s\\%s" "_vyluk" item)
-                                        Directory.CreateDirectory(dir) |> ignore
-                             )           
-                 | _    -> 
-                         Directory.CreateDirectory(sprintf "%s" dir) |> ignore           
-            )              
-       |> tryWith2 (lazy ())            
-       |> function    
-           | Ok _      ->
-                        ()                                      
-           | Error err ->
-                        logInfoMsg <| sprintf "013 %s" err
-                        closeItBaby message message.msg16                                    
+        try
+            dirList
+            |> List.iter
+                (fun (dir: string) 
+                    ->                
+                     match dir.Contains("JR_ODIS_aktualni_vcetne_vyluk") || dir.Contains("JR_ODIS_teoreticky_dlouhodobe_platne_bez_vyluk") with 
+                     | true ->    
+                             sortedLines 
+                             |> List.iter
+                                 (fun item -> 
+                                            let dir = dir.Replace("_vyluk", sprintf "%s\\%s" "_vyluk" item)
+                                            Directory.CreateDirectory(dir) |> ignore
+                                 )           
+                     | _    -> 
+                             Directory.CreateDirectory(sprintf "%s" dir) |> ignore           
+                )              
+        with
+        | ex ->           
+              logInfoMsg <| sprintf "013 %s" (string ex.Message)
+              closeItBaby message message.msg16        
 
-    let private downloadAndSaveTimetables message pathToDir =     //FsHttp        
-                        
+    let private downloadAndSaveTimetables message pathToDir =     //FsHttp
+        
         message.msgParam3 pathToDir  
 
         let asyncDownload (counterAndProgressBar : MailboxProcessor<Msg>) list =   
@@ -686,7 +669,7 @@ module KODIS_SubmainDataTable =
                              match not <| NetworkInterface.GetIsNetworkAvailable() with
                              | true  ->                                    
                                       (processor 0 Pdf).Post(First(1)) 
-                                      Thread.Sleep(600000) //TODO zhodnotit uzitecnost
+                                      Thread.Sleep(600000)
                              | false ->  
                                       //failwith "Simulated exception"  
                                       counterAndProgressBar.Post(Incr 1)
@@ -719,25 +702,7 @@ module KODIS_SubmainDataTable =
             {   
                 return! 
                     (fun (env : (string*string) list)
-                        -> 
-                          //*************************************************
-                          //just messing about...
-                         (* 
-                         env 
-                         |> List.Parallel.iter 
-                             (fun (uri, (pathToFile: string)) ->
-                                 let get uri =
-                                     http 
-                                         {
-                                             config_timeoutInSeconds 120  
-                                             GET(uri) 
-                                         }    
-                                     
-                                 use response = get >> Request.send <| uri  
-                                 response.SaveFile <| pathToFile           
-                             )
-                         //***************************************************
-                         *)    
+                        ->                           
                          let l = env |> List.length
 
                          let numberOfThreads1 = numberOfThreads message l
@@ -759,8 +724,8 @@ module KODIS_SubmainDataTable =
                                                                        return! loop n
                                              }
                                      loop 0
-                                )                        
-                                            
+                                )                       
+                                                 
                          let myList = splitListIntoEqualParts numberOfThreads1 env                             
                               
                          fun i -> <@ async { return asyncDownload counterAndProgressBar (%%expr myList |> List.item %%(expr i)) } @>
@@ -772,13 +737,13 @@ module KODIS_SubmainDataTable =
                          |> Result.ofChoice  
                          |> function
                              | Ok _      ->
-                                         message.msgParam4 pathToDir
+                                          message.msgParam4 pathToDir
                              | Error err ->
-                                         logInfoMsg <| sprintf "015 %s" (string err.Message)   
-                                         message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop  *)                                          
-                    )                     
-            }                  
-         
+                                          logInfoMsg <| sprintf "015 %s" (string err.Message)   
+                                          message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop                                            
+                    )                        
+            } 
+            
     let internal downloadAndSave message variant dir = 
 
         match dir |> Directory.Exists with 
@@ -786,31 +751,13 @@ module KODIS_SubmainDataTable =
                  message.msgParam5 dir 
                  message.msg13()                                                
         | true  ->
-                 let digThroughJsonStructure = 
-                     tryWith2 (lazy ()) (digThroughJsonStructure message)           
-                     |> function    
-                         | Ok value  -> 
-                                      value
-                         | Error err -> 
-                                      logInfoMsg <| sprintf "016 %s" err
-                                      closeItBaby message message.msg16 
-                                      [||]
-                                 
-                 let filterTimetables = 
-                     tryWith2 (lazy ()) (filterTimetables message variant dir digThroughJsonStructure)           
-                     |> function    
-                        | Ok value  -> 
-                                     value
-                        | Error err -> 
-                                     logInfoMsg <| sprintf "017 %s" err
-                                     closeItBaby message message.msg16 
-                                     []                           
-
-                 tryWith2 (lazy ()) (downloadAndSaveTimetables message dir filterTimetables)           
-                 |> function    
-                     | Ok value  -> 
-                                  value
-                     | Error err -> 
-                                  logInfoMsg <| sprintf "018 %s" err
-                                  closeItBaby message message.msg16 
-                                
+                 try
+                     digThroughJsonStructure message 
+                     |>
+                     filterTimetables message variant dir 
+                     |>
+                     downloadAndSaveTimetables message dir 
+                 with
+                 | ex -> 
+                       logInfoMsg <| sprintf "018 %s" (string ex.Message)
+                       closeItBaby message message.msg16     

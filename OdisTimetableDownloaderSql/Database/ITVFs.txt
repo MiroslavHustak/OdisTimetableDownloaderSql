@@ -17,6 +17,21 @@ CREATE TABLE TimetableLinks
     FileToBeSaved NVARCHAR(100)    
 );
 
+USE TimetableDownloader;
+GO
+
+DROP TABLE IF EXISTS LogEntries2; 
+GO
+
+CREATE TABLE LogEntries2
+(      
+    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [Timestamp] DATETIME,
+    Logname NVARCHAR(100),
+    [Message] NVARCHAR(100),
+);
+
+
 //***********************************************
 CREATE FUNCTION dbo.ITVF_GetLinksCurrentValidity ()   
 RETURNS TABLE

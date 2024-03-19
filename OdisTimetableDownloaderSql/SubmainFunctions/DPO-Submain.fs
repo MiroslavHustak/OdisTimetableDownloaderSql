@@ -19,23 +19,23 @@ module DPO_Submain =
     open Types.ErrorTypes   
 
     open Helpers
-    open Helpers.TryWithRF
+    open Helpers.CloseApp
     open Helpers.ProgressBarFSharp
 
     //************************Submain functions************************************************************************
 
-    let internal client (printToConsole1 : Lazy<unit>) (printToConsole2: string -> unit) : HttpClient = 
-    
-        let f = new HttpClient() |> Option.ofNull    
-    
-        tryWithLazy printToConsole2 (optionToResultPrint f printToConsole1) ()    //to uz takto priste nerobit, tryWithLazy uz nepouzivat       
-        |> function    
-            | Ok value  ->
-                         value 
-            | Error err -> 
-                         err.Force()
-                         logInfoMsg <| sprintf "034 %s" "HttpClient()"
-                         new System.Net.Http.HttpClient()  
+    let internal client () =         
+
+        let client = new HttpClient()
+        
+        match client |> Option.ofNull with
+        | Some value -> 
+                        value
+        | None       ->
+                        logInfoMsg <| sprintf "034 %s" "new HttpClient() is null"
+                        client.Dispose()
+                        closeItBaby Settings.Messages.messagesDefault "Chyba v průběhu stahování JŘ DPO." 
+                        new HttpClient()                              
 
     //[<TailCall>]
     let internal filterTimetables pathToDir (message: Messages) = 

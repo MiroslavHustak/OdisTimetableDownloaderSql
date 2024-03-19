@@ -18,7 +18,7 @@ module TransformationLayerGet =
             fileToBeSaved = Casting.castAs<string> dbDataDtoGet.fileToBeSaved
         }
 
-    let internal dtDataTransformLayerGetDefault (dtDataDtoGet : DtDataDtoGet) : DtDataDomainGet = 
+    let private dtDataTransformLayerGetDefault : DtDataDomainGet = 
         {      
             newPrefix = String.Empty
             startDate = DateTime.MinValue
@@ -27,7 +27,7 @@ module TransformationLayerGet =
             fileToBeSaved = String.Empty
         } 
 
-    let internal dtDataTransformLayerGet (dtDataDtoGet : DtDataDtoGet) : Result<DtDataDomainGet, string> =  
+    let internal dtDataTransformLayerGet (dtDataDtoGet : DtDataDtoGet) : DtDataDomainGet =  
         
         let newPrefix = Convert.ToString(dtDataDtoGet.newPrefix) //u datatable nelze Casting.castAs<string>, musi se pouzit Convert
         let startDate = Convert.ToDateTime(dtDataDtoGet.startDate)
@@ -51,10 +51,10 @@ module TransformationLayerGet =
 
         pyramidOfHell
            {
-               let! tString = not (testString |> List.contains None), Error "Chyba při načítání hodnot z datatable" 
-               let! tDateTime = not (testDateTime |> List.contains None), Error "Chyba při načítání hodnot z datatable" 
+               let! tString = not (testString |> List.contains None), dtDataTransformLayerGetDefault 
+               let! tDateTime = not (testDateTime |> List.contains None), dtDataTransformLayerGetDefault 
 
-               let result = 
+               return 
                    {      
                        newPrefix = newPrefix
                        startDate = startDate
@@ -62,8 +62,6 @@ module TransformationLayerGet =
                        completeLink = completeLink
                        fileToBeSaved = fileToBeSaved
                    } 
-
-               return Ok result
            }
 
 module TransformationLayerSend =

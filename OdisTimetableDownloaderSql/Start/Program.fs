@@ -5,7 +5,7 @@ open FSharp.Control
 open System.Windows.Forms
 
 open Helpers
-open Helpers.TryWithRF
+open Helpers.CloseApp
 open Helpers.ConsoleFixers
 
 open Types
@@ -25,53 +25,46 @@ open MainFunctions.WebScraping_KODISFMDataTable
 
 [<TailCall>] 
 let rec private pathToFolder () =
-
+    
     let e = String.Empty
-    let (str, value) = openFolderBrowserDialog()    
+    
+    try
+        
+        let (str, value) = openFolderBrowserDialog()    
 
-    match value with
-    | false            -> 
-                        str       
-    | true 
-        when 
-            (<>) str e -> 
-                        Console.Clear()
-                        tryWith2 (lazy ()) ()           
-                        |> function    
-                            | Ok value  -> 
-                                         value
-                            | Error err -> 
-                                         logInfoMsg <| sprintf "043 %s" err
-                                         closeItBaby messagesDefault str    
-                        e
-    | _                -> 
-                        Console.Clear()
-                        printfn "\nNebyl vybrán adresář. Tak znovu... Anebo klikni na křížek pro ukončení aplikace. \n"                                                                     
-                        pathToFolder ()   
+        match value with
+        | false            -> 
+                            str       
+        | true 
+            when 
+                (<>) str e -> 
+                            Console.Clear()                                          
+                            e
+        | _                -> 
+                            Console.Clear()
+                            printfn "\nNebyl vybrán adresář. Tak znovu... Anebo klikni na křížek pro ukončení aplikace. \n"                                                                     
+                            pathToFolder ()   
+    with
+    | ex ->
+          logInfoMsg <| sprintf "043 %s" (string ex.Message)
+          closeItBaby Settings.Messages.messagesDefault (string ex.Message)  
+          e
 
 [<EntryPoint; STAThread>] // STAThread> musi byt quli openFolderBrowserDialog()
 //[<EntryPoint>] 
 let main argv =
-    
+        
     //*****************************Console******************************  
     
     let updateDate = "17-03-2024"
 
-    let consoleSettings f = 
-
-        tryWithLazy messagesDefault.msgParam1 f ()           
-            |> function    
-                | Ok (value : Lazy<unit>) -> 
-                                           value.Force()
-                | Error ex                ->   
-                                           ex.Force()
-                                           logInfoMsg <| sprintf "045 %s" "Problém s oknem konzole."
-                                           closeItBaby messagesDefault "Problém s oknem konzole."  
-    
-    //Ok jen z duvodu vyuziti funkce tryWithLazy (zmenit ji nemohu quli educational code)
-    consoleSettings (Ok <| lazy consoleAppProblemFixer()) 
-    consoleSettings (Ok <| lazy consoleWindowSettings())  
-           
+    try
+        consoleAppProblemFixer() 
+        consoleWindowSettings()  
+    with
+    | ex -> 
+          logInfoMsg <| sprintf "045 %s" (string ex.Message)
+          closeItBaby messagesDefault "Problém s oknem konzole."                
      
     //*****************************WebScraping******************************   
 
@@ -217,19 +210,15 @@ let main argv =
     let rec variant () = 
 
         let timetableVariant (fn: ConsoleKeyInfo) = 
-            let result = 
+            try
                 match fn.Key with
                 | ConsoleKey.Escape -> System.Environment.Exit(0)
                 | _                 -> variant ()
-            
-            tryWith2 (lazy result) ()           
-            |> function    
-                | Ok value  -> 
-                             value
-                | Error err -> 
-                             messagesDefault.msgParam1 err  
-                             logInfoMsg <| sprintf "046 %s" err
-                             closeItBaby messagesDefault err
+            with
+            | ex ->
+                  messagesDefault.msgParam1 (string ex.Message)  
+                  logInfoMsg <| sprintf "046 %s" (string ex.Message)  
+                  closeItBaby messagesDefault (string ex.Message)  
 
         Console.Clear()
 

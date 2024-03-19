@@ -67,38 +67,8 @@ module Result =
                          )   
                  Ok okList 
 
-module TryWithRF =
-
-    let internal optionToResultPrint f fPrint : Result<'a, 'b> = 
-        f                      
-        |> function   
-            | Some value -> Ok value 
-            | None       -> Error fPrint    
-
-    let internal tryWithLazy pfPrint f2 f1 : Result<'a, Lazy<unit>> =            
-        try
-            try                 
-                f2
-            finally
-                f1
-        with
-        | ex -> Error <| lazy (pfPrint (string ex)) 
-    
-    let internal tryWith2 (f2 : Lazy<unit>) f1 =
-          try
-              try          
-                  Ok f1 
-              finally
-                  f2.Force() 
-          with
-          | ex -> Error <| string ex.Message       
-
-    let internal tryWithNone x : 'a option = 
-        try           
-           x
-        with
-        | _ -> None
-    
+module CloseApp =        
+       
     let internal closeItDpo (client: HttpClient) (message: Messages) err = 
         message.msgParam1 err      
         Console.ReadKey() |> ignore 

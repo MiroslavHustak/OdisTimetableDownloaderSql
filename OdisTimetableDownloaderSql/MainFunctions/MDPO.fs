@@ -10,7 +10,7 @@ module WebScraping_MDPO =
     
     open Logging.Logging
     
-    open Helpers.TryWithRF
+    open Helpers.CloseApp
     
     open Settings.Messages
     open Settings.SettingsGeneral
@@ -56,15 +56,14 @@ module WebScraping_MDPO =
         let stateReducer (state: State) (message: Messages) (action: Actions) (environment: Environment) =
 
             let dirList pathToDir = [ sprintf"%s\%s"pathToDir ODISDefault.odisDir6 ]
-
+           
             let errorHandling fn = 
-                tryWith2 (lazy ()) fn           
-                |> function    
-                    | Ok value  ->
-                                 value
-                    | Error err ->
-                                 logInfoMsg <| sprintf "051 %s" err
-                                 closeItBaby message message.msg16      
+                try
+                    fn
+                with
+                | ex ->
+                      logInfoMsg <| sprintf "051 %s" (string ex.Message)
+                      closeItBaby message message.msg16       
 
             match action with                                                   
             | StartProcess           -> 
