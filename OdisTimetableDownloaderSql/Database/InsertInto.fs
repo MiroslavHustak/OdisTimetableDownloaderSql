@@ -160,9 +160,7 @@ module InsertInto =
                                     cmdInsert.Parameters.AddWithValue("@Logname", logName) |> ignore
                                     cmdInsert.Parameters.AddWithValue("@Message", message) |> ignore
                                               
-                                    cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows     
-                    
-                                                            
+                                    cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows                                                                
                         )                
                      printfn "Log entries vloženy do databáze"     
                                       
