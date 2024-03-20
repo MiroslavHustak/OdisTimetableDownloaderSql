@@ -13,7 +13,7 @@ open Microsoft.FSharp.Reflection
 open System.IO
 
 //Just for fun :-)
-//Functions seem to be as fast as Array.Parallel.iter/iter2/map/map2 for non-CPU-bound operations
+//Functions seem to be as fast as Array.Parallel.iter/map for non-CPU-bound operations
 //But I have not tested too intensively....
 
 let private expr (param : 'a) = Expr.Value(param)  
