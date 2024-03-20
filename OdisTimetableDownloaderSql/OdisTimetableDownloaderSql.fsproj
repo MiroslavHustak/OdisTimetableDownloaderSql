@@ -38,7 +38,8 @@
     <Compile Include="DomainModelling\Dtos.fs" />
     <Compile Include="DomainModelling\TransformationLayers.fs" />
     <Compile Include="DataTable\InsertSelectSort.fs" />
-    <Content Include="Database\ITVFs.txt" />
+    <Content Include="Database\DdlDml.txt" />
+    <Content Include="Database\AdvancedSQL.txt" />
     <Compile Include="Database\Connection.fs" />
     <Compile Include="Database\LoggingSQL.fs" />
     <Compile Include="Database\InsertInto.fs" />

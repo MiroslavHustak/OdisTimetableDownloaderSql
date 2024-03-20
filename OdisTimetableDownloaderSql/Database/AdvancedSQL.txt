@@ -1,35 +1,18 @@
-﻿USE TimetableDownloader;
-GO
+﻿/***********************************************
 
-DROP TABLE TimetableLinks;
-GO
-
-CREATE TABLE TimetableLinks
-(       
-    OldPrefix NVARCHAR(50),
-	NewPrefix NVARCHAR(50),
-    StartDate DATE,
-    EndDate DATE,
-    TotalDateInterval NVARCHAR(50),
-    VT_Suffix NVARCHAR(50),
-    JS_GeneratedString NVARCHAR(50),
-    CompleteLink NVARCHAR(100) NOT NULL,
-    FileToBeSaved NVARCHAR(100)    
-);
-
-USE TimetableDownloader;
-GO
-
-DROP TABLE IF EXISTS LogEntries2; 
-GO
-
-CREATE TABLE LogEntries2
-(      
-    Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    [Timestamp] DATETIME,
-    Logname NVARCHAR(100),
-    [Message] NVARCHAR(100),
-);
+MERGE INTO LogEntries2 AS target
+USING (VALUES (@Timestamp, @Logname, @Message))
+AS source ([Timestamp], Logname, [Message])
+ON target.[Timestamp] = source.[Timestamp]
+    AND target.Logname = source.Logname
+    AND target.[Message] = source.[Message]
+WHEN MATCHED THEN
+UPDATE SET target.[Timestamp] = source.[Timestamp],
+    target.Logname = source.Logname,
+    target.[Message] = source.[Message]
+WHEN NOT MATCHED BY target THEN
+    INSERT ([Timestamp], Logname, [Message])
+    VALUES (source.[Timestamp], source.Logname, source.[Message]);  
 
 
 //***********************************************

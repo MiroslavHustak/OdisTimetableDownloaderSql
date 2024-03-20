@@ -182,7 +182,16 @@ module KODIS_Submain =
                              logInfoMsg <| sprintf "003 %s" (string err.Message)
                              closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."  
 
-        fSharpAsyncParallel message      
+        fSharpAsyncParallel message   
+        
+        (*
+        let fSharpAsyncParallel1 message =  
+
+            message.msg15()
+            updateJson1 jsonLinkList pathToJsonList
+            
+        fSharpAsyncParallel1 message    
+        *)
    
     let private digThroughJsonStructure message = //prohrabeme se strukturou json souboru //printfn -> additional 4 parameters
     
@@ -583,7 +592,7 @@ module KODIS_Submain =
                                 |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
                                 |> Seq.distinct 
                                 |> Seq.toList
-                                |> List.Parallel.iter _.Delete(true)
+                                |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true))
                                              
                         with
                         | ex -> 

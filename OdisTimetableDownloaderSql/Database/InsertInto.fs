@@ -100,11 +100,13 @@ module InsertInto =
 
         match dataToBeInserted.Length with
         | 0 -> 
-             printfn "Žádné nové log entries"
+             ()
         | _ -> 
              //let queryDeleteAll = "DELETE FROM LogEntries2"
              
-             let queryInsert =                 
+             //https://learn.microsoft.com/en-us/sql/t-sql/statements/merge-transact-sql?view=sql-server-ver16
+             //v tabulce budou jen nove hodnoty, hodnoty, ktere tam uz jsou, se z logu nebudou znovu nacitat         
+             let queryInsert =        
                  "
                  MERGE INTO LogEntries2 AS target
                  USING (VALUES (@Timestamp, @Logname, @Message))
@@ -112,8 +114,8 @@ module InsertInto =
                  ON target.[Timestamp] = source.[Timestamp]
                      AND target.Logname = source.Logname
                      AND target.[Message] = source.[Message]
-                 WHEN MATCHED BY target THEN
-                    UPDATE SET target.[Timestamp] = source.[Timestamp],
+                 WHEN MATCHED THEN
+                 UPDATE SET target.[Timestamp] = source.[Timestamp],
                     target.Logname = source.Logname,
                     target.[Message] = source.[Message]
                  WHEN NOT MATCHED BY target THEN
@@ -121,7 +123,7 @@ module InsertInto =
                     VALUES (source.[Timestamp], source.Logname, source.[Message]);                 
                 " 
 
-             let queryInsert1 =                 
+             let queryInsert1 =  //nepouzivano               
                  "
                  INSERT INTO LogEntries2 ([Timestamp], Logname, [Message])
                  VALUES (@Timestamp, @Logname, @Message)                 
@@ -161,7 +163,7 @@ module InsertInto =
                                               
                                     cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows                                                                
                         )                
-                     printfn "Log entries vloženy do databáze"     
+                     printfn "Log entries merged with the old ones in LogEntries2"     
                                       
                  finally
                      closeConnection connection message

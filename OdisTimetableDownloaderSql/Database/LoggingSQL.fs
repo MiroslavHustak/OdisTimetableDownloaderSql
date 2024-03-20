@@ -29,5 +29,6 @@ module LoggingSQL =
             |> List.ofArray         
             |> List.distinct        
         with
-        | ex -> logInfoMsg <| sprintf "102 %s" (string ex.Message)                        
-                [] //tady nevadi List.empty jakozto vystup 
+        | ex -> 
+              logInfoMsg <| sprintf "102 %s" (string ex.Message)                        
+              [] //tady nevadi List.empty jakozto vystup 
