@@ -75,8 +75,6 @@ let iter<'a> (mapping: 'a -> unit) (xs1: 'a list) =
 
 let iter2<'a, 'b> (mapping: 'a -> 'b -> unit) (xs1: 'a list) (xs2: 'b list) = 
     
-    let listToParallel (xs1, xs2) = (xs1, xs2) ||> List.iter2 mapping    
-
     let l = xs1 |> List.length    
     let numberOfThreads = numberOfThreads l    
         
@@ -107,27 +105,6 @@ let map<'a, 'b> (mapping: 'a -> 'b) (list: 'a list) =
     |> List.concat
 
 let map2<'a, 'b, 'c> (mapping: 'a -> 'b -> 'c) (xs1: 'a list) (xs2: 'b list) =   
-        
-    let listToParallel (xs1, xs2) = (xs1, xs2) ||> List.map2 mapping    
-
-    let l = xs1 |> List.length        
-    let numberOfThreads = numberOfThreads l    
-        
-    let myList =       
-        (splitListIntoEqualParts numberOfThreads xs1, splitListIntoEqualParts numberOfThreads xs2)  
-        ||> List.zip                 
-                                               
-    fun i -> <@ async { return (%%expr myList |> List.item %%(expr i)) ||> List.map2 mapping } @>
-    |> List.init myList.Length
-    |> List.map _.Compile()       
-    |> Async.Parallel  
-    |> Async.RunSynchronously
-    |> List.ofArray
-    |> List.concat
- 
-let mapPokus2<'a, 'b, 'c> (mapping: 'a -> 'b -> 'c) (xs1: 'a list) (xs2: 'b list) =   
-        
-    let listToParallel (xs1, xs2) = (xs1, xs2) ||> List.map2 mapping    
 
     let l = xs1 |> List.length        
     let numberOfThreads = numberOfThreads l    

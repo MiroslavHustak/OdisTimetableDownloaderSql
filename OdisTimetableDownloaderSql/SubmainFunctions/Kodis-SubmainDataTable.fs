@@ -562,7 +562,7 @@ module KODIS_SubmainDataTable =
                                 |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
                                 |> Seq.distinct 
                                 |> Seq.toList
-                                |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true))
+                                |> List.Parallel.iter _.Delete(true)
                                              
                         with
                         | ex -> 

@@ -67,47 +67,6 @@ let main argv =
      
     //*****************************WebScraping******************************  
     
-
-
-    let dirInfo = new DirectoryInfo(@"e:\source\fsharp-main\src\")        
-    dirInfo.EnumerateDirectories()
-    |> List.ofSeq
-    |> List.Parallel.map _.Name 
-    |> List.map (fun (item: string) -> sprintf "%s %s" "ahoj" item)
-    |> List.iter (fun item -> printfn "%s" item)
-
-    let dirInfo = new DirectoryInfo(@"e:\source\fsharp-main\src\")        
-    dirInfo.EnumerateDirectories()
-    |> List.ofSeq
-    |> List.Parallel.map _.Name
-    |> ignore
-    
-
-    let dirInfo = new DirectoryInfo(@"e:\source\fsharp-main\src\")        
-    dirInfo.EnumerateDirectories()
-    |> List.ofSeq
-    |> List.Parallel.map _.Name 
-    |> List.map (fun (item: string) -> sprintf "%s %s" "ahoj" item)
-    |> List.iter (fun item -> printfn "%s" item)
-
-
-    Console.ReadKey() |> ignore
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     let myWebscraping_DPO x =
 
         Console.Clear()
