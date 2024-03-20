@@ -1,4 +1,5 @@
 ﻿open System
+open System.IO
 open System.Data
 open System.Windows
 open FSharp.Control
@@ -52,10 +53,8 @@ let rec private pathToFolder () =
 
 [<EntryPoint; STAThread>] // STAThread> musi byt quli openFolderBrowserDialog()
 //[<EntryPoint>] 
-let main argv =
-        
+let main argv =        
     //*****************************Console******************************  
-    
     let updateDate = "17-03-2024"
 
     try
@@ -66,7 +65,48 @@ let main argv =
           logInfoMsg <| sprintf "045 %s" (string ex.Message)
           closeItBaby messagesDefault "Problém s oknem konzole."                
      
-    //*****************************WebScraping******************************   
+    //*****************************WebScraping******************************  
+    
+
+
+    let dirInfo = new DirectoryInfo(@"e:\source\fsharp-main\src\")        
+    dirInfo.EnumerateDirectories()
+    |> List.ofSeq
+    |> List.Parallel.map _.Name 
+    |> List.map (fun (item: string) -> sprintf "%s %s" "ahoj" item)
+    |> List.iter (fun item -> printfn "%s" item)
+
+    let dirInfo = new DirectoryInfo(@"e:\source\fsharp-main\src\")        
+    dirInfo.EnumerateDirectories()
+    |> List.ofSeq
+    |> List.Parallel.map _.Name
+    |> ignore
+    
+
+    let dirInfo = new DirectoryInfo(@"e:\source\fsharp-main\src\")        
+    dirInfo.EnumerateDirectories()
+    |> List.ofSeq
+    |> List.Parallel.map _.Name 
+    |> List.map (fun (item: string) -> sprintf "%s %s" "ahoj" item)
+    |> List.iter (fun item -> printfn "%s" item)
+
+
+    Console.ReadKey() |> ignore
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     let myWebscraping_DPO x =
 
