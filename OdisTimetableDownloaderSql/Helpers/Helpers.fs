@@ -92,6 +92,9 @@ module CopyingOrMovingFiles = //output in Result type
               Error <| sprintf "Chyba při přemísťování souboru %s do %s" source destination
     
 module CopyingOrMovingFilesFreeMonad =   //not used yet  
+
+    //Free monads are just a general way of turning functors into monads.
+    //A free monad is a sequence of actions where subsequent actions can depend on the result of previous ones.
         
     [<Struct>]
     type private Config =

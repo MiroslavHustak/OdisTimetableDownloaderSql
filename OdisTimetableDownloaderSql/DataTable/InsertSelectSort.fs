@@ -149,7 +149,7 @@ module InsertSelectSort =
                           seqFromDataTable                          
                           |> Seq.filter
                               (fun row ->
-                                        let startDate = ((row |> dataTransformation).startDate)
+                                        let startDate = (row |> dataTransformation).startDate
                                         let endDate = (row |> dataTransformation).endDate
                                         let fileToBeSaved = (row |> dataTransformation).fileToBeSaved                      
                                         condition startDate endDate currentTime fileToBeSaved

@@ -2,6 +2,9 @@
 
 module FreeMonadsCM =
 
+    //Free monads are just a general way of turning functors into monads.
+    //A free monad is a sequence of actions where subsequent actions can depend on the result of previous ones.
+
 //***************************Copy/Move********************************
            
     type internal CommandLineInstruction<'a> =
