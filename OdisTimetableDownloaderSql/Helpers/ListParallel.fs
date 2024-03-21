@@ -38,7 +38,7 @@ let private splitListIntoEqualParts (numParts: int) (originalList: 'a list) =   
                           | true  -> partLength + 1
                           | false -> partLength 
     
-                  match (=) acc numParts with
+                  match acc.Equals(numParts) with
                   | true  -> partLength originalList numParts    
                   | false -> partLength remainingList acc                                 
         

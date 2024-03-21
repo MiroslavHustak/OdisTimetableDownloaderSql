@@ -139,8 +139,8 @@ module InsertSelectSort =
                 dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row
             with
             | ex -> 
-                    closeItBaby Messages.messagesDefault (string ex.Message)
-                    dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row                 
+                  closeItBaby Messages.messagesDefault (string ex.Message)
+                  dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row                 
         
         let seqFromDataTable = dt.AsEnumerable() |> Seq.distinct 
 
