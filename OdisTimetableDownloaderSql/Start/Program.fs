@@ -240,7 +240,7 @@ let main argv =
             |> List.filter (fun _ -> CheckNetConnection.checkNetConn(timeout).IsSome) 
             |> List.length >= 8  
         
-        let checkNetConnF = checkNetConnection 500
+        let checkNetConnF = checkNetConnection 500 //timeout
        
         //[<TailCall>] //kontrolovano jako module function, bez varovnych hlasek
         let rec checkConnect checkNetConnP = 
@@ -257,7 +257,7 @@ let main argv =
                          )  
                          |> ignore
                          
-                     checkConnect << checkNetConnection <| 500
+                     checkConnect << checkNetConnection <| 500 //timeout
         
         checkConnect checkNetConnF
            

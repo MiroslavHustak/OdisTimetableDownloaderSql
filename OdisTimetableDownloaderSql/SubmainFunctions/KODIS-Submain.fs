@@ -212,10 +212,11 @@ module KODIS_Submain =
                                  kodisJsonSamples 
                                  |> function 
                                      | Some value -> 
-                                                   value |> Option.ofNull 
+                                                   value
+                                                   |> Option.ofNull 
                                                    |> function
-                                                      | Some value -> value |> Array.map _.Timetable  //quli tomuto je nutno Array //nejde Some, nejde Ok
-                                                      | None       -> [||]  
+                                                       | Some value -> value |> Array.map _.Timetable  //quli tomuto je nutno Array //nejde Some, nejde Ok
+                                                       | None       -> [||]  
                                      | None       -> 
                                                    [||] 
                             )                     
@@ -264,7 +265,7 @@ module KODIS_Submain =
                                                        value |> fn1
                                          | None       -> 
                                                        msg5 () 
-                                                       //closeItBaby message message.msg16 
+                                                       logInfoMsg <| sprintf "007A %s" "resulting in None"
                                                        [||]                 
 
                                  let fn3 (item: JsonProvider<pathJson>.Root) =  //quli tomuto je nutno Array 
@@ -274,7 +275,7 @@ module KODIS_Submain =
                                                        value |> Array.collect fn2 
                                          | None       ->
                                                        msg5 () 
-                                                       //closeItBaby message message.msg16 
+                                                       logInfoMsg <| sprintf "007B %s" "resulting in None"
                                                        [||] 
                                                       
                                  let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull  
@@ -285,7 +286,7 @@ module KODIS_Submain =
                                                    value |> Array.collect fn3 
                                      | None       -> 
                                                    msg5 () 
-                                                   //closeItBaby message message.msg16 
+                                                   logInfoMsg <| sprintf "007C %s" "resulting in None"
                                                    [||]                                 
                             ) 
                 
@@ -303,7 +304,7 @@ module KODIS_Submain =
                                         value
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "007 %s" (string ex.Message) 
+                              logInfoMsg <| sprintf "007D %s" (string ex.Message) 
                               msg5 ()
                               closeItBaby msg16 
                               [||]                          
@@ -591,7 +592,7 @@ module KODIS_Submain =
                                 |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
                                 |> Seq.distinct 
                                 |> Seq.toList
-                                |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true))
+                                |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true)) //List.Parallel for educational purposes
                                 //smazeme pouze adresare obsahujici stare JR, ostatni ponechame             
                         with
                         | ex -> 

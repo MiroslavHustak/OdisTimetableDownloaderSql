@@ -9,9 +9,6 @@ open FsToolkit.ErrorHandling
 open Microsoft.FSharp.Quotations
 open FSharp.Quotations.Evaluator.QuotationEvaluationExtensions
 
-open Microsoft.FSharp.Reflection
-open System.IO
-
 //Just for fun :-)
 //Functions seem to be as fast as Array.Parallel.iter/map for non-CPU-bound operations
 //But I have not tested too intensively....

@@ -4,11 +4,9 @@ open System
 open System.IO
 open System.Net
 
+open Types.DirNames   
 open Logging.Logging
-   
 open Helpers.CloseApp
-
-open Types.DirNames
    
 open Settings.Messages
 open Settings.SettingsGeneral    
