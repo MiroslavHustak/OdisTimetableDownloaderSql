@@ -50,7 +50,7 @@ let private splitListIntoEqualParts (numParts: int) (originalList: 'a list) =   
     
 let private numberOfThreads l =  
         
-    let numberOfThreads = Environment.ProcessorCount 
+    let numberOfThreads = Environment.ProcessorCount //all List.Parallel.iter/iter2/map/map2 are impure because of that :-(
         
     match numberOfThreads > 0 with 
     | true  ->                            
@@ -63,7 +63,7 @@ let private numberOfThreads l =
              -1
 
 let iter action list =  
-       
+           
     let listToParallel list = list |> List.iter action
                  
     let l = list |> List.length

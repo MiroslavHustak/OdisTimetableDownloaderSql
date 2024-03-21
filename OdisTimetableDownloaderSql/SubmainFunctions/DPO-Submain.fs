@@ -1,26 +1,26 @@
 ﻿namespace SubmainFunctions
 
+open System
+open System.IO
+open System.Net
+open System.Net.Http
+
+open FSharp.Data
+open FsToolkit.ErrorHandling
+
+open Settings.Messages
+open Settings.SettingsDPO
+open Settings.SettingsGeneral
+
 open Logging.Logging
 
+open Types.ErrorTypes   
+
+open Helpers
+open Helpers.CloseApp
+open Helpers.ProgressBarFSharp
+
 module DPO_Submain =
-
-    open System
-    open System.IO
-    open System.Net
-    open System.Net.Http
-
-    open FSharp.Data
-    open FsToolkit.ErrorHandling
-
-    open Settings.SettingsDPO
-    open Settings.SettingsGeneral
-
-    open Types.Messages
-    open Types.ErrorTypes   
-
-    open Helpers
-    open Helpers.CloseApp
-    open Helpers.ProgressBarFSharp
 
     //************************Submain functions************************************************************************
 
@@ -34,16 +34,16 @@ module DPO_Submain =
         | None       ->
                       logInfoMsg <| sprintf "034 %s" "new HttpClient() is null"
                       client.Dispose()
-                      closeItBaby Settings.Messages.messagesDefault "Chyba v průběhu stahování JŘ DPO." 
+                      closeItBaby msg20
                       new HttpClient()                              
 
     //[<TailCall>]
-    let internal filterTimetables pathToDir (message: Messages) = 
+    let internal filterTimetables pathToDir = 
 
         let getLastThreeCharacters input =
             match String.length input <= 3 with
             | true  -> 
-                     message.msgParam6 input 
+                     msgParam6 input 
                      input 
             | false -> 
                      input.Substring(input.Length - 3)
@@ -51,7 +51,7 @@ module DPO_Submain =
         let removeLastFourCharacters input =
             match String.length input <= 4 with
             | true  -> 
-                     message.msgParam6 input 
+                     msgParam6 input 
                      String.Empty
             | false ->
                      input.[..(input.Length - 5)]                    
@@ -116,7 +116,7 @@ module DPO_Submain =
                       |> List.distinct
             ) 
 
-    let internal downloadAndSaveTimetables client (message: Messages) (pathToDir: string) (filterTimetables: (string*string) list) =  
+    let internal downloadAndSaveTimetables client (pathToDir: string) (filterTimetables: (string*string) list) =  
 
         let downloadFileTaskAsync (client: Http.HttpClient) (uri: string) (path: string) : Async<Result<unit, string>> =  
        
@@ -151,11 +151,11 @@ module DPO_Submain =
                     with                                                         
                     | ex ->  
                           logInfoMsg <| sprintf "035 %s" (string ex.Message)
-                          closeItDpo client message "Chyba v průběhu stahování JŘ DPO." 
-                          return Error "Chyba v průběhu stahování JŘ DPO."    
+                          closeItDpo client msg20 
+                          return Error msg20    
                 }   
     
-        message.msgParam3 pathToDir 
+        msgParam3 pathToDir 
     
         let downloadTimetables (client: HttpClient) = 
         
@@ -174,12 +174,12 @@ module DPO_Submain =
                                       |> function
                                           | Some err ->
                                                       logInfoMsg <| sprintf "036 %s" err
-                                                      closeItDpo client message err                                                                      
+                                                      closeItDpo client err                                                                      
                                           | None     -> 
-                                                      message.msgParam2 link 
+                                                      msgParam2 link 
                           | Error err ->
                                        logInfoMsg <| sprintf "037 %s" err
-                                       closeItDpo client message err              
+                                       closeItDpo client err              
 
                      let mapErr2 = 
                          function
@@ -191,15 +191,15 @@ module DPO_Submain =
                                                  
                      async                                                
                          {   
-                             progressBarContinuous message i l  //progressBarContinuous  
+                             progressBarContinuous i l  //progressBarContinuous  
                              return! downloadFileTaskAsync client link pathToFile                                                                                                                               
                          } 
                          |> Async.Catch
                          |> Async.RunSynchronously
                          |> Result.ofChoice  
-                         |> Result.mapErr mapErr2 (lazy message.msgParam2 link)                                                   
+                         |> Result.mapErr mapErr2 (lazy msgParam2 link)                                                   
                 ) 
 
         downloadTimetables client     
    
-        message.msgParam4 pathToDir
+        msgParam4 pathToDir

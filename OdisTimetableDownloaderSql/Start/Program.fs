@@ -48,14 +48,14 @@ let rec private pathToFolder () =
     with
     | ex ->
           logInfoMsg <| sprintf "043 %s" (string ex.Message)
-          closeItBaby Settings.Messages.messagesDefault (string ex.Message)  
+          closeItBaby (string ex.Message)  
           e
 
 [<EntryPoint; STAThread>] // STAThread> musi byt quli openFolderBrowserDialog()
 //[<EntryPoint>] 
 let main argv =        
     //*****************************Console******************************  
-    let updateDate = "17-03-2024"
+    let updateDate = "21-03-2024"
 
     try
         consoleAppProblemFixer() 
@@ -63,7 +63,7 @@ let main argv =
     with
     | ex -> 
           logInfoMsg <| sprintf "045 %s" (string ex.Message)
-          closeItBaby messagesDefault "Problém s oknem konzole."                
+          closeItBaby "Problém s oknem konzole."                
      
     //*****************************WebScraping******************************  
     
@@ -215,9 +215,9 @@ let main argv =
                 | _                 -> variant ()
             with
             | ex ->
-                  messagesDefault.msgParam1 (string ex.Message)  
+                  msgParam1 (string ex.Message)  
                   logInfoMsg <| sprintf "046 %s" (string ex.Message)  
-                  closeItBaby messagesDefault (string ex.Message)  
+                  closeItBaby (string ex.Message)  
 
         Console.Clear()
 
@@ -275,5 +275,3 @@ let main argv =
                    
     variant()   
     0 // return an integer exit code
-
-

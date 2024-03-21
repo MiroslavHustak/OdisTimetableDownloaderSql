@@ -1,21 +1,20 @@
 ﻿namespace MainFunctions
 
+open System
+open System.IO
+
+open Types.DirNames
+
+open Logging.Logging
+
+open Helpers.CloseApp
+
+open Settings.Messages
+open Settings.SettingsGeneral
+
+open SubmainFunctions.MDPO_Submain    
+
 module WebScraping_MDPO =
-
-    open System
-    open System.IO
-
-    open Types.Messages
-    open Types.DirNames
-    
-    open Logging.Logging
-    
-    open Helpers.CloseApp
-    
-    open Settings.Messages
-    open Settings.SettingsGeneral
-
-    open SubmainFunctions.MDPO_Submain    
 
     //************************Main code*******************************************************************************
 
@@ -38,8 +37,8 @@ module WebScraping_MDPO =
 
     type private Environment = 
         {
-            filterTimetables: string -> Messages -> Map<string, string>
-            downloadAndSaveTimetables: Messages -> string -> Map<string, string> -> unit
+            filterTimetables: string -> Map<string, string>
+            downloadAndSaveTimetables: string -> Map<string, string> -> unit
         }
 
     //quli client neni default
@@ -53,7 +52,7 @@ module WebScraping_MDPO =
 
          //tryWith block is in the main() function  
 
-        let stateReducer (state: State) (message: Messages) (action: Actions) (environment: Environment) =
+        let stateReducer (state: State) (action: Actions) (environment: Environment) =
 
             let dirList pathToDir = [ sprintf"%s\%s"pathToDir ODISDefault.odisDir6 ]
            
@@ -63,14 +62,14 @@ module WebScraping_MDPO =
                 with
                 | ex ->
                       logInfoMsg <| sprintf "051 %s" (string ex.Message)
-                      closeItBaby message message.msg16       
+                      closeItBaby msg16       
 
             match action with                                                   
             | StartProcess           -> 
                                       let processStartTime =  
                                           Console.Clear()
                                           let processStartTime = sprintf "Začátek procesu: %s" <| DateTime.Now.ToString("HH:mm:ss") 
-                                              in message.msgParam7 processStartTime 
+                                              in msgParam7 processStartTime 
                                           in errorHandling processStartTime                      
 
             | DeleteOneODISDirectory ->                                     
@@ -83,7 +82,7 @@ module WebScraping_MDPO =
                                               |> Seq.filter (fun item -> item.Name = dirName) 
                                               |> Seq.iter _.Delete(true)//(fun item -> item.Delete(true)) //trochu je to hack, ale nemusim se zabyvat tryHead, bo moze byt empty kolekce    
                                           in errorHandling myDeleteFunction  
-                                      message.msg12() 
+                                      msg12 () 
                                     
             | CreateFolders          -> 
                                       let myFolderCreation = 
@@ -97,21 +96,21 @@ module WebScraping_MDPO =
                                           let pathToSubdir = dirList pathToDir |> List.head    
                                           match pathToSubdir |> Directory.Exists with 
                                           | false ->                                              
-                                                   message.msgParam5 pathToSubdir   
-                                                   message.msg1()                                                
+                                                   msgParam5 pathToSubdir   
+                                                   msg1 ()                                                
                                           | true  -> 
-                                                   environment.filterTimetables pathToSubdir message
-                                                   |> environment.downloadAndSaveTimetables message pathToSubdir                                       
+                                                   environment.filterTimetables pathToSubdir 
+                                                   |> environment.downloadAndSaveTimetables pathToSubdir                                       
                                           in errorHandling filterDownloadSave           
                                                                                 
             | EndProcess             -> 
                                       let processEndTime =    
                                           let processEndTime = sprintf "Konec procesu: %s" <| DateTime.Now.ToString("HH:mm:ss")                       
-                                              in message.msgParam7 processEndTime
+                                              in msgParam7 processEndTime
                                           in errorHandling processEndTime           
                                  
-        stateReducer stateDefault messagesDefault StartProcess environment
-        stateReducer stateDefault messagesDefault DeleteOneODISDirectory environment
-        stateReducer stateDefault messagesDefault CreateFolders environment
-        stateReducer stateDefault messagesDefault FilterDownloadSave environment
-        stateReducer stateDefault messagesDefault EndProcess environment
+        stateReducer stateDefault StartProcess environment
+        stateReducer stateDefault DeleteOneODISDirectory environment
+        stateReducer stateDefault CreateFolders environment
+        stateReducer stateDefault FilterDownloadSave environment
+        stateReducer stateDefault EndProcess environment

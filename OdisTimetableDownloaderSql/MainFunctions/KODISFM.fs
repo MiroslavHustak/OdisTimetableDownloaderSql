@@ -1,30 +1,30 @@
 ﻿namespace MainFunctions
 
-module WebScraping_KODISFM = 
-
-    open System
+open System
          
-    open Types
-    open Types.Messages
-    open Settings.Messages
-    open Settings.SettingsGeneral
-    
-    open Logging.Logging
+open Types
 
-    open Helpers.CloseApp  
-    open Helpers.FreeMonads  
+open Settings.Messages
+open Settings.SettingsGeneral
     
-    open Database.InsertInto
-    open Database.Connection
+open Logging.Logging
 
-    open SubmainFunctions
-    open SubmainFunctions.KODIS_Submain
+open Helpers.CloseApp  
+open Helpers.FreeMonads  
+        
+open Database.InsertInto
+open Database.Connection
+
+open SubmainFunctions
+open SubmainFunctions.KODIS_Submain
+
+module WebScraping_KODISFM = 
         
     //FREE MONAD 
 
     let internal webscraping_KODISFM pathToDir (variantList: Validity list) = 
             
-        let rec interpret message clp  = 
+        let rec interpret clp  = 
 
             let errorHandling fn = 
                 try
@@ -32,7 +32,7 @@ module WebScraping_KODISFM =
                 with
                 | ex ->
                       logInfoMsg <| sprintf "050 %s" (string ex.Message)
-                      closeItBaby message message.msg16           
+                      closeItBaby msg16           
 
             //function //CommandLineProgram<unit> -> unit
             match clp with
@@ -43,19 +43,19 @@ module WebScraping_KODISFM =
                                                      let processStartTime =    
                                                         Console.Clear()
                                                         let processStartTime = sprintf "Začátek procesu: %s" <| DateTime.Now.ToString("HH:mm:ss") 
-                                                            in message.msgParam7 processStartTime 
+                                                            in msgParam7 processStartTime 
                                                         in errorHandling processStartTime
 
                                                      let param = next ()
-                                                     interpret message param
+                                                     interpret param
 
             | Free (DownloadAndSaveJsonFM next)     ->                                                 
                                                      let downloadAndSaveJson =  
-                                                         downloadAndSaveJson message  
+                                                         downloadAndSaveJson ()  
                                                          in errorHandling downloadAndSaveJson
 
                                                      let param = next ()
-                                                     interpret message param                                                
+                                                     interpret param                                                
                                                 
             | Free (DownloadSelectedVariantFM next) -> 
                                                      let downloadSelectedVariant = 
@@ -63,32 +63,32 @@ module WebScraping_KODISFM =
                                                          //SingleVariantDownload
                                                          | 1 -> 
                                                               let variant = variantList |> List.head
-                                                              deleteOneODISDirectory message variant pathToDir                                                        
+                                                              deleteOneODISDirectory variant pathToDir                                                        
                                                               let dirList = 
                                                                   createOneNewDirectory  //list -> aby bylo mozno pouzit funkci createFolders bez uprav  
                                                                   <| pathToDir 
                                                                   <| createDirName variant listODISDefault4 
-                                                              createFolders message dirList
-                                                              KODIS_Submain.downloadAndSave message variant (dirList |> List.head)  
+                                                              createFolders dirList
+                                                              KODIS_Submain.downloadAndSave variant (dirList |> List.head)  
 
                                                          //BulkVariantDownload       
                                                          | _ ->  
-                                                              deleteAllODISDirectories message pathToDir
+                                                              deleteAllODISDirectories pathToDir
                                                               let dirList = createNewDirectories pathToDir listODISDefault4
-                                                              createFolders message dirList 
+                                                              createFolders dirList 
                                                               (variantList, dirList)
-                                                              ||> List.iter2 (fun variant dir -> KODIS_Submain.downloadAndSave message variant dir)     
+                                                              ||> List.iter2 (fun variant dir -> KODIS_Submain.downloadAndSave variant dir)     
                                                                                                              
                                                          in errorHandling downloadSelectedVariant  
 
                                                      let param = next ()
-                                                     interpret message param
+                                                     interpret param
 
             | Free (EndProcessFM _)                 ->
                                                      let processEndTime =    
-                                                         insertLogEntries getConnection2 closeConnection message 
+                                                         insertLogEntries getConnection2 closeConnection  
                                                          let processEndTime = sprintf "Konec procesu: %s" <| DateTime.Now.ToString("HH:mm:ss")                       
-                                                             in message.msgParam7 processEndTime
+                                                             in msgParam7 processEndTime
                                                          in errorHandling processEndTime
         cmdBuilder
             {
@@ -97,7 +97,7 @@ module WebScraping_KODISFM =
                 let! _ = Free (DownloadSelectedVariantFM Pure)
 
                 return! Free (EndProcessFM Pure)
-            } |> interpret messagesDefault 
+            } |> interpret  
 
         //*****************************************************************************************************************************************
 

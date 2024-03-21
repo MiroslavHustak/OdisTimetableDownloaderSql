@@ -6,12 +6,9 @@ open System.IO
 open Expecto
 open FsToolkit.ErrorHandling
 
-open Types.Messages
-open Settings.Messages
-
 open Helpers.CollectionSplitting
 
-module TestInputs = //simulation of input data  
+module TestInputs = //input data mocking 
     
     let internal testListWithLinks param = 
         List.init param (fun i -> sprintf "random string simulating a link No. %i" i)       
@@ -34,7 +31,7 @@ module ExpectoTests =
                     try
                         let l = testListWithLinks 237 |> List.length
                         
-                        let splittedList = splitListIntoEqualParts (numberOfThreads Settings.Messages.messagesDefault l) (testListWithLinks 237)
+                        let splittedList = splitListIntoEqualParts (numberOfThreads () l) (testListWithLinks 237)
 
                         let diff = 
                             abs ((-) (splittedList |> List.item 0 |> List.length) (splittedList |> List.item (Environment.ProcessorCount - 1) |> List.length)) <= 1
@@ -49,7 +46,7 @@ module ExpectoTests =
                 <|
                 fun _ ->                                
                     try  
-                        let numberOfThreads1 message l =  
+                        let numberOfThreads1 l =  
                                                                 
                             let numberOfThreads = System.Random().Next(1, 101)
         
@@ -67,7 +64,7 @@ module ExpectoTests =
                             [1..1000] 
                             |> List.map 
                                 (fun item ->  
-                                           let n = numberOfThreads1 Settings.Messages.messagesDefault item   
+                                           let n = numberOfThreads1 item   
                                            let splittedList = splitListIntoEqualParts n (testListWithLinks item)
 
                                            let diff = 
@@ -93,10 +90,10 @@ module ExpectoTests =
                 testCase "101F ExpectoTest" 
                 <| 
                 fun _ ->                                 
-                    try
-                        Expect.isTrue true String.Empty  //TODO podumat nad failing tests
-                    with
-                    | ex -> failwith (sprintf "ExpectoTestError 101F: %s" ex.Message)                  
+                       try
+                           Expect.isTrue true String.Empty  //TODO podumat nad failing tests
+                       with
+                       | ex -> failwith (sprintf "ExpectoTestError 101F: %s" ex.Message)                  
             ]
    
     [<Tests>] 

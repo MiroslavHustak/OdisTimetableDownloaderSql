@@ -70,8 +70,8 @@ module TransformationLayerSend =
         {
             oldPrefix = dbDataDomain.oldPrefix
             newPrefix = dbDataDomain.newPrefix
-            startDate = match parseDate dbDataDomain.startDate with Some value -> value | None -> DateTime.MinValue
-            endDate = match parseDate dbDataDomain.endDate with Some value -> value | None -> DateTime.MinValue
+            startDate = match parseDate () dbDataDomain.startDate with Some value -> value | None -> DateTime.MinValue
+            endDate = match parseDate () dbDataDomain.endDate with Some value -> value | None -> DateTime.MinValue
             totalDateInterval = dbDataDomain.totalDateInterval
             suffix = dbDataDomain.suffix
             jsGeneratedString = dbDataDomain.jsGeneratedString

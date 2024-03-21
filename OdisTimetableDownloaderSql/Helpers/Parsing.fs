@@ -7,7 +7,7 @@ module TryParserInt = //Adapted third-party code
          | true, value -> Some value
          | false, _    -> None
 
-     let internal parseInt = tryParseWith <| System.Int32.TryParse  
+     let internal parseInt () = tryParseWith <| System.Int32.TryParse  
      //let (|Int|_|) = parseInt  
      
 module TryParserDate = //tohle je pro parsing textoveho retezce do DateTime, ne pro overovani new DateTime() //Adapted third-party code
@@ -17,7 +17,7 @@ module TryParserDate = //tohle je pro parsing textoveho retezce do DateTime, ne 
            | true, value -> Some value
            | false, _    -> None
 
-       let internal parseDate = tryParseWith <| System.DateTime.TryParse 
+       let internal parseDate () = tryParseWith <| System.DateTime.TryParse 
        //let (|Date|_|) = parseDate                 
                                     
 //**************************************************************************************************                                  
@@ -40,5 +40,3 @@ module private TryParser =
      let internal (|Int|_|)    = parseInt
      let internal (|Single|_|) = parseSingle
      let internal (|Double|_|) = parseDouble
-
-

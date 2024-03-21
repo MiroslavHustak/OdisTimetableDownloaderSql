@@ -6,7 +6,7 @@ open Xunit
 
 open Helpers.CollectionSplitting
 
-module TestInputs = //simulation of input data  
+module TestInputs = //input data mocking  
     
     let internal testListWithLinks param = 
         List.init param (fun i -> sprintf "random string simulating a link No. %i" i)       
@@ -23,7 +23,7 @@ module PassingTests =
         try
             let l = testListWithLinks 237 |> List.length
                         
-            let splittedList = splitListIntoEqualParts (numberOfThreads Settings.Messages.messagesDefault l) (testListWithLinks 237)
+            let splittedList = splitListIntoEqualParts (numberOfThreads () l) (testListWithLinks 237)
 
             let equalLengths = splittedList |> List.length = Environment.ProcessorCount
                         
@@ -39,7 +39,7 @@ module PassingTests =
        try
             let l = testListWithLinks 237 |> List.length
                               
-            let splittedList = splitListIntoEqualParts (numberOfThreads Settings.Messages.messagesDefault l) (testListWithLinks 237)
+            let splittedList = splitListIntoEqualParts (numberOfThreads () l) (testListWithLinks 237)
 
             let lastListLengthNotZero = (<>) (splittedList |> List.item (Environment.ProcessorCount - 1) |> List.length) 0
                               

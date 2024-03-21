@@ -12,6 +12,7 @@ module MDPO_Submain =
     open FsToolkit.ErrorHandling
     //open Microsoft.FSharp.Reflection
 
+    open Settings.Messages
     open Settings.SettingsMDPO
     open Settings.SettingsGeneral
 
@@ -21,7 +22,6 @@ module MDPO_Submain =
 
     open Logging.Logging
 
-    open Types.Messages
     open Types.ErrorTypes
 
     //************************Submain helpers**************************************************************************
@@ -37,20 +37,20 @@ module MDPO_Submain =
                 (fun (prop: PropertyInfo) -> 
                                            match Casting.castAs<string> <| prop.GetValue(r) |> Option.ofStringOption with
                                            | Some value -> Ok value
-                                           | None       -> Error "Chyba v průběhu stahování JŘ, u JŘ MDPO se to někdy stává. Zkus to za chvíli znovu." 
+                                           | None       -> Error msg21 
                 ) 
                 |> List.ofArray 
 
                 list 
                 |> function
-            | [] -> Error "Chyba v průběhu stahování JŘ, u JŘ MDPO se to někdy stává. Zkus to za chvíli znovu."  
+            | [] -> Error msg21  
             | _  -> list |> Result.sequence 
 
     *)
 
     //************************Submain functions************************************************************************
 
-    let internal filterTimetables pathToDir (message : Messages) = 
+    let internal filterTimetables pathToDir = 
 
         let urlList = //aby to bylo jednotne s DPO
             [
@@ -85,7 +85,7 @@ module MDPO_Submain =
         |> Seq.fold (fun acc (key, value) -> Map.add key value acc) Map.empty //vyzkousime si tvorbu Map
 
     //FsHttp
-    let internal downloadAndSaveTimetables (message : Messages) (pathToDir : string) (filterTimetables : Map<string, string>) =  
+    let internal downloadAndSaveTimetables (pathToDir : string) (filterTimetables : Map<string, string>) =  
 
         let downloadFileTaskAsync (uri : string) (path : string) : Async<Result<unit, string>> =  
             
@@ -118,11 +118,11 @@ module MDPO_Submain =
                     with                                                         
                     | ex -> 
                           logInfoMsg <| sprintf "039 %s" (string ex.Message)
-                          closeItBaby message "Chyba v průběhu stahování JŘ, u JŘ MDPO se to někdy stává. Zkus to za chvíli znovu."//(string ex)                                                 
-                          return Error "Chyba v průběhu stahování JŘ, u JŘ MDPO se to někdy stává. Zkus to za chvíli znovu."    
+                          closeItBaby msg21//(string ex)                                                 
+                          return Error msg21    
                 }                 
     
-        message.msgParam3 pathToDir 
+        msgParam3 pathToDir 
     
         let downloadTimetables = 
         
@@ -142,12 +142,12 @@ module MDPO_Submain =
                                       |> function
                                          | Some err ->
                                                      logInfoMsg <| sprintf "040 %s" err
-                                                     closeItBaby message err                                                                      
+                                                     closeItBaby err                                                                      
                                          | None     -> 
-                                                     message.msgParam2 link 
+                                                     msgParam2 link 
                          | Error err ->
                                       logInfoMsg <| sprintf "041 %s" err
-                                      closeItBaby message err              
+                                      closeItBaby err              
 
                      let mapErr2 =      
                          function
@@ -159,15 +159,15 @@ module MDPO_Submain =
                                                  
                      async                                                
                          {   
-                             progressBarContinuous message i l  //progressBarContinuous  
+                             progressBarContinuous i l  //progressBarContinuous  
                              return! downloadFileTaskAsync link pathToFile                                                                                                                               
                          } 
                          |> Async.Catch
                          |> Async.RunSynchronously
                          |> Result.ofChoice  
-                         |> Result.mapErr mapErr2 (lazy message.msgParam2 link)                                                   
+                         |> Result.mapErr mapErr2 (lazy msgParam2 link)                                                   
                 )     
 
         downloadTimetables  
     
-        message.msgParam4 pathToDir
+        msgParam4 pathToDir

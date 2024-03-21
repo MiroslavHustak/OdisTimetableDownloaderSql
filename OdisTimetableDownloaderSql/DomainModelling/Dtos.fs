@@ -45,4 +45,3 @@ module Dto =
             completeLink : string 
             fileToBeSaved : string  
         }
-

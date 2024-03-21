@@ -1,38 +1,38 @@
 ﻿namespace SubmainFunctions
 
-module KODIS_SubmainDataTable =
+open System
+open System.IO
+open System.Net
+open System.Threading
+open System.Net.NetworkInformation
+open System.Text.RegularExpressions
 
-    open System
-    open System.IO
-    open System.Net
-    open System.Threading
-    open System.Net.NetworkInformation
-    open System.Text.RegularExpressions
+open FsHttp
+open FSharp.Data
+open FSharp.Control
+open FsToolkit.ErrorHandling
+open Microsoft.FSharp.Quotations
+open FSharp.Quotations.Evaluator.QuotationEvaluationExtensions
 
-    open FsHttp
-    open FSharp.Data
-    open FSharp.Control
-    open FsToolkit.ErrorHandling
-    open Microsoft.FSharp.Quotations
-    open FSharp.Quotations.Evaluator.QuotationEvaluationExtensions
+open Settings.Messages
+open Settings.SettingsKODIS
+open Settings.SettingsGeneral
 
-    open Settings.SettingsKODIS
-    open Settings.SettingsGeneral
+open Logging.Logging
 
-    open Logging.Logging
-    
-    open Types
-    open Types.Messages
+open Types
 
-    open Helpers
-    open Helpers.Builders
-    open Helpers.CloseApp    
-    open Helpers.MsgBoxClosing
-    open Helpers.ProgressBarFSharp  
-    open Helpers.CollectionSplitting   
+open Helpers
+open Helpers.Builders
+open Helpers.CloseApp    
+open Helpers.MsgBoxClosing
+open Helpers.ProgressBarFSharp  
+open Helpers.CollectionSplitting   
 
-    open DomainModelling.DomainModel
-    open TransformationLayers.TransformationLayerSend
+open DomainModelling.DomainModel
+open TransformationLayers.TransformationLayerSend
+
+module KODIS_SubmainDataTable =    
         
     //DO NOT DIVIDE this module into parts in line with the main design pattern yet - KODIS keeps making unpredictable changes or amendments
 
@@ -57,7 +57,7 @@ module KODIS_SubmainDataTable =
                 async
                     {
                         match not <| NetworkInterface.GetIsNetworkAvailable() with
-                        | true  -> (processor 120000 Json).Post(First(1))                                                                                                                                            
+                        | true  -> (processor () 120000 Json).Post(First(1))                                                                                                                                            
                         | false -> () 
                         do! Async.Sleep(5000) 
                     }
@@ -66,7 +66,7 @@ module KODIS_SubmainDataTable =
 
     //************************Main code***********************************************************
            
-    let internal downloadAndSaveJson message = //FsHttp
+    let internal downloadAndSaveJson () = //FsHttp
                
         let l = jsonLinkList |> List.length
 
@@ -80,7 +80,7 @@ module KODIS_SubmainDataTable =
                                  let! msg = inbox.Receive()                                    
                                  match msg with
                                  | Incr i             ->
-                                                       progressBarContinuous message n l                                                        
+                                                       progressBarContinuous n l                                                        
                                                        return! loop (n + i)
                                  | Fetch replyChannel ->
                                                        replyChannel.Reply n 
@@ -125,11 +125,11 @@ module KODIS_SubmainDataTable =
                 {
                     let errorFn1 err = 
                         logInfoMsg <| sprintf "001 %s" err
-                        closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."
+                        closeItBaby msg5A
 
                     let errorFn2 (err : exn) = 
                         logInfoMsg <| sprintf "002 %s" (string err.Message)
-                        closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."
+                        closeItBaby msg5A
 
                     let! value = result, errorFn2 
                     let! value = value |> List.head, errorFn1
@@ -137,13 +137,13 @@ module KODIS_SubmainDataTable =
                     return value
                 }             
                                                  
-        message.msg2()      
+        msg2 ()      
         
-        let fSharpAsyncParallel message =  
+        let fSharpAsyncParallel () =  
 
-            message.msg15()
+            msg15 ()
 
-            let numberOfThreads1 = numberOfThreads message l
+            let numberOfThreads1 = numberOfThreads () l
 
             let myList =       
                 (splitListIntoEqualParts numberOfThreads1 jsonLinkList, splitListIntoEqualParts numberOfThreads1 pathToJsonList)
@@ -158,15 +158,15 @@ module KODIS_SubmainDataTable =
             |> Result.ofChoice           
             |> function
                 | Ok _      ->                             
-                             message.msg3() 
-                             message.msg4()
+                             msg3 () 
+                             msg4 ()
                 | Error err ->
                              logInfoMsg <| sprintf "003 %s" (string err.Message)
-                             closeItBaby message "Chyba v průběhu stahování JSON souborů pro JŘ KODIS."  
+                             closeItBaby msg5A  
 
-        fSharpAsyncParallel message      
+        fSharpAsyncParallel ()      
    
-    let private digThroughJsonStructure message = //prohrabeme se strukturou json souboru //printfn -> additional 4 parameters
+    let private digThroughJsonStructure () = //prohrabeme se strukturou json souboru //printfn -> additional 4 parameters
     
         let kodisTimetables : Reader<string list, string array> = 
 
@@ -200,14 +200,14 @@ module KODIS_SubmainDataTable =
                            |> function
                            | [||] -> 
                                    logInfoMsg <| sprintf "004 %s" "msg16" 
-                                   closeItBaby message message.msg16
+                                   closeItBaby msg16
                                    [||]
                            | _    -> 
                                    value
                         with
                         | ex -> 
                               logInfoMsg <| sprintf "005 %s" (string ex.Message) 
-                              closeItBaby message message.msg16 
+                              closeItBaby msg16 
                               [||]      
                                                   
                 }
@@ -236,8 +236,8 @@ module KODIS_SubmainDataTable =
                                          | Some value ->
                                                        value |> fn1
                                          | None       -> 
-                                                       message.msg6() 
-                                                       //closeItBaby message message.msg16 
+                                                       msg5 () 
+                                                       logInfoMsg <| sprintf "007A %s" "resulting in None"
                                                        [||]                 
 
                                  let fn3 (item: JsonProvider<pathJson>.Root) =  //quli tomuto je nutno Array 
@@ -246,8 +246,8 @@ module KODIS_SubmainDataTable =
                                          | Some value ->
                                                        value |> Array.collect fn2 
                                          | None       ->
-                                                       message.msg7() 
-                                                       //closeItBaby message message.msg16 
+                                                       msg5 () 
+                                                       logInfoMsg <| sprintf "007B %s" "resulting in None"
                                                        [||] 
                                                       
                                  let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull  
@@ -257,8 +257,8 @@ module KODIS_SubmainDataTable =
                                      | Some value -> 
                                                    value |> Array.collect fn3 
                                      | None       -> 
-                                                   message.msg8() 
-                                                   //closeItBaby message message.msg16 
+                                                   msg5 () 
+                                                   logInfoMsg <| sprintf "007C %s" "resulting in None"
                                                    [||]                                 
                             ) 
                 
@@ -269,16 +269,16 @@ module KODIS_SubmainDataTable =
                             |> function
                                 | [||] -> 
                                         logInfoMsg <| sprintf "006 %s" "msg16" 
-                                        message.msg5()
-                                        closeItBaby message message.msg16
+                                        msg5 ()
+                                        closeItBaby msg16
                                         [||]
                                 | _    -> 
                                         value
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "007 %s" (string ex.Message) 
-                              message.msg5()
-                              closeItBaby message message.msg16 
+                              logInfoMsg <| sprintf "007D %s" (string ex.Message) 
+                              msg5 ()
+                              closeItBaby msg16 
                               [||]                          
                 }
         
@@ -296,7 +296,7 @@ module KODIS_SubmainDataTable =
         //kodisAttachments() |> Set.ofArray //over cas od casu
         //kodisTimetables() |> Set.ofArray //over cas od casu
 
-    let private filterTimetables message param (pathToDir: string) diggingResult = 
+    let private filterTimetables () param (pathToDir: string) diggingResult = 
 
         //*************************************Helpers for SQL columns********************************************
 
@@ -313,7 +313,7 @@ module KODIS_SubmainDataTable =
             with            
             | ex ->
                   logInfoMsg <| sprintf "008 %s" (string ex.Message) 
-                  message.msg9()
+                  msg9 ()
                   String.Empty            
         
         let extractSubstring1 (input : string) =
@@ -329,7 +329,7 @@ module KODIS_SubmainDataTable =
             with            
             | ex ->
                   logInfoMsg <| sprintf "009 %s" (string ex.Message) 
-                  message.msg9()
+                  msg9 ()
                   String.Empty 
 
         let extractStartDate (input : string) =
@@ -364,7 +364,7 @@ module KODIS_SubmainDataTable =
                 with
                 | ex -> 
                       logInfoMsg <| sprintf "010 %s" (string ex.Message) 
-                      message.msg9()
+                      msg9 ()
                       String.Empty     
 
             let totalDateInterval = extractSubstring1 input
@@ -377,7 +377,7 @@ module KODIS_SubmainDataTable =
                 with
                 | ex -> 
                       logInfoMsg <| sprintf "011 %s" (string ex.Message) 
-                      message.msg9()
+                      msg9 ()
                       String.Empty   
         
             let vIndex = partAfter.IndexOf "_v"
@@ -462,8 +462,8 @@ module KODIS_SubmainDataTable =
             {
                 oldPrefix = oldPrefix
                 newPrefix = newPrefix oldPrefix
-                startDate = TryParserDate.parseDate <| extractStartDate totalDateInterval
-                endDate = TryParserDate.parseDate <| extractEndDate totalDateInterval
+                startDate = TryParserDate.parseDate () <| extractStartDate totalDateInterval
+                endDate = TryParserDate.parseDate () <| extractEndDate totalDateInterval
                 totalDateInterval = totalDateInterval
                 suffix = suffix
                 jsGeneratedString = jsGeneratedString
@@ -537,14 +537,14 @@ module KODIS_SubmainDataTable =
 
         let selectDataFromDt = 
             match param with 
-            | CurrentValidity           -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted CurrentValidity |> createPathsForDownloadedFiles
-            | FutureValidity            -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted FutureValidity |> createPathsForDownloadedFiles
-            | ReplacementService        -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted ReplacementService |> createPathsForDownloadedFiles  
-            | WithoutReplacementService -> DataTable.InsertSelectSort.sortLinksOut dataToBeInserted WithoutReplacementService |> createPathsForDownloadedFiles 
+            | CurrentValidity           -> DataTable.InsertSelectSort.sortLinksOut () dataToBeInserted CurrentValidity |> createPathsForDownloadedFiles
+            | FutureValidity            -> DataTable.InsertSelectSort.sortLinksOut () dataToBeInserted FutureValidity |> createPathsForDownloadedFiles
+            | ReplacementService        -> DataTable.InsertSelectSort.sortLinksOut () dataToBeInserted ReplacementService |> createPathsForDownloadedFiles  
+            | WithoutReplacementService -> DataTable.InsertSelectSort.sortLinksOut () dataToBeInserted WithoutReplacementService |> createPathsForDownloadedFiles 
         
         selectDataFromDt  // |> List.iter _.Delete(true) 
  
-    let internal deleteAllODISDirectories message pathToDir = 
+    let internal deleteAllODISDirectories pathToDir = 
 
         let deleteIt : Reader<string list, unit> = 
     
@@ -555,25 +555,24 @@ module KODIS_SubmainDataTable =
                     return 
                         try
                             //rozdil mezi Directory a DirectoryInfo viz Unique_Identifier_And_Metadata_File_Creator.sln -> MainLogicDG.fs
-                            let dirInfo = new DirectoryInfo(pathToDir)  
-                            //smazeme pouze adresare obsahujici stare JR, ostatni ponechame                           
+                            let dirInfo = new DirectoryInfo(pathToDir)                                                       
                                 in
                                 dirInfo.EnumerateDirectories() 
                                 |> Seq.filter (fun item -> getDefaultRecordValues |> List.contains item.Name) //prunik dvou kolekci (plus jeste Seq.distinct pro unique items)
                                 |> Seq.distinct 
                                 |> Seq.toList
                                 |> List.Parallel.iter (fun (item : DirectoryInfo) -> item.Delete(true))
-                                             
+                                //smazeme pouze adresare obsahujici stare JR, ostatni ponechame              
                         with
                         | ex -> 
                               logInfoMsg <| sprintf "012 %s" (string ex.Message)
-                              closeItBaby message message.msg16 
+                              closeItBaby msg16 
                 }
 
         deleteIt listODISDefault4
     
-        message.msg10() 
-        message.msg11()     
+        msg10 () 
+        msg11 ()     
  
     let internal createNewDirectories pathToDir : Reader<string list, string list> =
         //Reader monad for educational purposes only, no real benefit here
@@ -597,7 +596,7 @@ module KODIS_SubmainDataTable =
                     | WithoutReplacementService -> getDefaultRecordValues |> List.item 3
             } 
 
-    let internal deleteOneODISDirectory message variant pathToDir =
+    let internal deleteOneODISDirectory variant pathToDir =
 
         //smazeme pouze jeden adresar obsahujici stare JR, ostatni ponechame
 
@@ -619,18 +618,18 @@ module KODIS_SubmainDataTable =
                         with
                         | ex -> 
                               logInfoMsg <| sprintf "012A %s" (string ex.Message)
-                              closeItBaby message message.msg16 
+                              closeItBaby msg16 
                 }
 
         deleteIt listODISDefault4    
 
-        message.msg10() 
-        message.msg11()   
+        msg10 () 
+        msg11 ()   
  
      //list -> aby bylo mozno pouzit funkci createFolders bez uprav
     let internal createOneNewDirectory pathToDir dirName = [ sprintf"%s\%s"pathToDir dirName ] 
  
-    let internal createFolders message dirList =  
+    let internal createFolders dirList =  
         try
             dirList
             |> List.iter
@@ -650,11 +649,11 @@ module KODIS_SubmainDataTable =
         with
         | ex ->           
               logInfoMsg <| sprintf "013 %s" (string ex.Message)
-              closeItBaby message message.msg16        
+              closeItBaby msg16        
 
-    let private downloadAndSaveTimetables message pathToDir =     //FsHttp
+    let private downloadAndSaveTimetables pathToDir =     //FsHttp
         
-        message.msgParam3 pathToDir  
+        msgParam3 pathToDir  
 
         let asyncDownload (counterAndProgressBar : MailboxProcessor<Msg>) list =   
             
@@ -668,7 +667,7 @@ module KODIS_SubmainDataTable =
                          {    
                              match not <| NetworkInterface.GetIsNetworkAvailable() with
                              | true  ->                                    
-                                      (processor 0 Pdf).Post(First(1)) 
+                                      (processor () 0 Pdf).Post(First(1)) 
                                       Thread.Sleep(600000)
                              | false ->  
                                       //failwith "Simulated exception"  
@@ -685,7 +684,7 @@ module KODIS_SubmainDataTable =
                                      
                                       match response.statusCode with
                                       | HttpStatusCode.OK -> return! response.SaveFileAsync >> Async.AwaitTask <| pathToFile      //Original FsHttp library function                                                                                                 
-                                      | _                 -> return message.msgParam8 "Chyba v průběhu stahování JŘ KODIS."       //nechame chybu projit v loop                                                                                                                                  
+                                      | _                 -> return msgParam8 msg22       //nechame chybu projit v loop                                                                                                                                  
                          } 
                          |> Async.Catch
                          |> Async.RunSynchronously  
@@ -695,7 +694,7 @@ module KODIS_SubmainDataTable =
                                           ()
                              | Error err ->
                                           logInfoMsg <| sprintf "014 %s" (string err.Message)
-                                          message.msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
+                                          msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
                 )  
 
         reader
@@ -705,7 +704,7 @@ module KODIS_SubmainDataTable =
                         ->                           
                          let l = env |> List.length
 
-                         let numberOfThreads1 = numberOfThreads message l
+                         let numberOfThreads1 = numberOfThreads () l
 
                          let counterAndProgressBar =
                              MailboxProcessor.Start
@@ -717,7 +716,7 @@ module KODIS_SubmainDataTable =
                                                  let! msg = inbox.Receive()
                                                  match msg with
                                                  | Incr i             -> 
-                                                                       progressBarContinuous message n l  
+                                                                       progressBarContinuous n l  
                                                                        return! loop (n + i)
                                                  | Fetch replyChannel ->
                                                                        replyChannel.Reply n 
@@ -737,27 +736,27 @@ module KODIS_SubmainDataTable =
                          |> Result.ofChoice  
                          |> function
                              | Ok _      ->
-                                          message.msgParam4 pathToDir
+                                          msgParam4 pathToDir
                              | Error err ->
                                           logInfoMsg <| sprintf "015 %s" (string err.Message)   
-                                          message.msgParam7 "Chyba při paralelním stahování JŘ."  //nechame chybu projit v loop                                            
+                                          msgParam7 msg23  //nechame chybu projit v loop                                            
                     )                        
             } 
             
-    let internal downloadAndSave message variant dir = 
+    let internal downloadAndSave variant dir = 
 
         match dir |> Directory.Exists with 
         | false -> 
-                 message.msgParam5 dir 
-                 message.msg13()                                                
+                 msgParam5 dir 
+                 msg13 ()                                               
         | true  ->
                  try
-                     digThroughJsonStructure message 
+                     digThroughJsonStructure () 
                      |>
-                     filterTimetables message variant dir 
+                     filterTimetables () variant dir 
                      |>
-                     downloadAndSaveTimetables message dir 
+                     downloadAndSaveTimetables dir 
                  with
                  | ex -> 
                        logInfoMsg <| sprintf "018 %s" (string ex.Message)
-                       closeItBaby message message.msg16     
+                       closeItBaby msg16     

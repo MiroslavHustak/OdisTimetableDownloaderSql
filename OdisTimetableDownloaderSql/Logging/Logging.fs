@@ -26,7 +26,11 @@ module Logging =
 
             string sb    
         with
-        | ex -> string ex.Message //proste s tim nic nezrobime, kdyz to nebude fungovat...
+        | ex -> 
+              printfn "%s" "Je třeba zavolat programátora, tato chyba není zaznamenána v log file. Error 2000."
+              printfn "%s" <| string ex.Message //proste s tim nic nezrobime, kdyz to nebude fungovat...
+              String.Empty
+               
 
     //***************************Log files******************************
     
@@ -46,5 +50,3 @@ module Logging =
     let private logger = loggerFactory.CreateLogger("TimetableDownloader")
    
     let internal logInfoMsg msg = logger.LogInformation(msg)
-
-    

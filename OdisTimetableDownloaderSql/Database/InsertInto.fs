@@ -2,23 +2,24 @@
 
 open System
 open System.Data
+open System.Globalization
 open FsToolkit.ErrorHandling
 open Microsoft.Data.SqlClient
 
-open Types.Messages
+open Settings.Messages
+
 open Helpers.Builders
 open Helpers.CloseApp
+open Helpers.TryParserDate
 
 open Logging.Logging
 
 open DomainModelling.Dto
 open DomainModelling.DomainModel
-open Helpers.TryParserDate
-open System.Globalization
 
 module InsertInto = 
 
-    let internal insert getConnection closeConnection (dataToBeInserted : DbDataDtoSend list) message =
+    let internal insert getConnection closeConnection (dataToBeInserted : DbDataDtoSend list) =
 
         let queryDeleteAll = "DELETE FROM TimetableLinks"
          
@@ -38,7 +39,7 @@ module InsertInto =
                 );
         "                
         try
-            let connection: SqlConnection = getConnection message 
+            let connection: SqlConnection = getConnection () 
             
             try                 
                 use cmdDeleteAll = new SqlCommand(queryDeleteAll, connection)             
@@ -87,14 +88,14 @@ module InsertInto =
                                cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows                               
                     )                
             finally
-                closeConnection connection message
+                closeConnection connection 
         with
         | ex ->
-              message.msgParam1 <| string ex.Message
+              msgParam1 <| string ex.Message
               logInfoMsg <| sprintf "033 %s" (string ex.Message)
-              closeItBaby message (string ex.Message)
+              closeItBaby (string ex.Message)
 
-    let internal insertLogEntries getConnection2 closeConnection message =
+    let internal insertLogEntries getConnection2 closeConnection =
 
         let dataToBeInserted = Database.LoggingSQL.extractLogEntries () 
 
@@ -130,7 +131,7 @@ module InsertInto =
                 "  
                  
              try
-                 let connection: SqlConnection = getConnection2 message 
+                 let connection: SqlConnection = getConnection2 () 
                 
                  try                        
                      //use cmdDeleteAll = new SqlCommand(queryDeleteAll, connection)             
@@ -163,12 +164,13 @@ module InsertInto =
                                               
                                     cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows                                                                
                         )                
-                     printfn "Log entries merged with the old ones in LogEntries2"     
+                     
+                     msg19 ()   
                                       
                  finally
-                     closeConnection connection message
+                     closeConnection connection 
              with
              | ex ->
-                   message.msgParam1 <| string ex.Message
+                   msgParam1 <| string ex.Message
                    logInfoMsg <| sprintf "101 %s" (string ex.Message)
-                   closeItBaby message (string ex.Message)
+                   closeItBaby (string ex.Message)

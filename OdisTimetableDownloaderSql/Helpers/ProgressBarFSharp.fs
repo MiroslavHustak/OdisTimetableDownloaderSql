@@ -2,9 +2,9 @@
 
 open System
 
-open Types.Messages
 open Logging.Logging
 open Helpers.CloseApp
+open Settings.Messages
 
 module ProgressBarFSharp =
 
@@ -14,7 +14,7 @@ module ProgressBarFSharp =
     
     let private (++) a = (+) a 1
 
-    let inline private updateProgressBar (message: Messages) (currentProgress : int) (totalProgress : int) : unit =
+    let inline private updateProgressBar (currentProgress : int) (totalProgress : int) : unit =
 
         let bytes = //437 je tzv. Extended ASCII            
             try
@@ -59,17 +59,14 @@ module ProgressBarFSharp =
             sprintf "<%s%s> %d%%" bar remaining percentComplete 
 
         match (=) currentProgress totalProgress with
-        | true  -> message.msgParam8 progressBar
-        | false -> message.msgParam9 progressBar
+        | true  -> msgParam8 progressBar
+        | false -> msgParam9 progressBar
                                  
-    let internal progressBarContinuous (message: Messages) (currentProgress : int) (totalProgress : int) : unit =
+    let internal progressBarContinuous (currentProgress : int) (totalProgress : int) : unit =
 
         match currentProgress < (-) totalProgress 1 with
         | true  -> 
-                 updateProgressBar message currentProgress totalProgress
+                 updateProgressBar currentProgress totalProgress
         | false ->              
                  Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
-                 Console.CursorLeft <- 0         
-               
-
-                  
+                 Console.CursorLeft <- 0 

@@ -4,9 +4,6 @@ open System
 open System.Net.Http
 open FsToolkit.ErrorHandling
 
-open Types
-open Types.Messages
-
 open Settings.Messages
 
 open Helpers
@@ -67,16 +64,16 @@ module Result =
                          )   
                  Ok okList 
 
-module CloseApp =        
-       
-    let internal closeItDpo (client: HttpClient) (message: Messages) err = 
-        message.msgParam1 err      
+module CloseApp =      
+
+    let internal closeItDpo (client: HttpClient) err = 
+        msgParam1 err      
         Console.ReadKey() |> ignore 
         client.Dispose()
-        System.Environment.Exit(1)  
+        System.Environment.Exit(1)     
 
-    let internal closeItBaby (message: Messages) err = 
-        message.msgParam1 err      
+    let internal closeItBaby err = 
+        msgParam1 err      
         Console.ReadKey() |> ignore 
         System.Environment.Exit(1)  
 
@@ -100,18 +97,8 @@ module Option =
     let internal ofNull (value: 'nullableValue) =
         match System.Object.ReferenceEquals(value, null) with //The "value" type can be even non-nullable, and ReferenceEquals will still work.
         | true  -> None
-        | false -> Some value                             
-
-    let internal ofObj value =
-        match value with
-        | null -> None
-        | _    -> Some value
-
-    let internal ofNullable (value: System.Nullable<'T>) =
-        match value.HasValue with
-        | true  -> Some value.Value
-        | false -> None
-
+        | false -> Some value     
+  
     let internal toResult err = 
         function   
         | Some value -> Ok value 

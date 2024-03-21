@@ -7,8 +7,8 @@ open Microsoft.Data.SqlClient
 open Helpers
 open Helpers.CloseApp
 
-open Types.Messages
 open Logging.Logging
+open Settings.Messages
 
 open DomainModelling.Dto
 open DomainModelling.DomainModel
@@ -16,10 +16,10 @@ open TransformationLayers.TransformationLayerGet
 
 module Select =
 
-    let internal select getConnection closeConnection message pathToDir itvfCall =
+    let internal select getConnection closeConnection pathToDir itvfCall =
         
         try
-            let connection: SqlConnection = getConnection message
+            let connection: SqlConnection = getConnection ()
                      
             try  
                 //query je tady volani ITVF
@@ -56,8 +56,8 @@ module Select =
                                   Ok (link, file)
                              | _                   
                                  ->
-                                  //failwith "Chyba při čtení z databáze" 
-                                  Error "Chyba při čtení z databáze"
+                                  //failwith msg18 
+                                  Error msg18
                     )
                 |> Result.sequence
                 |> function   
@@ -65,13 +65,12 @@ module Select =
                                  value
                     | Error err -> 
                                  logInfoMsg <| sprintf "019 %s" err
-                                 closeItBaby Settings.Messages.messagesDefault err
+                                 closeItBaby err
                                  []
             finally
-                closeConnection connection message
+                closeConnection connection 
         with
         | ex -> 
               logInfoMsg <| sprintf "020 %s" (string ex.Message)
-              closeItBaby Settings.Messages.messagesDefault "Chyba při čtení z databáze"             
+              closeItBaby msg18             
               []
-

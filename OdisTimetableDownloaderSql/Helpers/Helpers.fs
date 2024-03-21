@@ -1,19 +1,8 @@
 ﻿namespace Helpers
-
-open System
-open System.IO
-open System.Windows.Forms
-open System.Net.NetworkInformation
-
-open CloseApp
-
-open Logging.Logging
-
-open Helpers
-open Helpers.Builders
-open Helpers.FreeMonadsCM
    
 module ConsoleFixers = //tryWith blok je kajsy indze
+   
+    open System
 
     let internal consoleAppProblemFixer () = 
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance)  
@@ -35,7 +24,7 @@ module ConsoleFixers = //tryWith blok je kajsy indze
         Console.WindowWidth     <- int (screenWidth / 1.8F)
         Console.WindowHeight    <- int (screenHeight / 1.8F)
 
-module LogicalAliases =         
+module LogicalAliases =      
 
     let internal xor a b = (a && not b) || (not a && b)   
         
@@ -55,6 +44,13 @@ module LogicalAliases =
         nXor_tail_recursive false operands
 
 module CopyingOrMovingFiles = //output in Result type 
+
+    open System.IO
+    
+    open Logging.Logging
+    
+    open Helpers
+    open Helpers.Builders
          
     let private processFile source destination action =
                          
@@ -93,6 +89,17 @@ module CopyingOrMovingFiles = //output in Result type
     
 module CopyingOrMovingFilesFreeMonad =   //not used yet  
 
+    open System
+    open System.IO
+    
+    open CloseApp
+    
+    open Logging.Logging
+    
+    open Helpers
+    open Helpers.Builders
+    open Helpers.FreeMonadsCM
+
     //Free monads are just a general way of turning functors into monads.
     //A free monad is a sequence of actions where subsequent actions can depend on the result of previous ones.
         
@@ -124,7 +131,7 @@ module CopyingOrMovingFilesFreeMonad =   //not used yet
                          path1
             | Error err -> 
                          logInfoMsg <| sprintf "021 %s" err
-                         closeItBaby Settings.Messages.messagesDefault (sprintf "%s%s" err path2) 
+                         closeItBaby (sprintf "%s%s" err path2) 
                          String.Empty
 
         let f = 
@@ -197,6 +204,8 @@ module CopyingOrMovingFilesFreeMonad =   //not used yet
        
 module MyString = //priklad pouziti: getString(8, "0")//tuple a compiled nazev velkym kvuli DLL pro C#        
         
+    open System
+    
     [<CompiledName "GetString">]      
     let getString (numberOfStrings: int, stringToAdd: string): string = 
         
@@ -215,6 +224,11 @@ module MyString = //priklad pouziti: getString(8, "0")//tuple a compiled nazev v
         loop listRange initialString
 
 module CheckNetConnection =  
+
+    open System.Net.NetworkInformation
+    
+    open Helpers
+    open Logging.Logging   
       
     let internal checkNetConn (timeout : int) =                 
        
@@ -233,6 +247,6 @@ module CheckNetConnection =
                     )
                 ) 
         with
-        |_ -> None   
-               
-     
+        | ex ->
+              logInfoMsg <| sprintf "110 %s" (string ex.Message)
+              None   

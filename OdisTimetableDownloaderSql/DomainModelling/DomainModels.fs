@@ -44,4 +44,3 @@ module DomainModel =
             completeLink : string 
             fileToBeSaved : string 
         }
-

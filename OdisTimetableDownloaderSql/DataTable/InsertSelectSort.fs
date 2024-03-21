@@ -78,7 +78,7 @@ module InsertSelectSort =
                        dt.Rows.Add(newRow)
             )                  
 
-    let internal sortLinksOut (dataToBeInserted : DtDataDtoSend list) validity = 
+    let internal sortLinksOut () (dataToBeInserted : DtDataDtoSend list) validity = 
                 
         insertIntoDataTable dataToBeInserted  
 
@@ -139,7 +139,7 @@ module InsertSelectSort =
                 dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row
             with
             | ex -> 
-                  closeItBaby Messages.messagesDefault (string ex.Message)
+                  closeItBaby (string ex.Message)
                   dtDataDtoGetDataTable >> dtDataTransformLayerGet <| row                 
         
         let seqFromDataTable = dt.AsEnumerable() |> Seq.distinct 

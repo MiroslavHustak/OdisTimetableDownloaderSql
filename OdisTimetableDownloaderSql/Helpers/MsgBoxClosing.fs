@@ -8,6 +8,7 @@ open FSharp.Control
 
 open Types 
 open Builders
+open Settings.Messages
 
 module MsgBoxClosing =  
 
@@ -73,7 +74,7 @@ module MsgBoxClosing =
                 messageLoop ()
             )              
 
-    let internal processor (waitingTime : int) variant = 
+    let internal processor () (waitingTime : int) variant = 
         MailboxProcessor.Start
             (fun inbox 
                   ->
@@ -88,18 +89,14 @@ module MsgBoxClosing =
                                     let boxTitle = "No jéje, zase problém ..."
                                     
                                     match variant with
-                                    | Json -> 
-                                            let s1 = "Není připojení k internetu. Obnov jej, stahování příslušných souborů bude pak pokračovat."
-                                            let s2 = String.Empty
-                                            let str = sprintf "%s %s" s1 s2
-                                                             
+                                    | Json ->                                                                                                       
                                             let result () =
 
                                                 let result = 
 
                                                     MessageBox.Show
                                                         (
-                                                            str, 
+                                                            msg18, 
                                                             boxTitle, 
                                                             MessageBoxButtons.OK
                                                         ) 
@@ -118,15 +115,11 @@ module MsgBoxClosing =
                                                          result ()                                  
                                             keepOneMsgBox ()      
             
-                                    | Pdf  ->
-                                            let s1 = "Není připojení k internetu. Stahování souborů se musí ukončit, i kdyby zrovna došlo k obnovení připojení."
-                                            let s2 = "Zmáčknutím tlačítka Ok vypni tento program a pak jej spusť znovu."
-                                            let str = sprintf "%s %s" s1 s2
-                                                      
+                                    | Pdf  ->                                            
                                             let result () = 
                                                 MessageBox.Show
                                                     (
-                                                        str, 
+                                                        msg17 (), 
                                                         boxTitle, 
                                                         MessageBoxButtons.OK
                                                     )
@@ -149,7 +142,3 @@ module MsgBoxClosing =
 
                    loop true // Start with isFirst set to true
             )     
-              
-    
-      
-

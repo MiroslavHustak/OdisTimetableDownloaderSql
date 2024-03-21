@@ -3,10 +3,11 @@
 open System
 open FsToolkit.ErrorHandling
 
-open Types.Messages
 open Logging.Logging
 
 open Helpers.CloseApp
+
+open Settings.Messages
 open Settings.SettingsKODIS
 
 module CollectionSplitting =
@@ -22,7 +23,7 @@ module CollectionSplitting =
         with
         | ex ->    
               logInfoMsg <| sprintf "024 %s" (string ex.Message) 
-              closeItBaby message message.msg16 
+              closeItBaby msg16 
               [ [] ]   
                         
     let internal splitListByPrefixExplanation message (list: string list) : string list list = 
@@ -35,7 +36,7 @@ module CollectionSplitting =
         with
         | ex ->    
               logInfoMsg <| sprintf "025 %s" (string ex.Message) 
-              closeItBaby message message.msg16 
+              closeItBaby msg16
               [ [] ]   
     
     let internal splitListIntoEqualParts (numParts: int) (originalList: 'a list) =   //almost equal parts :-)    
@@ -69,7 +70,7 @@ module CollectionSplitting =
                       
         splitAccumulator originalList [] numParts
     
-    let internal numberOfThreads message l =  
+    let internal numberOfThreads () l =  
         
         let numberOfThreads = Environment.ProcessorCount //nesu exceptions
         
@@ -81,5 +82,4 @@ module CollectionSplitting =
                  | _                -> 0  
         | false ->
                  logInfoMsg <| sprintf "026 %s" "Chyba při rozdělování listu pro multi-threading." 
-                 closeItBaby message "Chyba při rozdělování listu pro multi-threading."; -1
-
+                 closeItBaby "Chyba při rozdělování listu pro multi-threading."; -1
