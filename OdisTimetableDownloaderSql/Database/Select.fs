@@ -10,8 +10,8 @@ open Helpers.CloseApp
 open Logging.Logging
 open Settings.Messages
 
-open DomainModelling.Dto
-open DomainModelling.DomainModel
+open DataModelling.Dto
+open DataModelling.DataModel
 open TransformationLayers.TransformationLayerGet
 
 module Select =
@@ -41,7 +41,7 @@ module Select =
                 |> List.map 
                     (fun (link, file)
                         ->                                       
-                         let record : DbDataDtoGet = 
+                         let record : DbDtoGet = 
                              {
                                  completeLink = link
                                  fileToBeSaved = file

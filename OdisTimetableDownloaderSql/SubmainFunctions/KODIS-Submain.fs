@@ -33,7 +33,7 @@ open Database.Select
 open Database.InsertInto
 open Database.Connection
 
-open DomainModelling.DomainModel
+open DataModelling.DataModel
 open TransformationLayers.TransformationLayerSend
 
 module KODIS_Submain =
@@ -489,7 +489,7 @@ module KODIS_Submain =
         
             let fileToBeSaved = sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
 
-            let record : DbDataDomainSend = 
+            let record : DbDataSend = 
                 {
                     oldPrefix = oldPrefix
                     newPrefix = newPrefix oldPrefix

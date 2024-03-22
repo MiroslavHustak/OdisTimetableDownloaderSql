@@ -14,12 +14,12 @@ open Helpers.TryParserDate
 
 open Logging.Logging
 
-open DomainModelling.Dto
-open DomainModelling.DomainModel
+open DataModelling.Dto
+open DataModelling.DataModel
 
 module InsertInto = 
 
-    let internal insert getConnection closeConnection (dataToBeInserted : DbDataDtoSend list) =
+    let internal insert getConnection closeConnection (dataToBeInserted : DbDtoSend list) =
 
         let queryDeleteAll = "DELETE FROM TimetableLinks"
          

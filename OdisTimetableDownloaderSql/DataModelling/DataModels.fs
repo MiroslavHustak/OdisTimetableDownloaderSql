@@ -1,16 +1,16 @@
-﻿namespace DomainModelling
+﻿namespace DataModelling
 
 open System
 
-module DomainModel = 
+module DataModel = 
 
-    type DbDataDomainGet = 
+    type DbDataGet = 
         {            
             completeLink : string option
             fileToBeSaved : string option
         }
 
-    type DtDataDomainGet = 
+    type DtDataGet = 
         {           
             newPrefix : string  
             startDate : DateTime
@@ -19,7 +19,7 @@ module DomainModel =
             fileToBeSaved : string  
         } 
 
-    type DbDataDomainSend = 
+    type DbDataSend = 
         {
             oldPrefix : string 
             newPrefix : string 
@@ -32,7 +32,7 @@ module DomainModel =
             fileToBeSaved : string 
         }
 
-    type DtDataDomainSend = 
+    type DtDataSend = 
         {
             oldPrefix : string 
             newPrefix : string 

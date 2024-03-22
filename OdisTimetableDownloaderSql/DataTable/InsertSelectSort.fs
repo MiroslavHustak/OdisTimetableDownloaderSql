@@ -13,8 +13,8 @@ open Helpers.CloseApp
 
 open Settings
 
-open DomainModelling.Dto
-open DomainModelling.DomainModel
+open DataModelling.Dto
+open DataModelling.DataModel
 
 open TransformationLayers.TransformationLayerGet
 
@@ -46,7 +46,7 @@ module InsertSelectSort =
         
         dtTimetableLinks
 
-    let private insertIntoDataTable (dataToBeInserted : DtDataDtoSend list) =
+    let private insertIntoDataTable (dataToBeInserted : DtDtoSend list) =
             
         dataToBeInserted 
         |> List.iter 
@@ -78,7 +78,7 @@ module InsertSelectSort =
                        dt.Rows.Add(newRow)
             )                  
 
-    let internal sortLinksOut () (dataToBeInserted : DtDataDtoSend list) validity = 
+    let internal sortLinksOut () (dataToBeInserted : DtDtoSend list) validity = 
                 
         insertIntoDataTable dataToBeInserted  
 
@@ -125,7 +125,7 @@ module InsertSelectSort =
 
         let currentTime = DateTime.Now.Date
 
-        let dtDataDtoGetDataTable (row : DataRow) : DtDataDtoGet =                         
+        let dtDataDtoGetDataTable (row : DataRow) : DtDtoGet =                         
             {           
                 newPrefix = row.["NewPrefix"]
                 startDate = row.["StartDate"]

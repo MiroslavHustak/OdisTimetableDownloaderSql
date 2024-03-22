@@ -29,7 +29,7 @@ open Helpers.MsgBoxClosing
 open Helpers.ProgressBarFSharp  
 open Helpers.CollectionSplitting   
 
-open DomainModelling.DomainModel
+open DataModelling.DataModel
 open TransformationLayers.TransformationLayerSend
 
 module KODIS_SubmainDataTable =    
