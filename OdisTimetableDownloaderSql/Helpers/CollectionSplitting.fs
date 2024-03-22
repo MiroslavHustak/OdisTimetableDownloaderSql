@@ -81,5 +81,5 @@ module CollectionSplitting =
                  | false when l > 0 -> l
                  | _                -> 0  
         | false ->
-                 logInfoMsg <| sprintf "026 %s" "Chyba při rozdělování listu pro multi-threading." 
-                 closeItBaby "Chyba při rozdělování listu pro multi-threading."; -1
+                 logInfoMsg <| sprintf "026 %s" msg24 
+                 closeItBaby msg24; -1

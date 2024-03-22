@@ -4,7 +4,7 @@ open System
 
 module Messages =
     
-    let [<Literal>] formatBody = "\n%s%s"   
+    let [<Literal>] private formatBody = "\n%s%s"   
 
     let internal msg1 () = printfn "Zase se někdo vrtal v listu s odkazy a cestami. Je nutná jejich kontrola. Zmáčkni cokoliv pro ukončení programu." 
     let internal msg2 () = printfn "Probíhá stahování a ukládání JSON souborů ze stránek KODISu."
@@ -29,6 +29,7 @@ module Messages =
     let internal msg21 = "Chyba v průběhu stahování JŘ, u JŘ MDPO se to někdy stává. Zkus to za chvíli znovu."    
     let internal msg22 = "Chyba v průběhu stahování JŘ KODIS."
     let internal msg23 = "Chyba při paralelním stahování JŘ."
+    let internal msg24 = "Chyba při rozdělování listu pro multi-threading."
 
     let internal msgParam1 = printfn formatBody "No jéje, někde nastala chyba. Zmáčkni cokoliv pro ukončení programu a zkus to znovu. Popis chyby: " 
     let internal msgParam2 = printfn formatBody "Jízdní řád s tímto odkazem se nepodařilo stáhnout: \n"  
