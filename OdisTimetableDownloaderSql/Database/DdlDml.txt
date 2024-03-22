@@ -31,6 +31,13 @@ CREATE TABLE LogEntries2
     [Message] NVARCHAR(100),
 );
 
+ALTER TABLE LogEntries2
+ALTER COLUMN Logname NVARCHAR(100);
+
+ALTER TABLE LogEntries2
+ALTER COLUMN [Message] NVARCHAR(400);
+
+
 INSERT INTO LogEntries2 ([Timestamp], Logname, [Message])
 VALUES (@Timestamp, @Logname, @Message)
 

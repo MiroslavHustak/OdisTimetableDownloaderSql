@@ -93,7 +93,6 @@ module MsgBoxClosing =
                                             let result () =
 
                                                 let result = 
-
                                                     MessageBox.Show
                                                         (
                                                             msg18, 

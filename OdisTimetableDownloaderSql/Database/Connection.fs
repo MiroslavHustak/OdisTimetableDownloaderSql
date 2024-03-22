@@ -39,8 +39,10 @@ module Connection =
     let internal closeConnection (connection: SqlConnection) =  
         
         try
-            connection.Close()
-            connection.Dispose()
+            try
+                connection.Close()                
+            finally
+                connection.Dispose()
         with
         | ex -> 
               logInfoMsg <| sprintf "032 %s" (string ex.Message) 

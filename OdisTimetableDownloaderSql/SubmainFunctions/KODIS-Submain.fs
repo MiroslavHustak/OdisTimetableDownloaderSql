@@ -14,13 +14,13 @@ open FsToolkit.ErrorHandling
 open Microsoft.FSharp.Quotations
 open FSharp.Quotations.Evaluator.QuotationEvaluationExtensions
 
+open Types
+
+open Logging.Logging
+
 open Settings.Messages
 open Settings.SettingsKODIS
 open Settings.SettingsGeneral
-
-open Logging.Logging
-    
-open Types
 
 open Helpers
 open Helpers.Builders
@@ -255,8 +255,10 @@ module KODIS_Submain =
                                 -> 
                                  let fn1 (value: JsonProvider<pathJson>.Attachment array) = 
                                      value
-                                     |> Array.Parallel.map (fun item -> item.Url |> Option.ofStringObjXXL)
-                                     |> Array.choose id //co neprojde, to beze slova ignoruju
+                                     |> List.ofArray
+                                     |> List.Parallel.map (fun item -> item.Url |> Option.ofStringObjXXL) //jj, funguje to :-)                                    
+                                     |> List.choose id //co neprojde, to beze slova ignoruju
+                                     |> List.toArray
 
                                  let fn2 (item: JsonProvider<pathJson>.Vyluky) =  //quli tomuto je nutno Array     
                                      item.Attachments |> Option.ofNull        

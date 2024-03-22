@@ -1,7 +1,6 @@
 ﻿namespace TransformationLayers
 
 open System
-open System.Data
 
 open Helpers
 open Helpers.Builders

@@ -21,7 +21,7 @@ module TryParserDate = //tohle je pro parsing textoveho retezce do DateTime, ne 
        //let (|Date|_|) = parseDate                 
                                     
 //**************************************************************************************************                                  
-//Toto neni pouzivany kod, ale jen pattern pro tvorbu TryParserInt, TryParserDate atd. Adapted third-party code.
+//Toto neni pouzivany kod, ale jen pattern pro tvorbu TryParserInt, TryParserDate atd. //Adapted third-party code.
 module private TryParser =
 
      let private tryParseWith (tryParseFunc: string -> bool * _) = 

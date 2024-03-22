@@ -14,13 +14,13 @@ open FsToolkit.ErrorHandling
 open Microsoft.FSharp.Quotations
 open FSharp.Quotations.Evaluator.QuotationEvaluationExtensions
 
-open Settings.Messages
-open Settings.SettingsKODIS
-open Settings.SettingsGeneral
+open Types
 
 open Logging.Logging
 
-open Types
+open Settings.Messages
+open Settings.SettingsKODIS
+open Settings.SettingsGeneral
 
 open Helpers
 open Helpers.Builders
