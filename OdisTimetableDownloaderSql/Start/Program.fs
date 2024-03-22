@@ -229,10 +229,7 @@ let main argv =
         printfn "%c" <| char(32)  
         printfn "Anebo klikni na křížek pro ukončení aplikace."
                 
-        let s1 = "Není připojení k internetu. Obnov jej, bez něj stahování JŘ opravdu nebude fungovat :-)."
-        let s2 = String.Empty
-        let str = sprintf "%s %s" s1 s2
-
+        let str = "Není připojení k internetu. Obnov jej, bez něj stahování JŘ opravdu nebude fungovat :-)."        
         let boxTitle = "No jéje, zase problém ..."
                                                          
         let checkNetConnection timeout =
