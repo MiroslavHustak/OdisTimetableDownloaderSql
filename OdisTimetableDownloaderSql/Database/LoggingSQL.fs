@@ -30,5 +30,7 @@ module LoggingSQL =
             |> List.distinct        
         with
         | ex -> 
-              logInfoMsg <| sprintf "102 %s" (string ex.Message)                        
+              printfn "%s" "Je třeba zavolat programátora, tato chyba není zaznamenána v log file. Error 2001."
+              printfn "%s" <| string ex.Message //proste s tim nic nezrobime, kdyz to nebude fungovat... 
+              logInfoMsg <| sprintf "102 %s" (string ex.Message) //zkusime to...                        
               [] //tady nevadi List.empty jakozto vystup 
