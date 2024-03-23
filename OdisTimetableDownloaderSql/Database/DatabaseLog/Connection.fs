@@ -1,4 +1,4 @@
-﻿namespace Database
+﻿namespace Database2
 
 open Microsoft.Data.SqlClient
 
@@ -7,20 +7,6 @@ open Helpers.CloseApp
 open Settings.Messages
 
 module Connection =    
-
-    let internal getConnection () =  
-
-        let connString = @"Data Source=Misa\SQLEXPRESS;Initial Catalog=TimetableDownloader;Integrated Security=True;Encrypt=False"
-
-        try            
-            let connection = new SqlConnection(connString)
-            connection.Open()
-            connection
-        with
-        | ex ->
-              logInfoMsg <| sprintf "031 %s" (string ex.Message) 
-              closeItBaby msg16 
-              new SqlConnection(connString)     
               
     let internal getConnection2 () =  
 
@@ -32,7 +18,7 @@ module Connection =
             connection
         with
         | ex ->
-              logInfoMsg <| sprintf "031A %s" (string ex.Message) 
+              logInfoMsg <| sprintf "Err131A %s" (string ex.Message) 
               closeItBaby msg16 
               new SqlConnection(connString2)     
 
@@ -45,5 +31,5 @@ module Connection =
                 connection.Dispose()
         with
         | ex -> 
-              logInfoMsg <| sprintf "032 %s" (string ex.Message) 
+              logInfoMsg <| sprintf "Err132A %s" (string ex.Message) 
               closeItBaby msg16  

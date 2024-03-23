@@ -32,7 +32,7 @@ module DPO_Submain =
         | Some value -> 
                       value
         | None       ->
-                      logInfoMsg <| sprintf "034 %s" "new HttpClient() is null"
+                      logInfoMsg <| sprintf "Err034 %s" "new HttpClient() is null"
                       client.Dispose()
                       closeItBaby msg20
                       new HttpClient()                              
@@ -150,7 +150,7 @@ module DPO_Submain =
                                           return errorType     
                     with                                                         
                     | ex ->  
-                          logInfoMsg <| sprintf "035 %s" (string ex.Message)
+                          logInfoMsg <| sprintf "Err035 %s" (string ex.Message)
                           closeItDpo client msg20 
                           return Error msg20    
                 }   
@@ -178,7 +178,7 @@ module DPO_Submain =
                                           | None     -> 
                                                       msgParam2 link 
                           | Error err ->
-                                       logInfoMsg <| sprintf "037 %s" err
+                                       logInfoMsg <| sprintf "Err037 %s" err
                                        closeItDpo client err              
 
                      let mapErr2 = 
@@ -186,7 +186,7 @@ module DPO_Submain =
                          | Ok value  -> 
                                       value |> ignore
                          | Error err ->
-                                      logInfoMsg <| sprintf "038 %s" err
+                                      logInfoMsg <| sprintf "Err038 %s" err
                                       mapErr3 err (Ok listConnErrorCodeDefault) //Ok je legacy drivejsiho reflection a Result.sequence
                                                  
                      async                                                

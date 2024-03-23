@@ -117,7 +117,7 @@ module MDPO_Submain =
                                       
                     with                                                         
                     | ex -> 
-                          logInfoMsg <| sprintf "039 %s" (string ex.Message)
+                          logInfoMsg <| sprintf "Err039 %s" (string ex.Message)
                           closeItBaby msg21//(string ex)                                                 
                           return Error msg21    
                 }                 
@@ -146,7 +146,7 @@ module MDPO_Submain =
                                          | None     -> 
                                                      msgParam2 link 
                          | Error err ->
-                                      logInfoMsg <| sprintf "041 %s" err
+                                      logInfoMsg <| sprintf "Err041 %s" err
                                       closeItBaby err              
 
                      let mapErr2 =      
@@ -154,7 +154,7 @@ module MDPO_Submain =
                          | Ok value  ->
                                       value |> ignore
                          | Error err ->
-                                      logInfoMsg <| sprintf "042 %s" err
+                                      logInfoMsg <| sprintf "Err042 %s" err
                                       mapErr3 err (Ok listConnErrorCodeDefault) //Ok je legacy drivejsiho reflection a Result.sequence
                                                  
                      async                                                

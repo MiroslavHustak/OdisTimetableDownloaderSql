@@ -21,7 +21,7 @@ module ProgressBarFSharp =
                 (System.Text.Encoding.GetEncoding(437).GetBytes("█")) 
             with 
             | ex ->
-                  logInfoMsg <| sprintf "027 %s" (string ex.Message)
+                  logInfoMsg <| sprintf "Err027 %s" (string ex.Message)
                   [||] 
                    
         let output =          
@@ -29,7 +29,7 @@ module ProgressBarFSharp =
                 System.Text.Encoding.GetEncoding(852).GetChars(bytes)
             with 
             | ex ->
-                  logInfoMsg <| sprintf "028 %s" (string ex.Message)
+                  logInfoMsg <| sprintf "Err028 %s" (string ex.Message)
                   [||] 
         
         let progressBar = 
@@ -45,7 +45,7 @@ module ProgressBarFSharp =
                     String.replicate barFill characterToFill
                 with
                 | ex -> 
-                      logInfoMsg <| sprintf "029 %s" (string ex.Message)
+                      logInfoMsg <| sprintf "Err029 %s" (string ex.Message)
                       String.Empty
                                
             let remaining = 
@@ -53,7 +53,7 @@ module ProgressBarFSharp =
                     String.replicate (barWidth - (++) barFill) "*"
                 with
                 | ex -> 
-                      logInfoMsg <| sprintf "030 %s" (string ex.Message)
+                      logInfoMsg <| sprintf "Err030 %s" (string ex.Message)
                       String.Empty
               
             sprintf "<%s%s> %d%%" bar remaining percentComplete 

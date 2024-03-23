@@ -1,21 +1,4 @@
-﻿/***********************************************
-
-MERGE INTO LogEntries2 AS target
-USING (VALUES (@Timestamp, @Logname, @Message))
-AS source ([Timestamp], Logname, [Message])
-ON target.[Timestamp] = source.[Timestamp]
-    AND target.Logname = source.Logname
-    AND target.[Message] = source.[Message]
-WHEN MATCHED THEN
-UPDATE SET target.[Timestamp] = source.[Timestamp],
-    target.Logname = source.Logname,
-    target.[Message] = source.[Message]
-WHEN NOT MATCHED BY target THEN
-    INSERT ([Timestamp], Logname, [Message])
-    VALUES (source.[Timestamp], source.Logname, source.[Message]);  
-
-
-//***********************************************
+﻿//*************************************************
 CREATE FUNCTION dbo.ITVF_GetLinksCurrentValidity ()   
 RETURNS TABLE
 AS
@@ -35,20 +18,6 @@ RETURN
     WHERE MaxRow = 1     
 );
 
-//nelze bohuzel pouzit jako parametr pro ITVF
-CREATE VIEW CurrentValidityView AS
-	SELECT NewPrefix, StartDate, EndDate, CompleteLink, FileToBeSaved,
-	ROW_NUMBER() OVER (PARTITION BY NewPrefix ORDER BY StartDate DESC) AS MaxRow
-	FROM TimetableLinks
-	WHERE 	    
-		((StartDate <= FORMAT(GETDATE(), 'yyyy-MM-dd') AND EndDate >= FORMAT(GETDATE(), 'yyyy-MM-dd'))
-		OR
-		(StartDate = FORMAT(GETDATE(), 'yyyy-MM-dd') AND EndDate = FORMAT(GETDATE(), 'yyyy-MM-dd')));
-
-SELECT *
-FROM dbo.ITVF_GetLinksCurrentValidity () 
-ORDER BY FileToBeSaved;
-
 
 //***********************************************
 CREATE FUNCTION dbo.ITVF_GetLinksFutureValidity () 
@@ -64,10 +33,6 @@ RETURN
 		WHERE StartDate > FORMAT(GETDATE(), 'yyyy-MM-dd')
     ) AS myDerivedTable     
 );
-
-SELECT *
-FROM dbo.ITVF_GetLinksFutureValidity () 
-ORDER BY FileToBeSaved;
 
 
 //*****************************************************
@@ -96,10 +61,6 @@ RETURN
     WHERE MaxRow = 1     
 );
 
-SELECT *
-FROM dbo.ITVF_GetLinksReplacementService () 
-ORDER BY FileToBeSaved;
-
 
 //*************************************************************  
 CREATE FUNCTION dbo.ITVF_GetLinksWithoutReplacementService ()   
@@ -126,7 +87,3 @@ RETURN
     ) AS myDerivedTable
     WHERE MaxRow = 1     
 );
-
-SELECT *
-FROM dbo.ITVF_GetLinksWithoutReplacementService () 
-ORDER BY FileToBeSaved;

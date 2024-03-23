@@ -30,6 +30,7 @@ module Messages =
     let internal msg22 = "Chyba v průběhu stahování JŘ KODIS."
     let internal msg23 = "Chyba při paralelním stahování JŘ."
     let internal msg24 = "Chyba při rozdělování listu pro multi-threading."
+    let internal msg25 () = printfn "Triggers activated"
 
     let internal msgParam1 = printfn formatBody "No jéje, někde nastala chyba. Zmáčkni cokoliv pro ukončení programu a zkus to znovu. Popis chyby: " 
     let internal msgParam2 = printfn formatBody "Jízdní řád s tímto odkazem se nepodařilo stáhnout: \n"  

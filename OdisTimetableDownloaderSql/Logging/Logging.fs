@@ -4,7 +4,6 @@ open System
 open Newtonsoft.Json
 open NReco.Logging.File
 open Microsoft.Extensions.Logging
-open Microsoft.Extensions.DependencyInjection
 
 module Logging =     
 
@@ -27,10 +26,9 @@ module Logging =
             string sb    
         with
         | ex -> 
-              printfn "%s" "Je třeba zavolat programátora, tato chyba není zaznamenána v log file. Error 2000."
+              printfn "%s" "Je třeba zavolat programátora, tato chyba není zaznamenána v log file. Err2001."
               printfn "%s" <| string ex.Message //proste s tim nic nezrobime, kdyz to nebude fungovat...
-              String.Empty
-               
+              String.Empty               
 
     //***************************Log files******************************
     

@@ -74,7 +74,7 @@ module CopyingOrMovingFiles = //output in Result type
                 processFile source destination action
         with
         | err -> 
-               logInfoMsg <| sprintf "022 %s" (string err.Message)
+               logInfoMsg <| sprintf "Err022 %s" (string err.Message)
                Error <| sprintf "Chyba při kopírování souboru %s do %s" source destination
             
     let internal moveFiles source destination overwrite =
@@ -84,7 +84,7 @@ module CopyingOrMovingFiles = //output in Result type
                 processFile source destination action
         with
         | err ->
-              logInfoMsg <| sprintf "023 %s" (string err.Message)
+              logInfoMsg <| sprintf "Err023 %s" (string err.Message)
               Error <| sprintf "Chyba při přemísťování souboru %s do %s" source destination
     
 module CopyingOrMovingFilesFreeMonad =   //not used yet  
@@ -130,7 +130,7 @@ module CopyingOrMovingFilesFreeMonad =   //not used yet
             | Ok path1  -> 
                          path1
             | Error err -> 
-                         logInfoMsg <| sprintf "021 %s" err
+                         logInfoMsg <| sprintf "Err021 %s" err
                          closeItBaby (sprintf "%s%s" err path2) 
                          String.Empty
 
@@ -248,5 +248,5 @@ module CheckNetConnection =
                 ) 
         with
         | ex ->
-              logInfoMsg <| sprintf "110 %s" (string ex.Message)
+              logInfoMsg <| sprintf "Err110 %s" (string ex.Message)
               None   

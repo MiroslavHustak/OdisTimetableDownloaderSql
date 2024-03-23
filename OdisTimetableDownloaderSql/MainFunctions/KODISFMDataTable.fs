@@ -27,7 +27,7 @@ module WebScraping_KODISFMDataTable =
                     fn
                 with
                 | ex ->
-                      logInfoMsg <| sprintf "049 %s" (string ex.Message)
+                      logInfoMsg <| sprintf "Err049 %s" (string ex.Message)
                       closeItBaby msg16           
 
             //function //CommandLineProgram<unit> -> unit
@@ -37,10 +37,16 @@ module WebScraping_KODISFMDataTable =
 
             | Free (StartProcessFM next)            -> 
                                                      let processStartTime =    
-                                                        Console.Clear()
-                                                        let processStartTime = sprintf "Začátek procesu: %s" <| DateTime.Now.ToString("HH:mm:ss") 
-                                                            in msgParam7 processStartTime 
-                                                        in errorHandling processStartTime
+                                                         Console.Clear()
+                                                         let processStartTime = 
+                                                             try                                                                                                                                
+                                                                 sprintf "Začátek procesu: %s" <| DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") 
+                                                             with
+                                                             | ex ->       
+                                                                   logInfoMsg <| sprintf "Err503 %s" (string ex.Message)
+                                                                   sprintf "Začátek procesu nemohl býti ustanoven."   
+                                                             in msgParam7 processStartTime 
+                                                         in errorHandling processStartTime
 
                                                      let param = next ()
                                                      interpret param
@@ -82,7 +88,13 @@ module WebScraping_KODISFMDataTable =
 
             | Free (EndProcessFM _)                 ->
                                                      let processEndTime =    
-                                                         let processEndTime = sprintf "Konec procesu: %s" <| DateTime.Now.ToString("HH:mm:ss")                       
+                                                         let processEndTime = 
+                                                             try                                                                                                                                
+                                                                sprintf "Konec procesu: %s" <| DateTime.Now.ToString("HH:mm:ss")  
+                                                             with
+                                                             | ex ->       
+                                                                   logInfoMsg <| sprintf "Err504 %s" (string ex.Message)
+                                                                   sprintf "Konec procesu nemohl býti ustanoven."   
                                                              in msgParam7 processEndTime
                                                          in errorHandling processEndTime
         cmdBuilder

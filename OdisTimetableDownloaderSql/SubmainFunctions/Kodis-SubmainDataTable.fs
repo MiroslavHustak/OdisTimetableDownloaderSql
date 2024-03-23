@@ -124,11 +124,11 @@ module KODIS_SubmainDataTable =
             pyramidOfInferno
                 {
                     let errorFn1 err = 
-                        logInfoMsg <| sprintf "001 %s" err
+                        logInfoMsg <| sprintf "Err001 %s" err
                         closeItBaby msg5A
 
                     let errorFn2 (err : exn) = 
-                        logInfoMsg <| sprintf "002 %s" (string err.Message)
+                        logInfoMsg <| sprintf "Err002 %s" (string err.Message)
                         closeItBaby msg5A
 
                     let! value = result, errorFn2 
@@ -161,7 +161,7 @@ module KODIS_SubmainDataTable =
                              msg3 () 
                              msg4 ()
                 | Error err ->
-                             logInfoMsg <| sprintf "003 %s" (string err.Message)
+                             logInfoMsg <| sprintf "Err003 %s" (string err.Message)
                              closeItBaby msg5A  
 
         fSharpAsyncParallel ()      
@@ -200,14 +200,14 @@ module KODIS_SubmainDataTable =
                            value
                            |> function
                            | [||] -> 
-                                   logInfoMsg <| sprintf "004 %s" "msg16" 
+                                   logInfoMsg <| sprintf "Err004 %s" "msg16" 
                                    closeItBaby msg16
                                    [||]
                            | _    -> 
                                    value
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "005 %s" (string ex.Message) 
+                              logInfoMsg <| sprintf "Err005 %s" (string ex.Message) 
                               closeItBaby msg16 
                               [||]      
                                                   
@@ -238,7 +238,7 @@ module KODIS_SubmainDataTable =
                                                        value |> fn1
                                          | None       -> 
                                                        msg5 () 
-                                                       logInfoMsg <| sprintf "007A %s" "resulting in None"
+                                                       logInfoMsg <| sprintf "Err007A %s" "resulting in None"
                                                        [||]                 
 
                                  let fn3 (item: JsonProvider<pathJson>.Root) =  //quli tomuto je nutno Array 
@@ -248,7 +248,7 @@ module KODIS_SubmainDataTable =
                                                        value |> Array.collect fn2 
                                          | None       ->
                                                        msg5 () 
-                                                       logInfoMsg <| sprintf "007B %s" "resulting in None"
+                                                       logInfoMsg <| sprintf "Err007B %s" "resulting in None"
                                                        [||] 
                                                       
                                  let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull  
@@ -259,7 +259,7 @@ module KODIS_SubmainDataTable =
                                                    value |> Array.collect fn3 
                                      | None       -> 
                                                    msg5 () 
-                                                   logInfoMsg <| sprintf "007C %s" "resulting in None"
+                                                   logInfoMsg <| sprintf "Err007C %s" "resulting in None"
                                                    [||]                                 
                             ) 
                 
@@ -269,7 +269,7 @@ module KODIS_SubmainDataTable =
                             value
                             |> function
                                 | [||] -> 
-                                        logInfoMsg <| sprintf "006 %s" "msg16" 
+                                        logInfoMsg <| sprintf "Err006 %s" "msg16" 
                                         msg5 ()
                                         closeItBaby msg16
                                         [||]
@@ -277,7 +277,7 @@ module KODIS_SubmainDataTable =
                                         value
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "007D %s" (string ex.Message) 
+                              logInfoMsg <| sprintf "Err007D %s" (string ex.Message) 
                               msg5 ()
                               closeItBaby msg16 
                               [||]                          
@@ -313,7 +313,7 @@ module KODIS_SubmainDataTable =
                 | false -> String.Empty 
             with            
             | ex ->
-                  logInfoMsg <| sprintf "008 %s" (string ex.Message) 
+                  logInfoMsg <| sprintf "Err008 %s" (string ex.Message) 
                   msg9 ()
                   String.Empty            
         
@@ -329,7 +329,7 @@ module KODIS_SubmainDataTable =
                 | false -> String.Empty
             with            
             | ex ->
-                  logInfoMsg <| sprintf "009 %s" (string ex.Message) 
+                  logInfoMsg <| sprintf "Err009 %s" (string ex.Message) 
                   msg9 ()
                   String.Empty 
 
@@ -364,7 +364,7 @@ module KODIS_SubmainDataTable =
                     |> List.item 1
                 with
                 | ex -> 
-                      logInfoMsg <| sprintf "010 %s" (string ex.Message) 
+                      logInfoMsg <| sprintf "Err010 %s" (string ex.Message) 
                       msg9 ()
                       String.Empty     
 
@@ -377,7 +377,7 @@ module KODIS_SubmainDataTable =
                     |> List.item 1    
                 with
                 | ex -> 
-                      logInfoMsg <| sprintf "011 %s" (string ex.Message) 
+                      logInfoMsg <| sprintf "Err011 %s" (string ex.Message) 
                       msg9 ()
                       String.Empty   
         
@@ -566,7 +566,7 @@ module KODIS_SubmainDataTable =
                                 //smazeme pouze adresare obsahujici stare JR, ostatni ponechame              
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "012 %s" (string ex.Message)
+                              logInfoMsg <| sprintf "Err012 %s" (string ex.Message)
                               closeItBaby msg16 
                 }
 
@@ -618,7 +618,7 @@ module KODIS_SubmainDataTable =
                                              
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "012A %s" (string ex.Message)
+                              logInfoMsg <| sprintf "Err012A %s" (string ex.Message)
                               closeItBaby msg16 
                 }
 
@@ -694,7 +694,7 @@ module KODIS_SubmainDataTable =
                              | Ok _      ->    
                                           ()
                              | Error err ->
-                                          logInfoMsg <| sprintf "014 %s" (string err.Message)
+                                          logInfoMsg <| sprintf "Err014 %s" (string err.Message)
                                           msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
                 )  
 
@@ -739,7 +739,7 @@ module KODIS_SubmainDataTable =
                              | Ok _      ->
                                           msgParam4 pathToDir
                              | Error err ->
-                                          logInfoMsg <| sprintf "015 %s" (string err.Message)   
+                                          logInfoMsg <| sprintf "Err015 %s" (string err.Message)   
                                           msgParam7 msg23  //nechame chybu projit v loop                                            
                     )                        
             } 
@@ -759,5 +759,5 @@ module KODIS_SubmainDataTable =
                      downloadAndSaveTimetables dir 
                  with
                  | ex -> 
-                       logInfoMsg <| sprintf "018 %s" (string ex.Message)
+                       logInfoMsg <| sprintf "Err018 %s" (string ex.Message)
                        closeItBaby msg16     

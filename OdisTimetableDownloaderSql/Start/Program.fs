@@ -47,7 +47,7 @@ let rec private pathToFolder () =
                             pathToFolder ()   
     with
     | ex ->
-          logInfoMsg <| sprintf "043 %s" (string ex.Message)
+          logInfoMsg <| sprintf "Err043 %s" (string ex.Message)
           closeItBaby (string ex.Message)  
           e
 
@@ -62,7 +62,7 @@ let main argv =
         consoleWindowSettings()  
     with
     | ex -> 
-          logInfoMsg <| sprintf "045 %s" (string ex.Message)
+          logInfoMsg <| sprintf "Err045 %s" (string ex.Message)
           closeItBaby "Problém s oknem konzole."                
      
     //*****************************WebScraping******************************  
@@ -216,7 +216,7 @@ let main argv =
             with
             | ex ->
                   msgParam1 (string ex.Message)  
-                  logInfoMsg <| sprintf "046 %s" (string ex.Message)  
+                  logInfoMsg <| sprintf "Err046 %s" (string ex.Message)  
                   closeItBaby (string ex.Message)  
 
         Console.Clear()

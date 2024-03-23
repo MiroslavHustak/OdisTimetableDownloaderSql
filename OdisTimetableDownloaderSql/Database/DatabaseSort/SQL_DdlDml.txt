@@ -20,28 +20,6 @@ CREATE TABLE TimetableLinks
 USE TimetableDownloader;
 GO
 
-DROP TABLE IF EXISTS LogEntries2; 
-GO
-
-CREATE TABLE LogEntries2
-(      
-    -- Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    [Timestamp] DATETIME,
-    Logname NVARCHAR(100),
-    [Message] NVARCHAR(100),
-);
-
-ALTER TABLE LogEntries2
-ALTER COLUMN Logname NVARCHAR(100);
-
-ALTER TABLE LogEntries2
-ALTER COLUMN [Message] NVARCHAR(400);
-
-
-INSERT INTO LogEntries2 ([Timestamp], Logname, [Message])
-VALUES (@Timestamp, @Logname, @Message)
-
-
 INSERT INTO TimetableLinks 
 (
     OldPrefix, NewPrefix, StartDate, EndDate, 

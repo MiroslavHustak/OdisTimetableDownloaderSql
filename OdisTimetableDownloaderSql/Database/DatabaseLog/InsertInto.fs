@@ -1,4 +1,4 @@
-﻿namespace Database
+﻿namespace Database2
 
 open System
 open System.Data
@@ -19,85 +19,9 @@ open DataModelling.DataModel
 
 module InsertInto = 
 
-    let internal insert getConnection closeConnection (dataToBeInserted : DbDtoSend list) =
-
-        let queryDeleteAll = "DELETE FROM TimetableLinks"
-         
-        let queryInsert = 
-             "           
-             INSERT INTO TimetableLinks 
-                (
-                    OldPrefix, NewPrefix, StartDate, EndDate, 
-                    TotalDateInterval,VT_Suffix, JS_GeneratedString, 
-                    CompleteLink, FileToBeSaved
-                ) 
-             VALUES
-                (
-                    @OldPrefix, @NewPrefix, @StartDate, @EndDate, 
-                    @TotalDateInterval, @VT_Suffix, @JS_GeneratedString, 
-                    @CompleteLink, @FileToBeSaved
-                );
-        "                
-        try
-            let connection: SqlConnection = getConnection () 
-            
-            try                 
-                use cmdDeleteAll = new SqlCommand(queryDeleteAll, connection)             
-                use cmdInsert = new SqlCommand(queryInsert, connection)   
-                
-                let parameterStart = new SqlParameter()                 
-                parameterStart.ParameterName <- "@StartDate"  
-                parameterStart.SqlDbType <- SqlDbType.Date  
-
-                let parameterEnd = new SqlParameter() 
-                parameterEnd.ParameterName <- "@EndDate"  
-                parameterEnd.SqlDbType <- SqlDbType.Date  
-
-                cmdDeleteAll.ExecuteNonQuery() |> ignore //number of affected rows
-                
-                dataToBeInserted     
-                |> List.iter
-                    (fun item -> 
-                               (*   
-                               let (startDate, endDate) =   
-
-                                   pyramidOfDoom
-                                       {
-                                           let! startDate = item.startDate, (DateTime.MinValue, DateTime.MinValue)                                                      
-                                           let! endDate = item.endDate, (DateTime.MinValue, DateTime.MinValue)                             
-                                          
-                                           return (startDate, endDate)
-                                       }
-                               *)
-                               cmdInsert.Parameters.Clear() // Clear parameters for each iteration     
-                               cmdInsert.Parameters.AddWithValue("@OldPrefix", item.oldPrefix) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@NewPrefix", item.newPrefix) |> ignore
-
-                               parameterStart.Value <- item.startDate
-                               cmdInsert.Parameters.Add(parameterStart) |> ignore
-
-                               parameterEnd.Value <- item.endDate                                
-                               cmdInsert.Parameters.Add(parameterEnd) |> ignore
-
-                               cmdInsert.Parameters.AddWithValue("@TotalDateInterval", item.totalDateInterval) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@VT_Suffix", item.suffix) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@JS_GeneratedString", item.jsGeneratedString) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@CompleteLink", item.completeLink) |> ignore
-                               cmdInsert.Parameters.AddWithValue("@FileToBeSaved", item.fileToBeSaved) |> ignore       
-                           
-                               cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows                               
-                    )                
-            finally
-                closeConnection connection 
-        with
-        | ex ->
-              msgParam1 <| string ex.Message
-              logInfoMsg <| sprintf "033 %s" (string ex.Message)
-              closeItBaby (string ex.Message)
-
     let internal insertLogEntries getConnection2 closeConnection =
 
-        let dataToBeInserted = Database.LoggingSQL.extractLogEntries () 
+        let dataToBeInserted = Database2.DataForSQLTable.extractLogEntries () 
 
         match dataToBeInserted.Length with
         | 0 -> 
@@ -106,7 +30,7 @@ module InsertInto =
              //let queryDeleteAll = "DELETE FROM LogEntries2"
              
              //https://learn.microsoft.com/en-us/sql/t-sql/statements/merge-transact-sql?view=sql-server-ver16
-             //v tabulce budou jen nove hodnoty, hodnoty, ktere tam uz jsou, se z logu nebudou znovu nacitat         
+             //v tabulce budou jen nove hodnoty - hodnoty, ktere tam uz jsou, se z logu nebudou znovu nacitat         
              let queryInsert =        
                  "
                  MERGE INTO LogEntries2 AS target
@@ -172,5 +96,51 @@ module InsertInto =
              with
              | ex ->
                    msgParam1 <| string ex.Message
-                   logInfoMsg <| sprintf "101 %s" (string ex.Message)
+                   logInfoMsg <| sprintf "Err101 %s" (string ex.Message)
                    closeItBaby (string ex.Message)
+
+
+    let internal insertProcessTime getConnection2 closeConnection (dataToBeInserted : DateTime list) =    
+    
+            match dataToBeInserted.Length with
+            | 0 -> 
+                 ()
+            | _ -> 
+                 let queryInsert =               
+                     "
+                     INSERT INTO ProcessTime ([Start], [End])
+                     VALUES (@Start, @End)                 
+                    "  
+                    
+                 try
+                     let connection: SqlConnection = getConnection2 () 
+                    
+                     try                        
+                         use cmdInsert = new SqlCommand(queryInsert, connection)   
+                        
+                         let parameterStart = new SqlParameter()                 
+                         parameterStart.ParameterName <- "@Start"  
+                         parameterStart.SqlDbType <- SqlDbType.DateTime  
+
+                         let parameterEnd = new SqlParameter()                 
+                         parameterEnd.ParameterName <- "@End"  
+                         parameterEnd.SqlDbType <- SqlDbType.DateTime  
+                                         
+                         cmdInsert.Parameters.Clear() // Clear parameters for each iteration    
+                        
+                         parameterStart.Value <- List.item 0 dataToBeInserted                             
+                         cmdInsert.Parameters.Add(parameterStart) |> ignore   
+                         parameterEnd.Value <- List.item 1 dataToBeInserted                             
+                         cmdInsert.Parameters.Add(parameterEnd) |> ignore    
+                                                                              
+                         cmdInsert.ExecuteNonQuery() |> ignore //number of affected rows    
+
+                         msg25 ()   
+                                          
+                     finally
+                         closeConnection connection 
+                 with
+                 | ex ->
+                       msgParam1 <| string ex.Message
+                       logInfoMsg <| sprintf "Err101A %s" (string ex.Message)
+                       closeItBaby (string ex.Message)

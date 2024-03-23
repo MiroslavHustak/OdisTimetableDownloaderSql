@@ -12,8 +12,8 @@ open Logging.Logging
 open Helpers.CloseApp  
 open Helpers.FreeMonads  
         
-open Database.InsertInto
-open Database.Connection
+open Database2.InsertInto
+open Database2.Connection
 
 open SubmainFunctions
 open SubmainFunctions.KODIS_Submain
@@ -23,6 +23,8 @@ module WebScraping_KODISFM =
     //FREE MONAD 
 
     let internal webscraping_KODISFM pathToDir (variantList: Validity list) = 
+
+        let startProcess = DateTime.Now
             
         let rec interpret clp  = 
 
@@ -31,7 +33,7 @@ module WebScraping_KODISFM =
                     fn
                 with
                 | ex ->
-                      logInfoMsg <| sprintf "050 %s" (string ex.Message)
+                      logInfoMsg <| sprintf "Err050 %s" (string ex.Message)
                       closeItBaby msg16           
 
             //function //CommandLineProgram<unit> -> unit
@@ -42,7 +44,13 @@ module WebScraping_KODISFM =
             | Free (StartProcessFM next)            -> 
                                                      let processStartTime =    
                                                         Console.Clear()
-                                                        let processStartTime = sprintf "Začátek procesu: %s" <| DateTime.Now.ToString("HH:mm:ss") 
+                                                        let processStartTime = 
+                                                            try                                                                                                                                
+                                                                sprintf "Začátek procesu: %s" <| DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") 
+                                                            with
+                                                            | ex ->       
+                                                                  logInfoMsg <| sprintf "Err501 %s" (string ex.Message)
+                                                                  sprintf "Začátek procesu nemohl býti ustanoven."   
                                                             in msgParam7 processStartTime 
                                                         in errorHandling processStartTime
 
@@ -86,8 +94,13 @@ module WebScraping_KODISFM =
 
             | Free (EndProcessFM _)                 ->
                                                      let processEndTime =    
-                                                         insertLogEntries getConnection2 closeConnection  
-                                                         let processEndTime = sprintf "Konec procesu: %s" <| DateTime.Now.ToString("HH:mm:ss")                       
+                                                         let processEndTime = 
+                                                             try                                                                                                                                
+                                                                sprintf "Konec procesu: %s" <| DateTime.Now.ToString("HH:mm:ss")  
+                                                             with
+                                                             | ex ->       
+                                                                   logInfoMsg <| sprintf "Err502 %s" (string ex.Message)
+                                                                   sprintf "Konec procesu nemohl býti ustanoven."   
                                                              in msgParam7 processEndTime
                                                          in errorHandling processEndTime
         cmdBuilder
@@ -98,7 +111,11 @@ module WebScraping_KODISFM =
 
                 return! Free (EndProcessFM Pure)
             } |> interpret  
+        
+        let endProcess = DateTime.Now
 
+        insertLogEntries getConnection2 closeConnection
+        insertProcessTime getConnection2 closeConnection [startProcess; endProcess]
         //*****************************************************************************************************************************************
 
         //CurrentValidity = JR striktne platne k danemu dni, tj. pokud je napr. na dany den vylukovy JR, stahne se tento JR, ne JR platny dalsi den

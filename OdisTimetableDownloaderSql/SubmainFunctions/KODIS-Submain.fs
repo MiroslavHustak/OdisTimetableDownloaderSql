@@ -142,11 +142,11 @@ module KODIS_Submain =
             pyramidOfInferno
                 {
                     let errorFn1 err = 
-                        logInfoMsg <| sprintf "001 %s" err
+                        logInfoMsg <| sprintf "Err001 %s" err
                         closeItBaby msg5A
 
                     let errorFn2 (err : exn) = 
-                        logInfoMsg <| sprintf "002 %s" (string err.Message)
+                        logInfoMsg <| sprintf "Err002 %s" (string err.Message)
                         closeItBaby msg5A
 
                     let! value = result, errorFn2 
@@ -179,7 +179,7 @@ module KODIS_Submain =
                              msg3 () 
                              msg4 ()
                 | Error err ->
-                             logInfoMsg <| sprintf "003 %s" (string err.Message)
+                             logInfoMsg <| sprintf "Err003 %s" (string err.Message)
                              closeItBaby msg5A
 
         fSharpAsyncParallel ()   
@@ -227,14 +227,14 @@ module KODIS_Submain =
                            value
                            |> function
                            | [||] -> 
-                                   logInfoMsg <| sprintf "004 %s" "msg16" 
+                                   logInfoMsg <| sprintf "Err004 %s" "msg16" 
                                    closeItBaby msg16
                                    [||]
                            | _    -> 
                                    value
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "005 %s" (string ex.Message) 
+                              logInfoMsg <| sprintf "Err005 %s" (string ex.Message) 
                               closeItBaby msg16 
                               [||]      
                                                   
@@ -298,7 +298,7 @@ module KODIS_Submain =
                             value
                             |> function
                                 | [||] -> 
-                                        logInfoMsg <| sprintf "006 %s" "msg16" 
+                                        logInfoMsg <| sprintf "Err006 %s" "msg16" 
                                         msg5 ()
                                         closeItBaby msg16
                                         [||]
@@ -306,7 +306,7 @@ module KODIS_Submain =
                                         value
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "007D %s" (string ex.Message) 
+                              logInfoMsg <| sprintf "Err007D %s" (string ex.Message) 
                               msg5 ()
                               closeItBaby msg16 
                               [||]                          
@@ -342,7 +342,7 @@ module KODIS_Submain =
                 | false -> String.Empty 
             with            
             | ex ->
-                  logInfoMsg <| sprintf "008 %s" (string ex.Message) 
+                  logInfoMsg <| sprintf "Err008 %s" (string ex.Message) 
                   msg9 ()
                   String.Empty            
         
@@ -358,7 +358,7 @@ module KODIS_Submain =
                 | false -> String.Empty
             with            
             | ex ->
-                  logInfoMsg <| sprintf "009 %s" (string ex.Message) 
+                  logInfoMsg <| sprintf "Err009 %s" (string ex.Message) 
                   msg9 ()
                   String.Empty 
 
@@ -393,7 +393,7 @@ module KODIS_Submain =
                     |> List.item 1
                 with
                 | ex -> 
-                      logInfoMsg <| sprintf "010 %s" (string ex.Message) 
+                      logInfoMsg <| sprintf "Err010 %s" (string ex.Message) 
                       msg9 ()
                       String.Empty     
 
@@ -406,7 +406,7 @@ module KODIS_Submain =
                     |> List.item 1    
                 with
                 | ex -> 
-                      logInfoMsg <| sprintf "011 %s" (string ex.Message) 
+                      logInfoMsg <| sprintf "Err011 %s" (string ex.Message) 
                       msg9 ()
                       String.Empty   
         
@@ -598,7 +598,7 @@ module KODIS_Submain =
                                 //smazeme pouze adresare obsahujici stare JR, ostatni ponechame             
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "012 %s" (string ex.Message)
+                              logInfoMsg <| sprintf "Err012 %s" (string ex.Message)
                               closeItBaby msg16 
                 }
 
@@ -650,7 +650,7 @@ module KODIS_Submain =
                                              
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "012A %s" (string ex.Message)
+                              logInfoMsg <| sprintf "Err012A %s" (string ex.Message)
                               closeItBaby msg16 
                 }
 
@@ -726,7 +726,7 @@ module KODIS_Submain =
                              | Ok _      ->    
                                           ()
                              | Error err ->
-                                          logInfoMsg <| sprintf "014 %s" (string err.Message)
+                                          logInfoMsg <| sprintf "Err014 %s" (string err.Message)
                                           msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
                 )  
 
@@ -791,5 +791,5 @@ module KODIS_Submain =
                      downloadAndSaveTimetables dir 
                  with
                  | ex -> 
-                       logInfoMsg <| sprintf "018 %s" (string ex.Message)
+                       logInfoMsg <| sprintf "Err018 %s" (string ex.Message)
                        closeItBaby msg16     

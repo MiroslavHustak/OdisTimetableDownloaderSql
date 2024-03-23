@@ -1,4 +1,4 @@
-﻿namespace Database
+﻿namespace Database2
 
 open System.IO
 open Newtonsoft.Json.Linq
@@ -8,9 +8,9 @@ open Helpers.CloseApp
 
 open Logging.Logging
 
-module LoggingSQL =
+module DataForSQLTable =
   
-    let extractLogEntries () =
+    let internal extractLogEntries () =
 
         let filePath = "logs/app.log"
 
@@ -30,7 +30,7 @@ module LoggingSQL =
             |> List.distinct        
         with
         | ex -> 
-              printfn "%s" "Je třeba zavolat programátora, tato chyba není zaznamenána v log file. Error 2001."
+              printfn "%s" "Je třeba zavolat programátora, tato chyba není zaznamenána v log file. Err2002."
               printfn "%s" <| string ex.Message //proste s tim nic nezrobime, kdyz to nebude fungovat... 
-              //logInfoMsg <| sprintf "102 %s" (string ex.Message)                    
+              //logInfoMsg <| sprintf "Err2002 %s" (string ex.Message)                    
               [] //tady nevadi List.empty jakozto vystup 

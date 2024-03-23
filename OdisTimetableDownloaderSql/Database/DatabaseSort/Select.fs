@@ -71,6 +71,6 @@ module Select =
                 closeConnection connection 
         with
         | ex -> 
-              logInfoMsg <| sprintf "020 %s" (string ex.Message)
+              logInfoMsg <| sprintf "Err020 %s" (string ex.Message)
               closeItBaby msg18             
               []

@@ -62,7 +62,7 @@ module WebScraping_DPO =
                     fn
                 with
                 | ex ->
-                      logInfoMsg <| sprintf "052 %s" (string ex.Message)
+                      logInfoMsg <| sprintf "Err052 %s" (string ex.Message)
                       closeItBaby msg16      
 
             match action with                                                   
