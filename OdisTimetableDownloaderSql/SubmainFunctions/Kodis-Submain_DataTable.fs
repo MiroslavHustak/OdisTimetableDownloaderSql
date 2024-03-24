@@ -440,11 +440,11 @@ module KODIS_SubmainDataTable =
                                oldPrefix.Replace("NAD_", "NAD_0")
                          | 8  -> 
                                let s1 = oldPrefix
-                               let s2 = sprintf "X_%s%s" <| getString(2, "0") <| s1.[2..]
+                               let s2 = sprintf "X_%s%s" <| getStringFold(2, "0") <| s1.[2..]
                                oldPrefix.Replace(s1, s2)
                          | 9  ->
                                let s1 = oldPrefix
-                               let s2 = sprintf "X_%s%s" <| getString(1, "0") <| s1.[2..]
+                               let s2 = sprintf "X_%s%s" <| getStringFold(1, "0") <| s1.[2..]
                                oldPrefix.Replace(s1, s2)
                          | 10 ->
                                sprintf "%s" oldPrefix
@@ -453,8 +453,8 @@ module KODIS_SubmainDataTable =
 
                 | _     ->
                          match oldPrefix.Length with                    
-                         | 2  -> sprintf "%s%s" <| getString(2, "0") <| oldPrefix   //sprintf "00%s" oldPrefix
-                         | 3  -> sprintf "%s%s" <| getString(1, "0") <| oldPrefix   //sprintf "0%s" oldPrefix                  
+                         | 2  -> sprintf "%s%s" <| getStringFold(2, "0") <| oldPrefix   //sprintf "00%s" oldPrefix
+                         | 3  -> sprintf "%s%s" <| getStringFold(1, "0") <| oldPrefix   //sprintf "0%s" oldPrefix                  
                          | _  -> oldPrefix
                           
             let input = 

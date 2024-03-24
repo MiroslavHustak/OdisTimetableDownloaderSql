@@ -222,7 +222,14 @@ module MyString = //priklad pouziti: getString(8, "0")//tuple a compiled nazev v
                          loop tail finalString  //Tail-recursive function calls that have their parameters passed by the pipe operator are not optimized as loops #6984
     
         loop listRange initialString
+        
+    //List.reduce nelze, tam musi byt stejny typ acc a range      
+    [<CompiledName "GetStringFold">] 
+    let internal getStringFold (numberOfStrings: int, stringToAdd: string): string =
 
+        [1 .. numberOfStrings]
+        |> List.fold (fun acc i -> (+) acc stringToAdd) String.Empty
+                  
 module CheckNetConnection =  
 
     open System.Net.NetworkInformation
