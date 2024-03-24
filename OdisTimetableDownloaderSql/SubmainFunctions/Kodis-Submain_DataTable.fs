@@ -649,7 +649,7 @@ module KODIS_SubmainDataTable =
                 )              
         with
         | ex ->           
-              logInfoMsg <| sprintf "013 %s" (string ex.Message)
+              logInfoMsg <| sprintf "Err013 %s" (string ex.Message)
               closeItBaby msg16        
 
     let private downloadAndSaveTimetables pathToDir =     //FsHttp
