@@ -23,6 +23,7 @@ open Settings.SettingsKODIS
 open Settings.SettingsGeneral
 
 open Helpers
+open Helpers.MyString
 open Helpers.Builders
 open Helpers.CloseApp    
 open Helpers.MsgBoxClosing
@@ -439,11 +440,11 @@ module KODIS_SubmainDataTable =
                                oldPrefix.Replace("NAD_", "NAD_0")
                          | 8  -> 
                                let s1 = oldPrefix
-                               let s2 = sprintf "X_00%s" s1.[2..]
+                               let s2 = sprintf "X_%s%s" <| getString(2, "0") <| s1.[2..]
                                oldPrefix.Replace(s1, s2)
                          | 9  ->
                                let s1 = oldPrefix
-                               let s2 = sprintf "X_0%s" s1.[2..]
+                               let s2 = sprintf "X_%s%s" <| getString(1, "0") <| s1.[2..]
                                oldPrefix.Replace(s1, s2)
                          | 10 ->
                                sprintf "%s" oldPrefix
@@ -452,15 +453,15 @@ module KODIS_SubmainDataTable =
 
                 | _     ->
                          match oldPrefix.Length with                    
-                         | 2  -> sprintf "00%s" oldPrefix
-                         | 3  -> sprintf "0%s" oldPrefix                  
+                         | 2  -> sprintf "%s%s" <| getString(2, "0") <| oldPrefix   //sprintf "00%s" oldPrefix
+                         | 3  -> sprintf "%s%s" <| getString(1, "0") <| oldPrefix   //sprintf "0%s" oldPrefix                  
                          | _  -> oldPrefix
-
+                          
             let input = 
                 match input.Contains("_t") with 
                 | true  -> input.Replace(pathKodisAmazonLink, sprintf"%s%s" pathKodisAmazonLink @"timetables/").Replace("_t.pdf", ".pdf") 
                 | false -> input   
-        
+                
             let fileToBeSaved = sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
 
             {

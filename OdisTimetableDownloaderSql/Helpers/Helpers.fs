@@ -207,7 +207,7 @@ module MyString = //priklad pouziti: getString(8, "0")//tuple a compiled nazev v
     open System
     
     [<CompiledName "GetString">]      
-    let getString (numberOfStrings: int, stringToAdd: string): string = 
+    let internal getString (numberOfStrings: int, stringToAdd: string): string = 
         
         let initialString = String.Empty   //initial value of the string
         let listRange = [ 1 .. numberOfStrings ] 
