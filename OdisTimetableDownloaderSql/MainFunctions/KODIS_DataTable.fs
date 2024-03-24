@@ -51,7 +51,8 @@ module WebScraping_KODISFMDataTable =
                                                      let param = next ()
                                                      interpret param
 
-            | Free (DownloadAndSaveJsonFM next)     ->                                                 
+            | Free (DownloadAndSaveJsonFM next)     ->      
+                                                     //Http request and IO operation (data from settings -> http request -> IO operation -> saving json files on HD)
                                                      let downloadAndSaveJson =  
                                                          KODIS_SubmainDataTable.downloadAndSaveJson ()  
                                                          in errorHandling downloadAndSaveJson
@@ -65,21 +66,48 @@ module WebScraping_KODISFMDataTable =
                                                          //SingleVariantDownload
                                                          | 1 -> 
                                                               let variant = variantList |> List.head
-                                                              KODIS_SubmainDataTable.deleteOneODISDirectory variant pathToDir                                                        
-                                                              let dirList = 
+
+                                                              //IO operation
+                                                              KODIS_SubmainDataTable.deleteOneODISDirectory variant pathToDir 
+                                                              
+                                                              //operation on data 
+                                                              let dirList =                                                                    
                                                                   KODIS_SubmainDataTable.createOneNewDirectory  //list -> aby bylo mozno pouzit funkci createFolders bez uprav  
                                                                   <| pathToDir 
                                                                   <| KODIS_SubmainDataTable.createDirName variant listODISDefault4 
+
+                                                              //IO operation 
                                                               KODIS_SubmainDataTable.createFolders dirList
-                                                              KODIS_SubmainDataTable.downloadAndSave variant (dirList |> List.head)  
+
+                                                              //operation on data 
+                                                              //input from saved json files -> change of input data -> output into array -> input from array -> change of input data -> output into datatable -> data filtering (link*path)  
+                                                              KODIS_SubmainDataTable.operationOnDataFromJson variant (dirList |> List.head) 
+
+                                                              //IO operation (data filtering (link*path) -> http request -> saving pdf files on HD)
+                                                              |> KODIS_SubmainDataTable.downloadAndSave (dirList |> List.head) 
 
                                                          //BulkVariantDownload       
                                                          | _ ->  
+                                                               //IO operation
                                                               KODIS_SubmainDataTable.deleteAllODISDirectories pathToDir
+                                                              
+                                                              //operation on data 
                                                               let dirList = KODIS_SubmainDataTable.createNewDirectories pathToDir listODISDefault4
+                                                              
+                                                              //IO operation 
                                                               KODIS_SubmainDataTable.createFolders dirList 
+                                                              
                                                               (variantList, dirList)
-                                                              ||> List.iter2 (fun variant dir -> KODIS_SubmainDataTable.downloadAndSave variant dir)     
+                                                              ||> List.iter2 
+                                                                  (fun variant dir 
+                                                                      -> 
+                                                                       //operation on data 
+                                                                       //input from saved json files -> change of input data -> output into array -> input from array -> change of input data -> output into datatable -> data filtering (link*path)  
+                                                                       KODIS_SubmainDataTable.operationOnDataFromJson variant dir 
+
+                                                                       //IO operation (data filtering (link*path) -> http request -> saving pdf files on HD)
+                                                                       |> KODIS_SubmainDataTable.downloadAndSave dir   
+                                                                  )     
                                                                                                              
                                                          in errorHandling downloadSelectedVariant  
 

@@ -149,9 +149,9 @@ module InsertSelectSort =
                           seqFromDataTable                          
                           |> Seq.filter
                               (fun row ->
-                                        let startDate = (row |> dataTransformation).startDate
-                                        let endDate = (row |> dataTransformation).endDate
-                                        let fileToBeSaved = (row |> dataTransformation).fileToBeSaved                      
+                                        let startDate = (row |> dataTransformation).startDate |> function StartDateDt value -> value
+                                        let endDate = (row |> dataTransformation).endDate |> function EndDateDt value -> value
+                                        let fileToBeSaved = (row |> dataTransformation).fileToBeSaved |> function FileToBeSaved value -> value                      
                                         condition startDate endDate currentTime fileToBeSaved
                               )     
                           |> Seq.map
@@ -166,9 +166,9 @@ module InsertSelectSort =
                           seqFromDataTable
                           |> Seq.filter
                               (fun row ->
-                                        let startDate = (row |> dataTransformation).startDate
-                                        let endDate = (row |> dataTransformation).endDate
-                                        let fileToBeSaved = (row |> dataTransformation).fileToBeSaved                      
+                                        let startDate = (row |> dataTransformation).startDate |> function StartDateDt value -> value
+                                        let endDate = (row |> dataTransformation).endDate |> function EndDateDt value -> value
+                                        let fileToBeSaved = (row |> dataTransformation).fileToBeSaved |> function FileToBeSaved value -> value                       
                                         condition startDate endDate currentTime fileToBeSaved
                               )           
                           |> Seq.sortByDescending (fun row -> (row |> dataTransformation).startDate)

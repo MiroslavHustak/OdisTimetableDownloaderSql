@@ -34,7 +34,7 @@ open TransformationLayers.TransformationLayerSend
 
 module KODIS_SubmainDataTable =    
         
-    //DO NOT DIVIDE this module into parts in line with the main design pattern yet - KODIS keeps making unpredictable changes or amendments
+    //DO NOT DIVIDE this module into parts in line with the main design yet - KODIS keeps making unpredictable changes or amendments
 
     type internal KodisTimetables = JsonProvider<pathJson> 
 
@@ -65,7 +65,8 @@ module KODIS_SubmainDataTable =
     |> Async.StartImmediate   
 
     //************************Main code***********************************************************
-           
+        
+    //data from settings -> http request -> IO operation -> saving json files on HD 
     let internal downloadAndSaveJson () = //FsHttp
                
         let l = jsonLinkList |> List.length
@@ -165,8 +166,9 @@ module KODIS_SubmainDataTable =
                              closeItBaby msg5A  
 
         fSharpAsyncParallel ()      
-   
-    let private digThroughJsonStructure () = //prohrabeme se strukturou json souboru //printfn -> additional 4 parameters
+    
+    //input from saved json files -> change of input data -> output into array
+    let private digThroughJsonStructure () = //prohrabeme se strukturou json souboru 
     
         let kodisTimetables : Reader<string list, string array> = 
 
@@ -238,7 +240,7 @@ module KODIS_SubmainDataTable =
                                                        value |> fn1
                                          | None       -> 
                                                        msg5 () 
-                                                       logInfoMsg <| sprintf "Err007A %s" "resulting in None"
+                                                       logInfoMsg <| sprintf "Err007E %s" "resulting in None"
                                                        [||]                 
 
                                  let fn3 (item: JsonProvider<pathJson>.Root) =  //quli tomuto je nutno Array 
@@ -248,7 +250,7 @@ module KODIS_SubmainDataTable =
                                                        value |> Array.collect fn2 
                                          | None       ->
                                                        msg5 () 
-                                                       logInfoMsg <| sprintf "Err007B %s" "resulting in None"
+                                                       logInfoMsg <| sprintf "Err007F %s" "resulting in None"
                                                        [||] 
                                                       
                                  let kodisJsonSamples = KodisTimetables.Parse(File.ReadAllText pathToJson) |> Option.ofNull  
@@ -259,7 +261,7 @@ module KODIS_SubmainDataTable =
                                                    value |> Array.collect fn3 
                                      | None       -> 
                                                    msg5 () 
-                                                   logInfoMsg <| sprintf "Err007C %s" "resulting in None"
+                                                   logInfoMsg <| sprintf "Err007G %s" "resulting in None"
                                                    [||]                                 
                             ) 
                 
@@ -277,7 +279,7 @@ module KODIS_SubmainDataTable =
                                         value
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "Err007D %s" (string ex.Message) 
+                              logInfoMsg <| sprintf "Err007H %s" (string ex.Message) 
                               msg5 ()
                               closeItBaby msg16 
                               [||]                          
@@ -296,7 +298,8 @@ module KODIS_SubmainDataTable =
 
         //kodisAttachments() |> Set.ofArray //over cas od casu
         //kodisTimetables() |> Set.ofArray //over cas od casu
-
+    
+    //input from array -> change of input data -> output into datatable -> filtering data from datable -> links*paths     
     let private filterTimetables () param (pathToDir: string) diggingResult = 
 
         //*************************************Helpers for SQL columns********************************************
@@ -461,15 +464,15 @@ module KODIS_SubmainDataTable =
             let fileToBeSaved = sprintf "%s%s%s.pdf" (newPrefix oldPrefix) totalDateInterval suffix
 
             {
-                oldPrefix = oldPrefix
-                newPrefix = newPrefix oldPrefix
-                startDate = TryParserDate.parseDate () <| extractStartDate totalDateInterval
-                endDate = TryParserDate.parseDate () <| extractEndDate totalDateInterval
-                totalDateInterval = totalDateInterval
-                suffix = suffix
-                jsGeneratedString = jsGeneratedString
-                completeLink = input
-                fileToBeSaved = fileToBeSaved
+                oldPrefix = OldPrefix oldPrefix
+                newPrefix = NewPrefix (newPrefix oldPrefix)
+                startDate = StartDateDtOpt (TryParserDate.parseDate () <| extractStartDate totalDateInterval)
+                endDate = EndDateDtOpt (TryParserDate.parseDate () <| extractEndDate totalDateInterval)
+                totalDateInterval = TotalDateInterval totalDateInterval
+                suffix = Suffix suffix
+                jsGeneratedString = JsGeneratedString jsGeneratedString
+                completeLink = CompleteLink input
+                fileToBeSaved = FileToBeSaved fileToBeSaved
             }
             |> dtDataTransformLayerSend  
 
@@ -497,9 +500,11 @@ module KODIS_SubmainDataTable =
 
         
         //**********************Cesty pro soubory pro aktualni a dlouhodobe platne a pro ostatni********************************************************
-        let createPathsForDownloadedFiles list =
+        let createPathsForDownloadedFiles filteredList =
             
-            list 
+            filteredList
+            |> List.map 
+                (fun item -> fst item |> function CompleteLink value -> value, snd item |> function FileToBeSaved value -> value)
             |> List.map
                 (fun (link, file) 
                     -> 
@@ -543,8 +548,9 @@ module KODIS_SubmainDataTable =
             | ReplacementService        -> DataTable.InsertSelectSort.sortLinksOut () dataToBeInserted ReplacementService |> createPathsForDownloadedFiles  
             | WithoutReplacementService -> DataTable.InsertSelectSort.sortLinksOut () dataToBeInserted WithoutReplacementService |> createPathsForDownloadedFiles 
         
-        selectDataFromDt  // |> List.iter _.Delete(true) 
- 
+        selectDataFromDt  
+     
+    //IO operations made separate in order to have some structure in the free-monad-based design (for educational purposes)   
     let internal deleteAllODISDirectories pathToDir = 
 
         let deleteIt : Reader<string list, unit> = 
@@ -575,19 +581,21 @@ module KODIS_SubmainDataTable =
         msg10 () 
         msg11 ()     
  
+    //Operations on data made separate in order to have some structure in the free-monad-based design (for educational purposes)   
     let internal createNewDirectories pathToDir : Reader<string list, string list> =
-        //Reader monad for educational purposes only, no real benefit here
+        
         reader
             { 
-                let! getDefaultRecordValues = 
+                let! getDefaultRecordValues = //Reader monad for educational purposes only, no real benefit here
                     fun env -> env in return getDefaultRecordValues |> List.map (fun item -> sprintf"%s\%s"pathToDir item) 
             } 
 
-    let internal createDirName variant : Reader<string list, string> = //Reader monad for educational purposes only, no real benefit here
+    //Operations on data made separate in order to have some structure in the free-monad-based design (for educational purposes)   
+    let internal createDirName variant : Reader<string list, string> = 
 
         reader
             {
-                let! getDefaultRecordValues = fun env -> env
+                let! getDefaultRecordValues = fun env -> env //Reader monad for educational purposes only, no real benefit here
 
                 return 
                     match variant with 
@@ -597,6 +605,7 @@ module KODIS_SubmainDataTable =
                     | WithoutReplacementService -> getDefaultRecordValues |> List.item 3
             } 
 
+    //IO operations made separate in order to have some structure in the free-monad-based design (for educational purposes)   
     let internal deleteOneODISDirectory variant pathToDir =
 
         //smazeme pouze jeden adresar obsahujici stare JR, ostatni ponechame
@@ -618,7 +627,7 @@ module KODIS_SubmainDataTable =
                                              
                         with
                         | ex -> 
-                              logInfoMsg <| sprintf "Err012A %s" (string ex.Message)
+                              logInfoMsg <| sprintf "Err012B %s" (string ex.Message)
                               closeItBaby msg16 
                 }
 
@@ -627,9 +636,11 @@ module KODIS_SubmainDataTable =
         msg10 () 
         msg11 ()   
  
-     //list -> aby bylo mozno pouzit funkci createFolders bez uprav
+    //list -> aby bylo mozno pouzit funkci createFolders bez uprav
+    //Operations on data made separate in order to have some structure in the free-monad-based design (for educational purposes)     
     let internal createOneNewDirectory pathToDir dirName = [ sprintf"%s\%s"pathToDir dirName ] 
- 
+  
+    //IO operations made separate in order to have some structure in the free-monad-based design (for educational purposes)    
     let internal createFolders dirList =  
         try
             dirList
@@ -651,7 +662,8 @@ module KODIS_SubmainDataTable =
         | ex ->           
               logInfoMsg <| sprintf "Err013 %s" (string ex.Message)
               closeItBaby msg16        
-
+    
+    //input from data filtering (links*paths) -> http request -> IO operation -> saving pdf data files on HD    
     let private downloadAndSaveTimetables pathToDir =     //FsHttp
         
         msgParam3 pathToDir  
@@ -743,8 +755,21 @@ module KODIS_SubmainDataTable =
                                           msgParam7 msg23  //nechame chybu projit v loop                                            
                     )                        
             } 
-            
-    let internal downloadAndSave variant dir = 
+     
+    let internal operationOnDataFromJson variant dir =   
+        
+        try    
+            //operation on data
+            //input from saved json files -> change of input data -> output into array >>
+            //>> input from array -> change of input data -> output into datatable -> data filtering (links*paths)
+            digThroughJsonStructure >> filterTimetables () variant dir <| ()                       
+        with
+        | ex -> 
+              logInfoMsg <| sprintf "Err018 %s" (string ex.Message)
+              closeItBaby msg16 
+              []
+                           
+    let internal downloadAndSave dir list = 
 
         match dir |> Directory.Exists with 
         | false -> 
@@ -752,12 +777,10 @@ module KODIS_SubmainDataTable =
                  msg13 ()                                               
         | true  ->
                  try
-                     digThroughJsonStructure () 
-                     |>
-                     filterTimetables () variant dir 
-                     |>
-                     downloadAndSaveTimetables dir 
+                     //input from data filtering (links*paths) -> http request -> saving pdf files on HD
+                     downloadAndSaveTimetables dir list 
                  with
                  | ex -> 
-                       logInfoMsg <| sprintf "Err018 %s" (string ex.Message)
-                       closeItBaby msg16     
+                       logInfoMsg <| sprintf "Err019 %s" (string ex.Message)
+                       closeItBaby msg16   
+                               

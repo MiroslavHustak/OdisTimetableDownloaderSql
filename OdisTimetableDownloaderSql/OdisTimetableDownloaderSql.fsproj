@@ -14,6 +14,7 @@
     <Content Include="KODISJson\kodisMHDTotal.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Compile Include="Types\SCDUs.fs" />
     <Compile Include="Types\DirNames.fs" />
     <Compile Include="Types\ErrorTypes.fs" />
     <Compile Include="Types\DiscriminatedUnions.fs" />

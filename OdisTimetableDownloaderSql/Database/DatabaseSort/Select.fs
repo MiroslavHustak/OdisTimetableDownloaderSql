@@ -4,6 +4,8 @@ open System
 open FsToolkit.ErrorHandling
 open Microsoft.Data.SqlClient
 
+open Types
+
 open Helpers
 open Helpers.CloseApp
 
@@ -49,7 +51,10 @@ module Select =
 
                          let result = dbDataTransformLayerGet record
 
-                         (result.completeLink, result.fileToBeSaved)
+                         let link = result.completeLink |> function CompleteLinkOpt value -> value
+                         let file = result.fileToBeSaved |> function FileToBeSavedOpt value -> value
+
+                         (link, file)
                          |> function
                              | Some link, Some file 
                                  -> 

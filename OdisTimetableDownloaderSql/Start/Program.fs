@@ -189,7 +189,7 @@ let main argv =
                                          Console.Clear()
                                             
                                          webscraping_KODISFMDataTable path variant 
-                                         //webscraping_KODISFM path variant 
+                                         //webscraping_KODISFM path variant //database-based app
                                             
                                          printfn "%c" <| char(32)         
                                          printfn "JŘ s chybějícími údaji o platnosti (např. NAD bez dalších údajů), pokud existovaly, nebyly staženy."
