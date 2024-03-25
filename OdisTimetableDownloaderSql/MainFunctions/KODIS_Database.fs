@@ -99,7 +99,7 @@ module WebScraping_KODISFM =
 
                                                          //BulkVariantDownload       
                                                          | _ ->  
-                                                               //IO operation
+                                                              //IO operation
                                                               KODIS_Submain.deleteAllODISDirectories pathToDir
                                                               
                                                               //operation on data 
