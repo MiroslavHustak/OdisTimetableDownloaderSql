@@ -18,7 +18,7 @@ module ProgressBarFSharp =
 
         let bytes = //437 je tzv. Extended ASCII            
             try
-                (System.Text.Encoding.GetEncoding(437).GetBytes("█")) 
+                System.Text.Encoding.GetEncoding(437).GetBytes("█") 
             with 
             | ex ->
                   logInfoMsg <| sprintf "Err027 %s" (string ex.Message)

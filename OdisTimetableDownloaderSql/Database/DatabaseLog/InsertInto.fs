@@ -26,9 +26,7 @@ module InsertInto =
         match dataToBeInserted.Length with
         | 0 -> 
              ()
-        | _ -> 
-             //let queryDeleteAll = "DELETE FROM LogEntries2"
-             
+        | _ ->              
              //https://learn.microsoft.com/en-us/sql/t-sql/statements/merge-transact-sql?view=sql-server-ver16
              //v tabulce budou jen nove hodnoty - hodnoty, ktere tam uz jsou, se z logu nebudou znovu nacitat         
              let queryInsert =        
@@ -58,7 +56,6 @@ module InsertInto =
                  let connection: SqlConnection = getConnection2 () 
                 
                  try                        
-                     //use cmdDeleteAll = new SqlCommand(queryDeleteAll, connection)             
                      use cmdInsert = new SqlCommand(queryInsert, connection)   
                     
                      let parameterTimeStamp = new SqlParameter()                 
@@ -78,7 +75,6 @@ module InsertInto =
                                         | :? System.FormatException as _       -> DateTime.MinValue //TODO pokud mne neco napadne, co lepsiho tady dat
                                         | _                                    -> DateTime.MinValue //TODO pokud mne neco napadne, co lepsiho tady dat
                                     
-                                    //cmdDeleteAll.ExecuteNonQuery() |> ignore //number of affected rows
                                     cmdInsert.Parameters.Clear() // Clear parameters for each iteration    
                                     parameterTimeStamp.Value <- timestamp                             
                                     cmdInsert.Parameters.Add(parameterTimeStamp) |> ignore    

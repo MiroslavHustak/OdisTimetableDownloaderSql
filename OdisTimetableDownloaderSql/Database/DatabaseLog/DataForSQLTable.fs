@@ -19,12 +19,12 @@ module DataForSQLTable =
             |> Array.map (fun line -> JArray.Parse(line))       
             |> Array.map 
                 (fun item -> 
-                            //tady nevadi pripadne String.Empty   
-                            let timestamp = string item.[0] //nelze Array.item 0
-                            let logName = string item.[1]
-                            let message = string item.[2]  
-                            //failwith "test extractLogEntries"
-                            timestamp, logName, message                     
+                           //tady nevadi pripadne String.Empty   
+                           let timestamp = string item.[0] //nelze Array.item 0
+                           let logName = string item.[1]
+                           let message = string item.[2]  
+                           //failwith "test extractLogEntries"
+                           timestamp, logName, message                     
                 ) 
             |> List.ofArray         
             |> List.distinct        
