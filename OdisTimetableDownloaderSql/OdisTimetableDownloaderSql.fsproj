@@ -31,7 +31,6 @@
     <Compile Include="Helpers\Parsing.fs" />
     <Compile Include="Helpers\ErrorHandling.fs" />
     <Compile Include="Helpers\Helpers.fs" />
-    <Compile Include="Helpers\CollectionSplitting.fs" />
     <Compile Include="Helpers\ListParallel.fs" />
     <Compile Include="Helpers\ProgressBarFSharp.fs" />
     <Compile Include="DataModelling\DataModels.fs" />
@@ -52,10 +51,11 @@
     <Compile Include="Database\DatabaseLog\InsertInto.fs" />
     <Compile Include="SubmainFunctions\DPO-Submain.fs" />
     <Compile Include="SubmainFunctions\MDPO-Submain.fs" />
+    <Compile Include="SubmainFunctions\EducationalCode\CollectionSplitting.fs" />
     <Compile Include="SubmainFunctions\EducationalCode\KODIS-Submain_Database.fs" />
     <Compile Include="SubmainFunctions\KODIS-Submain_DataTable.fs" />
     <Compile Include="MainFunctions\KODIS_DataTable.fs" />
-    <Compile Include="MainFunctions\KODIS_Database.fs" />
+    <Compile Include="MainFunctions\EducationalCode\KODIS_Database.fs" />
     <Compile Include="MainFunctions\MDPO.fs" />
     <Compile Include="MainFunctions\DPO.fs" />
     <Compile Include="Start\Program.fs" />
@@ -63,10 +63,10 @@
 
   <ItemGroup>
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
-    <PackageReference Include="FSharp.Data" Version="6.3.0" />
+    <PackageReference Include="FSharp.Data" Version="6.4.0" />
     <PackageReference Include="FSharp.Quotations.Evaluator" Version="2.1.0" />
-    <PackageReference Include="FsHttp" Version="14.4.0" />
-    <PackageReference Include="FsToolkit.ErrorHandling" Version="4.11.0" />
+    <PackageReference Include="FsHttp" Version="14.5.0" />
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="4.15.1" />
     <PackageReference Include="Fugit" Version="0.4.1" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -78,7 +78,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.100" />
+    <PackageReference Update="FSharp.Core" Version="8.0.200" />
   </ItemGroup>
 
 </Project>

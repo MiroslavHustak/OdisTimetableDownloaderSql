@@ -12,6 +12,7 @@ open Settings.SettingsKODIS
 
 module CollectionSplitting =
 
+    //tady pouze pro educational code 
     let internal splitListByPrefix message (list: string list) : string list list = 
                 
         let prefix = fun (item: string) -> item.Substring(0, lineNumberLength)
@@ -25,7 +26,8 @@ module CollectionSplitting =
               logInfoMsg <| sprintf "024 %s" (string ex.Message) 
               closeItBaby msg16 
               [ [] ]   
-                        
+    
+    //tady pouze pro educational code 
     let internal splitListByPrefixExplanation message (list: string list) : string list list = 
                 
         let prefix = fun (item: string) -> item.Substring(0, lineNumberLength)
@@ -39,6 +41,7 @@ module CollectionSplitting =
               closeItBaby msg16
               [ [] ]   
     
+    //tady pouze pro educational code a z toho vyplyvajici testy
     let internal splitListIntoEqualParts (numParts: int) (originalList: 'a list) =   //almost equal parts :-)    
             
         //[<TailCall>] vyzkouseno separatne, bez varovnych hlasek
@@ -70,6 +73,7 @@ module CollectionSplitting =
                       
         splitAccumulator originalList [] numParts
     
+    //tady pouze pro educational code a z toho vyplyvajici testy
     let internal numberOfThreads () l =  
         
         let numberOfThreads = Environment.ProcessorCount //nesu exceptions
