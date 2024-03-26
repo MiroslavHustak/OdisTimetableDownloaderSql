@@ -90,83 +90,54 @@ module KODIS_SubmainDataTable =
                              }
                      loop 0
                 )
+                
+        msg2 ()    
+        msg15 ()
+        
+        Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
+        Console.CursorLeft <- 0    
+
+        let result = 
+            (jsonLinkList, pathToJsonList)
+            ||> List.Parallel.map2
+                (fun (uri: string) path
+                    ->                       
+                     async
+                         {    
+                             use! response = get >> Request.sendAsync <| uri 
+
+                             match response.statusCode with
+                             | HttpStatusCode.OK
+                                 ->                                                                                                   
+                                  counterAndProgressBar.Post(Incr 1)                                                   
+                                  do! response.SaveFileAsync >> Async.AwaitTask <| path                                                   
+                                  return Ok ()                                
+                             | _ ->  
+                                  return Error "HttpStatusCode.OK is not OK"     
+                         }  
+                         |> Async.Catch
+                         |> Async.RunSynchronously
+                         |> Result.ofChoice
+                )
+           
+        pyramidOfInferno
+            {
+                let errorFn1 err = 
+                    logInfoMsg <| sprintf "Err001 %s" err
+                    closeItBaby msg5A
+
+                let errorFn2 (err : exn) = 
+                    logInfoMsg <| sprintf "Err002 %s" (string err.Message)
+                    closeItBaby msg5A
+
+                let! value = result |> Result.sequence, errorFn2 
+                let! value = value |> Result.sequence, errorFn1
+
+                return value |> List.head
+            }    
        
-        let updateJson listTuple =    
-        
-            Console.Write("\r" + new string(' ', (-) Console.WindowWidth 1) + "\r")
-            Console.CursorLeft <- 0   
-            
-            let (jsonLinkList1, pathToJsonList1) = listTuple     
-
-            let result = 
-                (jsonLinkList1, pathToJsonList1)
-                ||> List.map2
-                     (fun (uri: string) path
-                         ->                       
-                          async
-                              {    
-                                  //failwith "Simulated exception"  
-                                  use! response = get >> Request.sendAsync <| uri 
-
-                                  match response.statusCode with
-                                  | HttpStatusCode.OK
-                                      ->                                                                                                   
-                                       counterAndProgressBar.Post(Incr 1)                                                   
-                                       do! response.SaveFileAsync >> Async.AwaitTask <| path                                                   
-                                       return Ok ()                                
-                                  | _ ->  
-                                       return Error "HttpStatusCode.OK is not OK"      
-                              }                         
-                              |> Async.Catch 
-                              |> Async.RunSynchronously
-                              |> Result.ofChoice                                  
-                     ) 
-                |> Result.sequence              
-               
-            pyramidOfInferno
-                {
-                    let errorFn1 err = 
-                        logInfoMsg <| sprintf "Err001 %s" err
-                        closeItBaby msg5A
-
-                    let errorFn2 (err : exn) = 
-                        logInfoMsg <| sprintf "Err002 %s" (string err.Message)
-                        closeItBaby msg5A
-
-                    let! value = result, errorFn2 
-                    let! value = value |> List.head, errorFn1
-
-                    return value
-                }             
-                                                 
-        msg2 ()      
-        
-        let fSharpAsyncParallel () =  
-
-            msg15 ()
-
-            let numberOfThreads1 = numberOfThreads () l
-
-            let myList =       
-                (splitListIntoEqualParts numberOfThreads1 jsonLinkList, splitListIntoEqualParts numberOfThreads1 pathToJsonList)
-                ||> List.zip                 
-                        
-            fun i -> <@ async { return updateJson (%%expr myList |> List.item %%(expr i)) } @>
-            |> List.init numberOfThreads1 
-            |> List.map _.Compile()       
-            |> Async.Parallel 
-            |> Async.Catch //zachytilo failwith "Simulated exception"
-            |> Async.RunSynchronously
-            |> Result.ofChoice           
-            |> function
-                | Ok _      ->                             
-                             msg3 () 
-                             msg4 ()
-                | Error err ->
-                             logInfoMsg <| sprintf "Err003 %s" (string err.Message)
-                             closeItBaby msg5A  
-
-        fSharpAsyncParallel ()      
+        msg3 ()   
+        msg4 ()   
     
     //input from saved json files -> change of input data -> output into array
     let private digThroughJsonStructure () = //prohrabeme se strukturou json souboru 
