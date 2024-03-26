@@ -41,7 +41,6 @@ module WebScraping_DPO =
             client: Http.HttpClient 
         }
 
-    //quli client neni default
     let private environment: Environment =
         { 
             filterTimetables = filterTimetables

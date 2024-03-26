@@ -39,7 +39,6 @@ module WebScraping_MDPO =
             downloadAndSaveTimetables: string -> Map<string, string> -> unit
         }
 
-    //quli client neni default
     let private environment: Environment =
         { 
             filterTimetables = filterTimetables 

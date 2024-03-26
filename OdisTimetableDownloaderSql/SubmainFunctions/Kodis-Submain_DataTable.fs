@@ -267,9 +267,6 @@ module KODIS_SubmainDataTable =
    
         (Array.append (Array.append <| kodisAttachments pathToJsonList <| kodisTimetables pathToJsonList) <| addOn()) |> Array.distinct 
         //(Array.append <| kodisAttachments () <| kodisTimetables ()) |> Array.distinct 
-
-        //kodisAttachments() |> Set.ofArray //over cas od casu
-        //kodisTimetables() |> Set.ofArray //over cas od casu
     
     //input from array -> change of input data -> output into datatable -> filtering data from datable -> links*paths     
     let private filterTimetables () param (pathToDir: string) diggingResult = 
@@ -640,47 +637,7 @@ module KODIS_SubmainDataTable =
         
         msgParam3 pathToDir  
 
-        let asyncDownload (counterAndProgressBar : MailboxProcessor<Msg>) list =   
-            
-            cts.Cancel()
-            
-            list 
-            |> List.iter 
-                (fun (uri, (pathToFile: string)) 
-                    ->                         
-                     async
-                         {    
-                             match not <| NetworkInterface.GetIsNetworkAvailable() with
-                             | true  ->                                    
-                                      (processor () 0 Pdf).Post(First(1)) 
-                                      Thread.Sleep(600000)
-                             | false ->  
-                                      //failwith "Simulated exception"  
-                                      counterAndProgressBar.Post(Incr 1)
-                                       
-                                      let get uri =
-                                          http 
-                                              {
-                                                  config_timeoutInSeconds 120  //for educational purposes
-                                                  GET(uri) 
-                                              }    
-                                     
-                                      use! response = get >> Request.sendAsync <| uri  
-                                     
-                                      match response.statusCode with
-                                      | HttpStatusCode.OK -> return! response.SaveFileAsync >> Async.AwaitTask <| pathToFile      //Original FsHttp library function                                                                                                 
-                                      | _                 -> return msgParam8 msg22       //nechame chybu projit v loop                                                                                                                                  
-                         } 
-                         |> Async.Catch
-                         |> Async.RunSynchronously  
-                         |> Result.ofChoice                      
-                         |> function
-                             | Ok _      ->    
-                                          ()
-                             | Error err ->
-                                          logInfoMsg <| sprintf "Err014 %s" (string err.Message)
-                                          msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
-                )  
+        cts.Cancel()  
 
         reader
             {   
@@ -688,8 +645,6 @@ module KODIS_SubmainDataTable =
                     (fun (env : (string*string) list)
                         ->                           
                          let l = env |> List.length
-
-                         let numberOfThreads1 = numberOfThreads () l
 
                          let counterAndProgressBar =
                              MailboxProcessor.Start
@@ -708,24 +663,49 @@ module KODIS_SubmainDataTable =
                                                                        return! loop n
                                              }
                                      loop 0
-                                )                       
-                                                 
-                         let myList = splitListIntoEqualParts numberOfThreads1 env                             
-                              
-                         fun i -> <@ async { return asyncDownload counterAndProgressBar (%%expr myList |> List.item %%(expr i)) } @>
-                         |> List.init myList.Length
-                         |> List.map _.Compile()       
-                         |> Async.Parallel 
-                         |> Async.Catch 
-                         |> Async.RunSynchronously
-                         |> Result.ofChoice  
-                         |> function
-                             | Ok _      ->
-                                          msgParam4 pathToDir
-                             | Error err ->
-                                          logInfoMsg <| sprintf "Err015 %s" (string err.Message)   
-                                          msgParam7 msg23  //nechame chybu projit v loop                                            
-                    )                        
+                                )                            
+                         
+                         env
+                         |>  List.unzip             
+                         ||> List.Parallel.map2 
+                             (fun uri (pathToFile: string) 
+                                 ->                         
+                                  async
+                                      {    
+                                          match not <| NetworkInterface.GetIsNetworkAvailable() with
+                                          | true  ->                                    
+                                                   (processor () 0 Pdf).Post(First(1)) 
+                                                   Thread.Sleep(600000)
+                                          | false ->  
+                                                   //failwith "Simulated exception"  
+                                                   counterAndProgressBar.Post(Incr 1)
+                                                    
+                                                   let get uri =
+                                                       http 
+                                                           {
+                                                               config_timeoutInSeconds 120  //for educational purposes
+                                                               GET(uri) 
+                                                           }    
+                                                  
+                                                   use! response = get >> Request.sendAsync <| uri  
+                                                  
+                                                   match response.statusCode with
+                                                   | HttpStatusCode.OK -> return! response.SaveFileAsync >> Async.AwaitTask <| pathToFile      //Original FsHttp library function                                                                                                 
+                                                   | _                 -> return msgParam8 msg22       //nechame chybu projit v loop                                                                                                                                  
+                                      } 
+                                      |> Async.Catch
+                                      |> Async.RunSynchronously  
+                                      |> Result.ofChoice                      
+                                      |> function
+                                          | Ok _      ->    
+                                                       ()
+                                          | Error err ->
+                                                       logInfoMsg <| sprintf "Err014 %s" (string err.Message)
+                                                       msgParam2 uri  //nechame chybu projit v loop => nebude Result.sequence
+                             )  
+                         |> List.head 
+                         msgParam4 pathToDir
+                    )                 
             } 
      
     let internal operationOnDataFromJson variant dir =   
