@@ -41,42 +41,42 @@ module Select =
                     (fun _ -> 
                         seq
                             {
-                                let indexFst = reader.GetOrdinal("CompleteLink")
-                                let indexSnd = reader.GetOrdinal("FileToBeSaved")
-                                reader.GetString(indexFst) |> Option.ofNull, reader.GetString(indexSnd) |> Option.ofNull
+                                let indexCompleteLink = reader.GetOrdinal("CompleteLink")
+                                let indexFileToBeSaved = reader.GetOrdinal("FileToBeSaved")
+
+                                let record : DbDtoGet = 
+                                    {
+                                        completeLink = reader.GetString(indexCompleteLink) |> Option.ofNull
+                                        fileToBeSaved = reader.GetString(indexFileToBeSaved) |> Option.ofNull
+                                    }
+
+                                yield record    
                             }
                     ) 
                 |> List.ofSeq  
                 |> List.map 
-                    (fun (link, file)
-                        ->                                       
-                         let record : DbDtoGet = 
-                             {
-                                 completeLink = link
-                                 fileToBeSaved = file
-                             }
+                    (fun record -> 
+                                 let result = dbDataTransformLayerGet record
 
-                         let result = dbDataTransformLayerGet record
+                                 let link = result.completeLink |> function CompleteLinkOpt value -> value
+                                 let file = result.fileToBeSaved |> function FileToBeSavedOpt value -> value
 
-                         let link = result.completeLink |> function CompleteLinkOpt value -> value
-                         let file = result.fileToBeSaved |> function FileToBeSavedOpt value -> value
-
-                         (link, file)
-                         |> function
-                             | Some link, Some file 
-                                 -> 
-                                  Ok (link, file)
-                             | _                   
-                                 ->
-                                  //failwith msg18 
-                                  Error msg18
+                                 (link, file)
+                                 |> function
+                                     | Some link, Some file 
+                                         -> 
+                                          Ok (link, file)
+                                     | _                   
+                                         ->
+                                          //failwith msg18 
+                                          Error msg18
                     )
                 |> Result.sequence
                 |> function   
                     | Ok value  -> 
                                  value
                     | Error err -> 
-                                 logInfoMsg <| sprintf "019 %s" err
+                                 logInfoMsg <| sprintf "Err019 %s" err
                                  closeItBaby err
                                  []
             finally
