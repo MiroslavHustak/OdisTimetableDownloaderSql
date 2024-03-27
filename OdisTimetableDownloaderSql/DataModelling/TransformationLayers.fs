@@ -17,8 +17,8 @@ module TransformationLayerGet =
         
     let internal dbDataTransformLayerGet (dbDtoGet : DbDtoGet) : DbDataGet =
         {      
-            completeLink = CompleteLinkOpt (Casting.castAs<string> dbDtoGet.completeLink)
-            fileToBeSaved = FileToBeSavedOpt (Casting.castAs<string> dbDtoGet.fileToBeSaved)
+            completeLink = CompleteLinkOpt dbDtoGet.completeLink
+            fileToBeSaved = FileToBeSavedOpt dbDtoGet.fileToBeSaved
         }
 
     let private dtDataTransformLayerGetDefault : DtDataGet = 
@@ -32,32 +32,15 @@ module TransformationLayerGet =
 
     let internal dtDataTransformLayerGet (dtDtoGet : DtDtoGet) : DtDataGet =  
         
-        let newPrefix = Convert.ToString(dtDtoGet.newPrefix) //u datatable nelze Casting.castAs<string>, musi se pouzit Convert
-        let startDate = Convert.ToDateTime(dtDtoGet.startDate)
-        let endDate = Convert.ToDateTime(dtDtoGet.endDate)
-        let completeLink = Convert.ToString(dtDtoGet.completeLink)
-        let fileToBeSaved = Convert.ToString(dtDtoGet.fileToBeSaved)
-
-        let testString = 
-            [
-                newPrefix |> Option.ofNull  
-                completeLink |> Option.ofNull
-                fileToBeSaved |> Option.ofNull
-            ] 
-        
-        //ja vim, ze DataTime je non-nullable, ale radeji to tady tak nechavam, kdyby se neco menilo a preslo se na string a parseDate 
-        let testDateTime = 
-            [
-                startDate |> Option.ofNull 
-                endDate |> Option.ofNull
-            ] 
-
-        pyramidOfHell
+        pyramidOfDoom
            {
-               let! tString = not (testString |> List.contains None), dtDataTransformLayerGetDefault 
-               let! tDateTime = not (testDateTime |> List.contains None), dtDataTransformLayerGetDefault 
+               let! newPrefix = dtDtoGet.newPrefix, dtDataTransformLayerGetDefault //pri nesouladu se vraci vse jako default bez ohledu na ostatni vysledky
+               let! startDate = dtDtoGet.startDate, dtDataTransformLayerGetDefault 
+               let! endDate = dtDtoGet.endDate, dtDataTransformLayerGetDefault 
+               let! completeLink = dtDtoGet.completeLink, dtDataTransformLayerGetDefault 
+               let! fileToBeSaved = dtDtoGet.fileToBeSaved, dtDataTransformLayerGetDefault 
 
-               return 
+               return //vraci pouze pokud je vse spravne
                    {      
                        newPrefix = NewPrefix newPrefix
                        startDate = StartDateDt startDate

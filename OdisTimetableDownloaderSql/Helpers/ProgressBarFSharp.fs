@@ -12,8 +12,6 @@ module ProgressBarFSharp =
     // Adapted from C# code under MIT License, Copyright (c) 2017 Daniel Wolf, https://gist.github.com/DanielSWolf
     // ************************************************************************************************************
     
-    let private (++) a = (+) a 1
-
     let inline private updateProgressBar (currentProgress : int) (totalProgress : int) : unit =
 
         let bytes = //437 je tzv. Extended ASCII            
@@ -35,8 +33,8 @@ module ProgressBarFSharp =
         let progressBar = 
 
             let barWidth = 50 //nastavit delku dle potreby            
-            let percentComplete = (/) ((*) currentProgress 101) ((++) totalProgress) // :-) //101 proto, ze pri deleni 100 to po zaokrouhleni dalo jen 99%                    
-            let barFill = (/) ((*) currentProgress barWidth) totalProgress // :-)  messing about
+            let percentComplete = (currentProgress * 101) / (totalProgress + 1) //101 proto, ze pri deleni 100 to po zaokrouhleni dalo jen 99%                    
+            let barFill = (currentProgress * barWidth) / totalProgress 
                
             let characterToFill = string (Array.item 0 output) //moze byt baj aji "#"
             
@@ -50,7 +48,7 @@ module ProgressBarFSharp =
                                
             let remaining = 
                 try
-                    String.replicate (barWidth - (++) barFill) "*"
+                    String.replicate (barWidth - (barFill + 1)) "*"
                 with
                 | ex -> 
                       logInfoMsg <| sprintf "Err030 %s" (string ex.Message)

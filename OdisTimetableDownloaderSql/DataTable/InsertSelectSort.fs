@@ -127,11 +127,11 @@ module InsertSelectSort =
 
         let dtDataDtoGetDataTable (row : DataRow) : DtDtoGet =                         
             {           
-                newPrefix = row.["NewPrefix"]
-                startDate = row.["StartDate"]
-                endDate = row.["EndDate"]
-                completeLink = row.["CompleteLink"]
-                fileToBeSaved = row.["FileToBeSaved"]
+                newPrefix = Convert.ToString (row.["NewPrefix"]) |> Option.ofNull
+                startDate = Convert.ToDateTime (row.["StartDate"]) |> Option.ofNull
+                endDate = Convert.ToDateTime (row.["EndDate"]) |> Option.ofNull
+                completeLink = Convert.ToString (row.["CompleteLink"]) |> Option.ofNull
+                fileToBeSaved = Convert.ToString (row.["FileToBeSaved"]) |> Option.ofNull
             } 
 
         let dataTransformation row =                                 

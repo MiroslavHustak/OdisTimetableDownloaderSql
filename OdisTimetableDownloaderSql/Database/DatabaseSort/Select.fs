@@ -34,11 +34,18 @@ module Select =
                 //V pripade pouziti Oracle zkontroluj skutecny typ sloupce v .NET   
                 //let columnType = reader.GetFieldType(reader.GetOrdinal("OperatorID"))
                 //printfn "Column Type: %s" columnType.Name
-    
+                  
                 Seq.initInfinite (fun _ -> reader.Read() && reader.HasRows = true)
                 |> Seq.takeWhile ((=) true) 
                 |> Seq.collect
-                    (fun _ -> seq { reader.["CompleteLink"], reader.["FileToBeSaved"] }) 
+                    (fun _ -> 
+                        seq
+                            {
+                                let indexFst = reader.GetOrdinal("CompleteLink")
+                                let indexSnd = reader.GetOrdinal("FileToBeSaved")
+                                reader.GetString(indexFst) |> Option.ofNull, reader.GetString(indexSnd) |> Option.ofNull
+                            }
+                    ) 
                 |> List.ofSeq  
                 |> List.map 
                     (fun (link, file)

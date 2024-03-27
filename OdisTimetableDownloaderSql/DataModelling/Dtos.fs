@@ -7,17 +7,17 @@ module Dto =
 
     type DbDtoGet = 
         {
-            completeLink : obj             
-            fileToBeSaved : obj 
+            completeLink : string option             
+            fileToBeSaved : string option  
         }
 
     type DtDtoGet = 
         {           
-            newPrefix : obj 
-            startDate : obj
-            endDate : obj 
-            completeLink : obj 
-            fileToBeSaved : obj 
+            newPrefix : string option  
+            startDate : DateTime option 
+            endDate : DateTime option  
+            completeLink : string option  
+            fileToBeSaved : string option  
         } 
 
     type DbDtoSend = 
