@@ -144,7 +144,7 @@ module Option =
                             
 module Casting = 
     
-    //normalne nepouzivat!!!
+    //normalne nepouzivat!!! zatim nutnost jen u deserializace xml - viz SAFE Stack app
     let inline internal castAs<'a> (o: obj) : 'a option =    //the :? operator in F# is used for type testing     srtp pri teto strukture nefunguje
         match Option.ofNull o with
         | Some (:? 'a as result) -> Some result
