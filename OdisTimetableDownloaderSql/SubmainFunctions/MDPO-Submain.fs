@@ -141,7 +141,7 @@ module MDPO_Submain =
                                       |> List.tryFind (fun item -> (=) err item)
                                       |> function
                                          | Some err ->
-                                                     logInfoMsg <| sprintf "040 %s" err
+                                                     logInfoMsg <| sprintf "Err040 %s" err
                                                      closeItBaby err                                                                      
                                          | None     -> 
                                                      msgParam2 link 

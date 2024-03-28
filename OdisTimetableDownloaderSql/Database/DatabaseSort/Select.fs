@@ -39,19 +39,19 @@ module Select =
                 |> Seq.takeWhile ((=) true) 
                 |> Seq.collect
                     (fun _ -> 
-                        seq
-                            {
-                                let indexCompleteLink = reader.GetOrdinal("CompleteLink")
-                                let indexFileToBeSaved = reader.GetOrdinal("FileToBeSaved")
+                            seq
+                                {
+                                    let indexCompleteLink = reader.GetOrdinal("CompleteLink")
+                                    let indexFileToBeSaved = reader.GetOrdinal("FileToBeSaved")
 
-                                let record : DbDtoGet = 
-                                    {
-                                        completeLink = reader.GetString(indexCompleteLink) |> Option.ofNull
-                                        fileToBeSaved = reader.GetString(indexFileToBeSaved) |> Option.ofNull
-                                    }
+                                    let record : DbDtoGet = 
+                                        {
+                                            completeLink = reader.GetString(indexCompleteLink) |> Option.ofNull
+                                            fileToBeSaved = reader.GetString(indexFileToBeSaved) |> Option.ofNull
+                                        }
 
-                                yield record    
-                            }
+                                    yield record    
+                                }
                     ) 
                 |> List.ofSeq  
                 |> List.map 

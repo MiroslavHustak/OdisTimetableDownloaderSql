@@ -5,6 +5,7 @@ module ConsoleFixers = //tryWith blok je kajsy indze
     open System
 
     let internal consoleAppProblemFixer () = 
+
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance)  
       
     let internal consoleWindowSettings () =
@@ -84,8 +85,8 @@ module CopyingOrMovingFiles = //output in Result type
                 processFile source destination action
         with
         | err ->
-              logInfoMsg <| sprintf "Err023 %s" (string err.Message)
-              Error <| sprintf "Chyba při přemísťování souboru %s do %s" source destination
+               logInfoMsg <| sprintf "Err023 %s" (string err.Message)
+               Error <| sprintf "Chyba při přemísťování souboru %s do %s" source destination
     
 module CopyingOrMovingFilesFreeMonad =   //not used yet  
 
@@ -250,7 +251,9 @@ module CheckNetConnection =
             myPing.Send(host, timeout, buffer, pingOptions)
             |> (Option.ofNull >> Option.bind 
                     (fun pingReply -> 
-                                    Option.fromBool (pingReply |> ignore) (pingReply.Status = IPStatus.Success)                                           
+                                    Option.fromBool
+                                        (pingReply |> ignore) 
+                                        ((=) pingReply.Status IPStatus.Success)                                           
                     )
                 ) 
         with

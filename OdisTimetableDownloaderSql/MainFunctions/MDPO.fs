@@ -14,6 +14,8 @@ open SubmainFunctions.MDPO_Submain
 
 module WebScraping_MDPO =
 
+    //Design pattern for WebScraping_MDPO : AbstractApplePlumCherryApricotBrandyProxyDistilleryBean 
+
     //************************Main code*******************************************************************************
 
     type private State =  //not used
@@ -35,8 +37,8 @@ module WebScraping_MDPO =
 
     type private Environment = 
         {
-            filterTimetables: string -> Map<string, string>
-            downloadAndSaveTimetables: string -> Map<string, string> -> unit
+            filterTimetables : string -> Map<string, string>
+            downloadAndSaveTimetables : string -> Map<string, string> -> unit
         }
 
     let private environment: Environment =

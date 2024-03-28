@@ -14,6 +14,8 @@ open Settings.SettingsGeneral
 open SubmainFunctions.DPO_Submain
 
 module WebScraping_DPO =   
+
+    //Design pattern for WebScraping_DPO : AbstractApplePlumCherryApricotBrandyProxyDistilleryBean 
     
     //************************Main code********************************************************************************
 
@@ -36,9 +38,9 @@ module WebScraping_DPO =
 
     type private Environment = 
         {
-            filterTimetables: string -> (string*string) list
-            downloadAndSaveTimetables: Http.HttpClient -> string -> (string*string) list -> unit
-            client: Http.HttpClient 
+            filterTimetables : string -> (string*string) list
+            downloadAndSaveTimetables : Http.HttpClient -> string -> (string*string) list -> unit
+            client : Http.HttpClient 
         }
 
     let private environment: Environment =

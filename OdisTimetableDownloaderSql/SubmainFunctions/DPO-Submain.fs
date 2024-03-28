@@ -173,7 +173,7 @@ module DPO_Submain =
                                       |> List.tryFind (fun item -> (=) err item)
                                       |> function
                                           | Some err ->
-                                                      logInfoMsg <| sprintf "036 %s" err
+                                                      logInfoMsg <| sprintf "Err036 %s" err
                                                       closeItDpo client err                                                                      
                                           | None     -> 
                                                       msgParam2 link 
